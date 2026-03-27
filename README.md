@@ -1,70 +1,186 @@
-# Getting Started with Create React App
+```
+ ██████╗ ██████╗ ██████╗ ███████╗██╗  ██╗██████╗ ███████╗██████╗ ████████╗███████╗
+██╔════╝██╔═══██╗██╔══██╗██╔════╝╚██╗██╔╝██╔══██╗██╔════╝██╔══██╗╚══██╔══╝██╔════╝
+██║     ██║   ██║██║  ██║█████╗   ╚███╔╝ ██████╔╝█████╗  ██████╔╝   ██║   ███████╗
+██║     ██║   ██║██║  ██║██╔══╝   ██╔██╗ ██╔═══╝ ██╔══╝  ██╔══██╗   ██║   ╚════██║
+╚██████╗╚██████╔╝██████╔╝███████╗██╔╝ ██╗██║     ███████╗██║  ██║   ██║   ███████║
+ ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝
+```
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# codeXperts Club — Official Website
 
-## Available Scripts
+> A collaborative portfolio project built with Agile methodology, showcasing real-world team workflows, role-based access control, and modern full-stack development practices.
 
-In the project directory, you can run:
+---
 
-### `npm start`
+![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+![Firebase](https://img.shields.io/badge/Firebase-Firestore%20%7C%20Auth%20%7C%20Functions-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.x-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Agile Process
 
-### `npm test`
+This project follows a structured Agile workflow designed to reflect industry-standard team practices.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Sprint-Based Development
+- Work is broken into **1-week sprints** with clear goals and deliverables
+- Sprint planning, review, and retrospective are conducted each cycle
+- Backlog is maintained and prioritized continuously
 
-### `npm run build`
+### GitHub Projects — Kanban Board
+| Column | Description |
+|--------|-------------|
+| `Backlog` | Unscheduled items |
+| `To Do` | Committed for current sprint |
+| `In Progress` | Actively being developed |
+| `In Review` | PR open, awaiting review |
+| `Done` | Merged and deployed |
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Issue & PR Convention
+- **Issue title format:** `[Type] Short description`
+  - Types: `feat`, `fix`, `docs`, `refactor`, `chore`
+- **PR title format:** mirrors the linked issue
+- All PRs require at least **1 reviewer approval** before merge
+- PRs are linked to their corresponding issue
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Branch Strategy
+```
+main
+└── develop
+    ├── feature/auth-google-login
+    ├── feature/admin-dashboard
+    ├── fix/member-approval-flow
+    └── docs/update-readme
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+| Branch | Purpose |
+|--------|---------|
+| `main` | Production-ready code only |
+| `develop` | Integration branch — all features merge here first |
+| `feature/*` | Individual feature or fix branches |
 
-### `npm run eject`
+> **Rule:** Never commit directly to `main`. All changes go through `develop` via reviewed PRs.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+---
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## System Architecture
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### Role-Based Access Control (RBAC)
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```
+Public (Unauthenticated)
+  └── Member (Approved)
+        └── Executive
+              └── Admin
+```
 
-## Learn More
+| Role | Access Level |
+|------|-------------|
+| **Public** | Landing page, public announcements |
+| **Member** | Club dashboard, member directory |
+| **Executive** | Project management, internal docs |
+| **Admin** | User approval, role management, full access |
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+**Onboarding Flow:**
+```
+Google Sign-In → pending status → Admin approval → member role assigned
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Firebase Architecture
 
-### Code Splitting
+```
+Firebase
+├── Authentication
+│   └── Google OAuth Provider
+├── Firestore
+│   ├── /users/{uid}         → profile, role, status
+│   ├── /announcements/{id}  → public & member posts
+│   └── /projects/{id}       → club project records
+└── Cloud Functions
+    ├── onUserCreate         → set pending status on new signup
+    └── approveUser          → admin-triggered role assignment
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+---
 
-### Analyzing the Bundle Size
+## Folder Structure
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+```
+codexperts-web/
+├── public/
+├── src/
+│   ├── assets/              # Images, icons, static files
+│   ├── components/
+│   │   ├── common/          # Shared layout components (Navbar, Footer)
+│   │   ├── auth/            # Login, ProtectedRoute, RoleGuard
+│   │   └── ui/              # Reusable UI primitives (Button, Card, Modal)
+│   ├── pages/
+│   │   └── Admin/           # Admin-only views (UserManagement, Approvals)
+│   ├── hooks/               # Custom React hooks (useAuth, useRole)
+│   ├── contexts/            # React Context providers (AuthContext)
+│   ├── services/            # Firebase service modules (auth.js, db.js)
+│   ├── routes/              # Route definitions and role-based guards
+│   └── utils/               # Helper functions and constants
+├── docs/
+│   ├── meeting-notes/       # Sprint meeting records
+│   ├── guidelines/          # Coding standards, contribution guide
+│   └── schema/              # Firestore data models
+├── package.json
+└── README.md
+```
 
-### Making a Progressive Web App
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## Getting Started
 
-### Advanced Configuration
+### Prerequisites
+- Node.js v18+
+- A Firebase project with **Authentication** and **Firestore** enabled
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+### Installation
 
-### Deployment
+```bash
+# 1. Clone the repository
+git clone https://github.com/<org>/codexperts-web.git
+cd codexperts-web
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+# 2. Install dependencies
+npm install
 
-### `npm run build` fails to minify
+# 3. Set up environment variables
+cp .env.example .env.local
+# Fill in your Firebase config values in .env.local
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+# 4. Start the development server
+npm start
+```
+
+The app will be running at `http://localhost:3000`.
+
+### Environment Variables
+
+```
+REACT_APP_FIREBASE_API_KEY=
+REACT_APP_FIREBASE_AUTH_DOMAIN=
+REACT_APP_FIREBASE_PROJECT_ID=
+REACT_APP_FIREBASE_STORAGE_BUCKET=
+REACT_APP_FIREBASE_MESSAGING_SENDER_ID=
+REACT_APP_FIREBASE_APP_ID=
+```
+
+---
+
+## Team
+
+| Name | Role |
+|------|------|
+| **Gary** | Database & Cloud Functions |
+| **Kai** | Frontend, CSS |
+| **Dave** | Server Architecture & Deployment |
+| **Paul** | Frontend, Project Manager |
+
+---
+
+*Built with intention. Deployed with confidence.*
