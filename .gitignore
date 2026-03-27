@@ -81,5 +81,6 @@ jspm_packages/
 firebase-debug.log*
 .firebase/
 
-# Claude Code internals
+# Claude Code
 .claude/
+CLAUDE.md
