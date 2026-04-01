@@ -17,9 +17,9 @@ Public (Unauthenticated)
 
 | Role | Who | Access |
 |------|-----|--------|
-| **Public** | Anyone | Landing page, About, Schedule, Events, Join Us |
+| **Public** | Anyone | Home, About, Schedule, Events, Announcements, Join Us |
 | **Member** | Approved club members | Problems, Submissions, Member Directory, Profile |
-| **Executive** | Club execs | Post problems, manage sessions |
+| **Executive** | Club execs | Post problems, post announcements, manage sessions |
 | **Admin** | Club admin | User approval, role management, full access |
 
 **Onboarding flow:**
@@ -28,6 +28,26 @@ Google Sign-In → pending status → Admin approval → member role assigned
 ```
 
 > Only Google OAuth is supported. No email/password login.
+
+---
+
+## Page Structure
+
+```
+[Logo → /]   Home   About Us   Schedule   Events   Announcements   [Join Us]   (Problems)   (Members)   [L][E][I▾](D▾){⚙}
+```
+
+| Page | Route | Visibility | Description |
+|------|-------|------------|-------------|
+| Home | `/` | Public | Hero, mission, Instagram social feed (Elfsight), CTAs |
+| About Us | `/about` | Public | Club intro, Executive Board cards |
+| Schedule | `/schedule` | Public | Google Calendar embed, weekly meeting times |
+| Events | `/events` | Public | Event cards (hackathons, workshops, socials) |
+| Announcements | `/announcements` | Public | Club announcements posted by Executives/Admins |
+| Join Us | `/join` | Public (non-member only) | Google Sign-In, pending flow explanation |
+| Problems | `/problems` | Member | Weekly coding problems + Monaco Editor |
+| Members | `/members` | Member | Member directory + profile pages |
+| Admin | `/admin` | Admin | User approval, role mgmt, problem CRUD, QR sessions |
 
 ---
 
@@ -85,13 +105,52 @@ A searchable, filterable list of all approved members.
 
 ---
 
-## Feature 5 — Admin Panel
+## Feature 5 — Announcements Board
+
+A public-facing board where Executives and Admins post club-wide announcements.
+
+**How it works:**
+- Executives/Admins create announcements from the Admin panel (title, body, date)
+- Announcements are displayed at `/announcements` in reverse chronological order
+- Visible to everyone including unauthenticated visitors
+- Stored in a dedicated `announcements` table in Supabase
+
+---
+
+## Feature 6 — Schedule (Google Calendar Embed)
+
+Displays the club's weekly and monthly meeting schedule without requiring Google account access.
+
+**How it works:**
+- A public Google Calendar is embedded directly on the `/schedule` page
+- Shows recurring Saturday meetings, events, and deadlines
+- Executives manage the calendar directly in Google Calendar — no backend work needed
+- Always up to date; no manual sync required
+
+---
+
+## Feature 7 — Social Feed (Instagram via Elfsight)
+
+Displays recent Instagram posts from club accounts on the Home page.
+
+**How it works:**
+- Elfsight widget embedded on the Home page (`/`)
+- Pulls posts from `@codexperts_seneca` and `@codexperts_yorku`
+- No Meta API approval required — Elfsight handles the Instagram connection
+- Visible to all public visitors
+
+> Using Elfsight (not Instagram Graph API) — Meta's API requires app review and is too complex for MVP scope.
+
+---
+
+## Admin Panel
 
 Central management dashboard for admins and executives.
 
 **Sections:**
 - **User Management** — view pending signups, approve or reject, change roles
 - **Problem CRUD** — create, edit, delete weekly coding problems
+- **Announcements CRUD** — create, edit, delete announcements
 - **Attendance Sessions** — start/stop QR sessions, view attendance per session
 
 ---
@@ -106,6 +165,7 @@ Central management dashboard for admins and executives.
 | Code Editor | Monaco Editor | In-browser |
 | Code Execution | Piston API (via FastAPI proxy) | External |
 | Social Feed | Elfsight embed (Instagram) | External |
+| Schedule | Google Calendar embed | External |
 
 ---
 
@@ -118,3 +178,4 @@ Central management dashboard for admins and executives.
 | `submissions` | Code submissions per user per problem |
 | `sessions` | QR attendance sessions (token, start/end time) |
 | `attendances` | Attendance records per session per user |
+| `announcements` | Club announcements posted by executives/admins |
