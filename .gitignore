@@ -56,6 +56,10 @@ jspm_packages/
 /build
 /dist
 
+# Next.js
+.next/
+out/
+
 # parcel-bundler cache
 .cache
 .parcel-cache
