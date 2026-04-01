@@ -222,6 +222,7 @@ codexperts-web/
 ├── docs/
 │   ├── meeting-notes/       # Sprint meeting records
 │   ├── guidelines/          # code-conventions.md, git-workflow.md, github-issues.md
+│   ├── specs/               # Feature overview and weekly sprint specs (w1–w6)
 │   └── schema/              # Database schema definitions
 ├── package.json
 └── README.md
