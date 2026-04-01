@@ -22,6 +22,17 @@ Public (Unauthenticated)
 | **Executive** | Club execs | Post problems, post announcements, manage sessions |
 | **Admin** | Club admin | User approval, role management, full access |
 
+## Team
+
+| Name | Role |
+|------|------|
+| **Paul** | PM + UI/UX |
+| **Sid** | UI/UX |
+| **Kai** | Frontend (CSS) |
+| **Andra** | Frontend (CSS) |
+| **Gary** | Backend (Supabase / DB) |
+| **Dave** | Backend (FastAPI / Railway / Deployment) |
+
 **Onboarding flow:**
 ```
 Google Sign-In → pending status → Admin approval → member role assigned

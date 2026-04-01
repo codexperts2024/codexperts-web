@@ -272,6 +272,7 @@ NEXT_PUBLIC_API_URL=
 | Name | Role |
 |------|------|
 | **Paul** | PM + UI/UX |
+| **Sid** | UI/UX |
 | **Kai** | Frontend (CSS) |
 | **Andra** | Frontend (CSS) |
 | **Gary** | Backend (Supabase / DB) |
