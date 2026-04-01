@@ -105,7 +105,7 @@ git commit -m "done"            # not descriptive
 
 ### Pre-PR Checklist
 - [ ] Branch is up to date with `develop`
-- [ ] App runs without errors locally (`npm start`)
+- [ ] App runs without errors locally (`npm run dev`)
 - [ ] All `console.log` removed
 - [ ] Related issue number confirmed
 

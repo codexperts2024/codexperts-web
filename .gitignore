@@ -84,3 +84,6 @@ firebase-debug.log*
 # Claude Code
 .claude/
 CLAUDE.md
+
+# Private PM docs (internal only, do not push)
+pm_docs/
