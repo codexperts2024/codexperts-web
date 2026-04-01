@@ -221,7 +221,7 @@ codexperts-web/
 │   └── utils/               # Helper functions, constants
 ├── docs/
 │   ├── meeting-notes/       # Sprint meeting records
-│   ├── guidelines/          # code-conventions.md, git-workflow.md
+│   ├── guidelines/          # code-conventions.md, git-workflow.md, github-issues.md
 │   └── schema/              # Database schema definitions
 ├── package.json
 └── README.md
