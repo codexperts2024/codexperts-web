@@ -1,8 +1,8 @@
 # Meeting Notes — Kickoff Planning Session
 
-**Date:** March 31, 2026
-**Type:** Pre-kickoff PM planning (Paul)
-**Next meeting:** Saturday, April 4, 2026 — 7:30 PM Google Meet (Full team kickoff)
+**Date:** April 4, 2026
+**Type:** Full team kickoff — 7:30 PM Google Meet
+**Attendees:** Paul, Sid, Kai, Andra, Gary, Dave
 
 ---
 
@@ -10,7 +10,8 @@
 
 | Name | Position |
 |------|----------|
-| Paul | PM + UI/UX |
+| Paul | PM + UI/UX (solo) |
+| Sid | Frontend (CSS) |
 | Kai | Frontend (CSS) |
 | Andra | Frontend (CSS) |
 | Gary | Backend (Supabase / DB) |
@@ -71,6 +72,24 @@ Only Paul (PM) opens PRs from `develop` → `main` at the end of each sprint whe
 | Code Execution | Piston API | Free, external |
 | Domain | codexperts.ca | Free subdomain first → purchase after MVP |
 
+### Backend Split — FastAPI vs Supabase
+
+Two backend systems, two different jobs:
+
+**Gary → Supabase (Database + Auth)**
+- Stores all data: users, problems, submissions, attendance, announcements
+- Handles Google OAuth login and session management
+- Enforces access control via RLS (Row-Level Security) — e.g. members-only data, admin-only writes
+- Frontend calls Supabase directly using `@supabase/supabase-js` — no middleman needed for standard CRUD
+
+**Dave → FastAPI (API Server on Railway)**
+- Handles logic that can't run in the browser or requires a trusted server
+- `POST /execute` — receives code + language from frontend, proxies to Piston API, returns stdout/stderr (browser can't call Piston directly due to CORS)
+- `POST /attendance/verify` — validates QR token, checks session is still active, writes attendance record (server-side so users can't fake check-ins)
+- Deployed on Railway; frontend calls it via `fetch`
+
+> **Rule of thumb:** Simple read/write → Supabase directly. External API calls or security-sensitive logic → FastAPI.
+
 ### Page Structure & Visibility
 
 | Page | Route | Who Can See |
@@ -78,16 +97,21 @@ Only Paul (PM) opens PRs from `develop` → `main` at the end of each sprint whe
 | Home | `/` | Everyone |
 | About Us | `/about` | Everyone |
 | Schedule | `/schedule` | Everyone |
+| Announcements | `/announcements` | Everyone |
 | Events | `/events` | Everyone |
 | Join Us | `/join` | Public only (hidden after approval) |
 | Problems | `/problems` | Members only |
+| Solutions | `/solutions` | Members only |
 | Members | `/members` | Members only |
 | Admin | `/admin` | Admin only (icon only in navbar) |
 
 ### Navbar Layout
 
 ```
-[Logo → /]  Home  About Us  Schedule  Events  [Join Us]  (Problems)  (Members)  [LinkedIn] [Email] [Instagram▾]  (Discord▾)  {⚙}
+[Logo → /]  Home  About Us  Updates▾  Events  [Join Us]  (Practice▾)  (Members)  [LinkedIn] [Email] [Instagram▾]  (Discord▾)  {⚙}
+
+Updates▾   → Schedule / Announcements
+Practice▾  → Problems / Solutions        (members only)
 ```
 
 ### Social Links
@@ -122,26 +146,26 @@ Full task breakdown: [`pm_docs/sprint-plan.md`](../sprint-plan.md)
 
 ---
 
-## Action Items Before Saturday's Full Team Meeting
-
-| Item | Owner | Notes |
-|------|-------|-------|
-| Prepare Figma wireframes (rough layout for all pages) | Paul | Even low-fi is fine — team needs a shared visual |
-| Set up Supabase project + draft DB schema | Gary | Must be ready Week 1 — blocks all frontend work |
-| Set up Railway account | Dave | |
-| Set up Vercel account + connect repo | Dave | |
-| Review git-workflow.md | Everyone | Mandatory before first PR |
-| Review sprint-plan.md and confirm task assignments | Everyone | Come to meeting with questions |
-
----
-
-## Notes for Saturday Kickoff Agenda
+## Tonight's Kickoff Agenda
 
 1. Welcome + project goals (5 min)
-2. Tech stack walkthrough — why Next.js, Supabase, FastAPI (10 min)
+2. Tech stack walkthrough — Next.js, Supabase, FastAPI + role split (10 min)
 3. Figma wireframe walkthrough — page structure (10 min)
 4. Git workflow demo — branch, PR, review (10 min)
 5. GitHub Projects setup — Kanban board + issue assignment (10 min)
-6. Environment setup walkthrough — .env, Supabase keys (10 min)
+6. Environment setup walkthrough — `.env`, Supabase keys (10 min)
 7. Task assignment + Sprint 1 kickoff (15 min)
 8. Q&A + communication norms (Discord, response expectations) (10 min)
+
+---
+
+## Pre-Meeting Action Items (Status Check Tonight)
+
+| Item | Owner | Status |
+|------|-------|--------|
+| Figma wireframes (rough layout for all pages) | Paul + Sid | |
+| Supabase project + draft DB schema | Gary | |
+| Railway account setup | Dave | |
+| Vercel account + repo connected | Dave | |
+| Reviewed git-workflow.md | Everyone | |
+| Reviewed sprint-plan.md | Everyone | |

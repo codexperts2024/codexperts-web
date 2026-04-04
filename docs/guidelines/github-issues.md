@@ -64,17 +64,18 @@ To add labels: click **Labels** on the right sidebar → select all that apply.
 
 ### Assignees
 
-Click **Assignees** on the right sidebar → select yourself (or whoever owns the task).
+Click **Assignees** on the right sidebar → assign whoever picks up the task at the sprint meeting.
 
 | Name | GitHub |
 |------|--------|
 | Paul | `paulsik` |
+| Sid | *(pending — assign once joined the org)* |
 | Kai | `naik26m3` |
+| Andra | *(pending — assign once joined the org)* |
 | Gary | `garykim9` |
 | Dave | `wizard1903` |
-| Andra | *(pending — assign once she joins the org)* |
 
-**Rule:** Every issue must have exactly one assignee. If unassigned, it will not be picked up.
+**Rule:** Assign at the sprint meeting when tasks are claimed — not before. Unassigned issues stay in Backlog until claimed.
 
 ---
 
