@@ -1,5 +1,5 @@
-CREATE SCHEMA IF NOT EXISTS app;
-SET search_path TO app;
+CREATE SCHEMA public;
+SET search_path TO public;
 
 \i ./tables/profiles.sql
 \i ./tables/problems.sql

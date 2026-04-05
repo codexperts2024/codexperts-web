@@ -2,8 +2,7 @@
 CREATE TABLE sessions (
   id BIGSERIAL PRIMARY KEY,
   token TEXT UNIQUE NOT NULL,
-  start_time TIMESTAMP NOT NULL,
-  end_time TIMESTAMP NOT NULL,
+  expires_time TIMESTAMP NOT NULL DEFAULT NOW() + INTERVAL '2 hours',
   is_active BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT NOW()
 );
