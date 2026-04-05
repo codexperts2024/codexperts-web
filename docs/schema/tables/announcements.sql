@@ -4,5 +4,4 @@ CREATE TABLE announcements (
   title TEXT NOT NULL,
   content TEXT,
   created_at TIMESTAMP DEFAULT NOW(),
-  expires_at TIMESTAMP
 );
