@@ -1,0 +1,10 @@
+
+CREATE TABLE sessions (
+  id BIGSERIAL PRIMARY KEY,
+  token TEXT UNIQUE NOT NULL,
+  start_time TIMESTAMP NOT NULL,
+  end_time TIMESTAMP NOT NULL,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
