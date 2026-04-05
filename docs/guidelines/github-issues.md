@@ -68,12 +68,12 @@ Click **Assignees** on the right sidebar → assign whoever picks up the task at
 
 | Name | GitHub |
 |------|--------|
-| Paul | `paulsik` |
-| Sid | *(pending — assign once joined the org)* |
-| Kai | `naik26m3` |
-| Andra | *(pending — assign once joined the org)* |
-| Gary | `garykim9` |
-| Dave | `wizard1903` |
+| Paul | `paulsik` | PM / UI/UX |
+| Sid | `siddiecity` | Backend (Monaco / Piston API) / UI/UX |
+| Kai | `naik26m3` | Frontend |
+| Andra | *(pending — assign once joined the org)* | Frontend / Backend (Supabase) |
+| Gary | `GarySkywalker-droid` | Backend (Supabase / DB & Auth) |
+| Dave | `SystemProgrammerWizzard` | Backend (FastAPI / Deployment) / Frontend |
 
 **Rule:** Assign at the sprint meeting when tasks are claimed — not before. Unassigned issues stay in Backlog until claimed.
 

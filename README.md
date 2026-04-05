@@ -78,7 +78,7 @@ Sprint retrospective held at each Saturday meeting. `develop` is merged to `main
 | Column | Description |
 |--------|-------------|
 | `Backlog` | Unscheduled items |
-| `To Do` | Committed for current sprint |
+| `Ready` | Committed for current sprint |
 | `In Progress` | Actively being developed |
 | `In Review` | PR open, awaiting review |
 | `Done` | Merged and deployed |
@@ -202,9 +202,11 @@ codexperts-web/
 │   │   ├── page.js          # / Home
 │   │   ├── about/           # /about
 │   │   ├── schedule/        # /schedule
+│   │   ├── announcements/   # /announcements
 │   │   ├── events/          # /events
 │   │   ├── join/            # /join
 │   │   ├── problems/        # /problems (member only)
+│   │   ├── solutions/       # /solutions (member only)
 │   │   ├── members/         # /members (member only)
 │   │   └── admin/           # /admin (admin only)
 │   ├── components/
@@ -221,7 +223,7 @@ codexperts-web/
 │   └── utils/               # Helper functions, constants
 ├── docs/
 │   ├── meeting-notes/       # Sprint meeting records
-│   ├── guidelines/          # code-conventions.md, git-workflow.md, github-issues.md
+│   ├── guidelines/          # code-conventions.md, git-workflow.md, github-issues.md, design.md
 │   ├── specs/               # Feature overview and weekly sprint specs (w1–w6)
 │   └── schema/              # Database schema definitions
 ├── package.json
@@ -271,12 +273,12 @@ NEXT_PUBLIC_API_URL=
 
 | Name | Role |
 |------|------|
-| **Paul** | PM + UI/UX |
-| **Sid** | UI/UX |
-| **Kai** | Frontend (CSS) |
-| **Andra** | Frontend (CSS) |
-| **Gary** | Backend (Supabase / DB) |
-| **Dave** | Backend (FastAPI / Railway / Deployment) |
+| **Paul** | PM / UI/UX |
+| **Sid** | Backend (Monaco Editor / Piston API) / UI/UX |
+| **Kai** | Frontend |
+| **Andra** | Frontend/Backend |
+| **Gary** | Backend (Supabase / DB & Auth) |
+| **Dave** | Backend (FastAPI / Railway / Deployment) / Frontend |
 
 ---
 

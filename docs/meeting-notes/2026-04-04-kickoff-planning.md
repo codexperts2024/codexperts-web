@@ -10,12 +10,12 @@
 
 | Name | Position |
 |------|----------|
-| Paul | PM + UI/UX (solo) |
-| Sid | Frontend (CSS) |
-| Kai | Frontend (CSS) |
-| Andra | Frontend (CSS) |
-| Gary | Backend (Supabase / DB) |
-| Dave | Backend (FastAPI / Railway / Deployment) |
+| Paul | PM / UI/UX |
+| Sid | Backend (Monaco Editor / Piston API) / UI/UX |
+| Kai | Frontend |
+| Andra | Frontend / Backend |
+| Gary | Backend (Supabase / DB & Auth) |
+| Dave | Backend (FastAPI / Railway / Deployment) / Frontend |
 
 ---
 
