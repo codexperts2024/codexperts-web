@@ -45,7 +45,7 @@ Each sprint begins by defining goals, refining the backlog, and assigning GitHub
 
 Covers UI/UX wireframes, system architecture decisions, DB schema design, and API contract definition — not just visual design, but how the entire system is structured.
 
-- **Week 1** — Finalized sitemap and page visibility rules · Produced Figma wireframes for all 8 pages · Confirmed DB schema (profiles, problems, submissions, sessions, attendances) · Defined navbar structure and social link config
+- **Week 1** — Finalized sitemap and page visibility rules · Produced Figma wireframes for all 8 pages · Finalized DB schema (profiles, problems, submissions, sessions, attendances, announcements) · Defined navbar structure and social link config
 
 ---
 
@@ -166,11 +166,13 @@ Frontend (Next.js — Vercel)
 ├── Supabase
 │   ├── Auth (Google OAuth only)
 │   └── PostgreSQL
-│       ├── profiles       → user info, role, cohort
-│       ├── problems       → weekly coding problems
-│       ├── submissions    → code submissions per user/problem
-│       ├── sessions       → QR attendance sessions
-│       └── attendances    → attendance records per session
+│       ├── profiles       → id, name, email, role (pending|member|executive|admin),
+│       │                     school, linkedin, github, avatar_url
+│       ├── problems       → id, title, description, file_url, created_at
+│       ├── submissions    → profile_id, problem_id, code, language, ai_feedback
+│       ├── sessions       → token, expires_time, is_active (QR attendance sessions)
+│       ├── attendances    → profile_id, session_id, checked_at
+│       └── announcements  → author_id, title, content, created_at
 │
 └── FastAPI (Railway)
     ├── /execute           → proxy to Piston API (code execution)
@@ -225,7 +227,7 @@ codexperts-web/
 │   ├── meeting-notes/       # Sprint meeting records
 │   ├── guidelines/          # code-conventions.md, git-workflow.md, github-issues.md, design.md
 │   ├── specs/               # Feature overview and weekly sprint specs (w1–w6)
-│   └── schema/              # Database schema definitions
+│   └── schema/              # Database schema definitions (schema.sql + per-table .sql files)
 ├── package.json
 └── README.md
 ```
@@ -257,15 +259,6 @@ npm run dev
 ```
 
 The app will be running at `http://localhost:3000`.
-
-### Environment Variables
-
-```
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
-NEXT_PUBLIC_API_URL=
-```
 
 ---
 
