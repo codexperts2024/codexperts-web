@@ -82,22 +82,23 @@ const ROLES = { ADMIN: 'admin', MEMBER: 'member' };
 // 1. React
 import React, { useState, useEffect } from 'react';
 
-// 2. Third-party libraries
-import { Navigate } from 'react-router-dom';
+// 2. Next.js built-ins
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
-// 3. Internal components
-import Button from '../ui/Button';
-import Navbar from '../common/Navbar';
+// 3. Third-party libraries
+import { createClient } from '@supabase/supabase-js';
 
-// 4. Hooks / Contexts
-import { useAuth } from '../../hooks/useAuth';
+// 4. Internal components
+import Button from '@/components/ui/Button';
+import Navbar from '@/components/common/Navbar';
 
-// 5. Services / Utilities
-import { getUserById } from '../../services/userService';
-import { formatDate } from '../../utils/formatDate';
+// 5. Hooks / Contexts
+import { useAuth } from '@/hooks/useAuth';
 
-// 6. Styles
-import './UserCard.css';
+// 6. Services / Utilities
+import { getUserById } from '@/services/userService';
+import { formatDate } from '@/utils/formatDate';
 ```
 
 ---
@@ -129,8 +130,13 @@ import './UserCard.css';
 // Good
 const fetchUser = async (uid) => {
   try {
-    const doc = await getDoc(doc(db, 'users', uid));
-    return doc.data();
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', uid)
+      .single();
+    if (error) throw error;
+    return data;
   } catch (error) {
     console.error('Failed to fetch user:', error);
   }
@@ -138,8 +144,8 @@ const fetchUser = async (uid) => {
 
 // Bad
 const fetchUser = (uid) => {
-  getDoc(doc(db, 'users', uid))
-    .then((doc) => doc.data())
+  supabase.from('profiles').select('*').eq('id', uid)
+    .then(({ data }) => data)
     .catch((err) => console.error(err));
 };
 ```
@@ -168,4 +174,4 @@ if (user.status === 'pending') return <PendingScreen />;
 - No `var` — use `const` or `let`
 - No `console.log` in commits — remove all debug logs before pushing
 - No hardcoded role strings — use the `ROLES` constant from `constants.js`
-- No direct Firebase calls inside components — always go through the `services/` layer
+- No direct Supabase calls inside components — always go through the `services/` layer
