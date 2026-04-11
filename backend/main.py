@@ -7,7 +7,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
-        # Add Vercel preview URL here once available
+        "https://codexperts-web-psi.vercel.app",
     ],
     allow_methods=["*"],
     allow_headers=["*"],
