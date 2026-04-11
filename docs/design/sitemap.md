@@ -10,25 +10,26 @@
 ## Navbar Structure
 
 ```
-[Logo → /]   Home   About Us   Schedule   Events   Announcements   [Join Us]   (Problems)   (Members)   [LinkedIn] [Email] [Instagram ▾] (Discord ▾) {⚙}
+LEFT:  [Logo → /]  Home  About▾  Updates▾  Events  (Practice▾)  (Members)  Join Us  {⚙}
+RIGHT: [LinkedIn] [Email] [Instagram▾] ([Discord▾])  [Log In]
 ```
 
 | Item | Route | Visibility | Notes |
 |------|-------|------------|-------|
 | Logo | `/` | public | Links to Home |
 | Home | `/` | public | |
-| About Us | `/about` | public | Includes Executive Board section |
-| Schedule | `/schedule` | public | Google Calendar embed |
+| About▾ | dropdown | public | About Us + Our Team |
+| Updates▾ | dropdown | public | Announcements + Schedule |
 | Events | `/events` | public | |
-| Announcements | `/announcements` | public | Executive/Admin can post |
-| Join Us | `/join` | public (non-member only) | Hidden after login & approval |
-| Problems | `/problems` | member | |
+| Practice▾ | dropdown | member | Problems + Solutions |
 | Members | `/members` | member | |
-| LinkedIn | external | public | Single link |
-| Email | mailto: | public | Single link |
-| Instagram | — | public | Hover dropdown |
-| Discord | — | member | Hover dropdown |
-| ⚙ Admin | `/admin` | admin | Icon only, no text label |
+| LinkedIn | external | public | Icon button |
+| Email | mailto: | public | Icon button |
+| Instagram▾ | — | public | Hover dropdown (Seneca / York / TMU) |
+| Discord▾ | — | member | Hover dropdown (Seneca / York / TMU) |
+| Join Us | opens signup modal (no `/join` page) | public (non-member only) | Hidden after login & approval |
+| Log In | Google OAuth | logged-out only | Far right |
+| ⚙ (gear) | `/admin` | admin | Icon only, right of Join Us |
 
 ---
 
@@ -41,7 +42,7 @@ Hover to expand. Add new campus by appending to the array.
 Instagram ▾
   └ Seneca
   └ York
-  └ TMU        ← future
+
 ```
 
 ### Discord (Member only — not visible to public)
@@ -51,7 +52,7 @@ Same hover behavior as Instagram.
 Discord ▾
   └ Seneca
   └ York
-  └ TMU        ← future
+
 ```
 
 **Implementation note:** Manage campus links as a config array (not hardcoded).
