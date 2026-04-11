@@ -174,10 +174,13 @@ Frontend (Next.js — Vercel)
 │       ├── attendances    → profile_id, session_id, checked_at
 │       └── announcements  → author_id, title, content, created_at
 │
-└── FastAPI (Railway)
-    ├── /execute           → proxy to Piston API (code execution)
-    └── /attendance/verify → QR token validation logic
+└── FastAPI (Railway)                  ← lives in backend/ subfolder
+    ├── /health            → service health check
+    ├── /execute           → proxy to Piston API (code execution)      [W3]
+    └── /attendance/verify → QR token validation logic                 [W4]
 ```
+
+> **Monorepo structure:** Next.js runs from repo root (Vercel), FastAPI lives in `backend/` subfolder (Railway root directory = `backend/`).
 
 ---
 
@@ -228,6 +231,11 @@ codexperts-web/
 │   ├── guidelines/          # code-conventions.md, git-workflow.md, github-issues.md, design.md
 │   ├── specs/               # Feature overview and weekly sprint specs (w1–w6)
 │   └── schema/              # Database schema definitions (schema.sql + per-table .sql files)
+├── backend/
+│   ├── main.py              # FastAPI entry point (/health, /execute, /attendance/verify)
+│   ├── requirements.txt     # Python dependencies
+│   ├── .env.example         # Backend env vars template
+│   └── routers/             # Route modules (added per sprint)
 ├── package.json
 └── README.md
 ```
