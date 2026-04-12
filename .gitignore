@@ -91,3 +91,8 @@ CLAUDE.md
 
 # Private PM docs (internal only, do not push)
 pm_docs/
+
+# Python
+backend/.venv/
+backend/__pycache__/
+backend/.pytest_cache/
