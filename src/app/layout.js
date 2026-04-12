@@ -1,5 +1,6 @@
 import './globals.css'
 import Navbar from '@/components/common/Navbar'
+import { AuthProvider } from '@/contexts/AuthContext'
 
 export const metadata = {
   title: 'codeXperts Club',
@@ -10,10 +11,12 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className="bg-white text-gray-900 antialiased">
-        <Navbar />
-        <div className="pt-14">
-          {children}
-        </div>
+        <AuthProvider>
+          <Navbar />
+          <div className="pt-14">
+            {children}
+          </div>
+        </AuthProvider>
       </body>
     </html>
   )

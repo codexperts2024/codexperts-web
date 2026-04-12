@@ -91,3 +91,14 @@ CLAUDE.md
 
 # Private PM docs (internal only, do not push)
 pm_docs/
+
+# Python / FastAPI (backend/)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+backend/.env
+backend/venv/
+backend/.venv/
+backend/__pycache__/
+backend/.pytest_cache/

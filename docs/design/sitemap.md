@@ -10,25 +10,26 @@
 ## Navbar Structure
 
 ```
-[Logo → /]   Home   About Us   Schedule   Events   Announcements   [Join Us]   (Problems)   (Members)   [LinkedIn] [Email] [Instagram ▾] (Discord ▾) {⚙}
+LEFT:  [Logo → /]  Home  About▾  Updates▾  Events  (Practice▾)  (Members)  Join Us  {⚙}
+RIGHT: [LinkedIn] [Email] [Instagram▾] ([Discord▾])  [Log In]
 ```
 
 | Item | Route | Visibility | Notes |
 |------|-------|------------|-------|
 | Logo | `/` | public | Links to Home |
 | Home | `/` | public | |
-| About Us | `/about` | public | Includes Executive Board section |
-| Schedule | `/schedule` | public | Google Calendar embed |
+| About▾ | dropdown | public | About Us + Our Team |
+| Updates▾ | dropdown | public | Announcements + Schedule |
 | Events | `/events` | public | |
-| Announcements | `/announcements` | public | Executive/Admin can post |
-| Join Us | `/join` | public (non-member only) | Hidden after login & approval |
-| Problems | `/problems` | member | |
+| Practice▾ | dropdown | member | Problems + Solutions |
 | Members | `/members` | member | |
-| LinkedIn | external | public | Single link |
-| Email | mailto: | public | Single link |
-| Instagram | — | public | Hover dropdown |
-| Discord | — | member | Hover dropdown |
-| ⚙ Admin | `/admin` | admin | Icon only, no text label |
+| LinkedIn | external | public | Icon button |
+| Email | mailto: | public | Icon button |
+| Instagram▾ | — | public | Hover dropdown (Seneca / York / TMU) |
+| Discord▾ | — | member | Hover dropdown (Seneca / York / TMU) |
+| Join Us | (modal) | public (non-member only) | Triggers signup modal overlay on current page. No `/join` route. Hidden after approval. |
+| Log In | Google OAuth | logged-out only | Far right |
+| ⚙ (gear) | `/admin` | admin | Icon only, right of Join Us |
 
 ---
 
@@ -41,7 +42,7 @@ Hover to expand. Add new campus by appending to the array.
 Instagram ▾
   └ Seneca
   └ York
-  └ TMU        ← future
+
 ```
 
 ### Discord (Member only — not visible to public)
@@ -51,7 +52,7 @@ Same hover behavior as Instagram.
 Discord ▾
   └ Seneca
   └ York
-  └ TMU        ← future
+
 ```
 
 **Implementation note:** Manage campus links as a config array (not hardcoded).
@@ -86,10 +87,19 @@ Adding a new campus = one entry in the config file, no component changes needed.
 - Executive/Admin creates via Admin panel (title, body, date)
 - Stored in `announcements` table in Supabase
 
-### [public] Join Us `/join`
-- Membership application form
-- Google Sign-In → pending status
-- Only shown to non-members (hidden once approved)
+### [public] Our Team `/team`
+- Executive Board grid (Seneca + York sections)
+- 3-column card layout per campus: photo, name, role badge, LinkedIn
+- Accessible via About▾ dropdown and About page CTA [Meet Our Team →]
+- Spec: docs/design/page-specs/team.md
+
+### [public] Join Us
+- **No dedicated route** — rendered as a modal overlay on the current page
+- Triggered by [Join Us] button in Navbar and Home page CTA
+- 3 fields: Campus (dropdown), Cohort (dropdown), Phone Number (input)
+- [Continue with Google] → Supabase Google OAuth → new user lands on pending screen
+- Modal hidden once user is an approved member
+- Spec: docs/design/page-specs/join.md
 
 ### (member) Problems `/problems`
 - Problem list by week
