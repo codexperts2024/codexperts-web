@@ -3,14 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@supabase/supabase-js": "^2.103.0",
     "next": "^15.2.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "tailwindcss": "^3.4.17",
+    "autoprefixer": "^10.4.21",
     "postcss": "^8.5.3",
-    "autoprefixer": "^10.4.21"
+    "tailwindcss": "^3.4.17"
   },
   "scripts": {
     "dev": "next dev",
