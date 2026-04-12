@@ -142,7 +142,7 @@ Practice▾  → Problems / Solutions        (members only)
 | 5 | Heatmap, responsive design, social feed embed | Mobile works, activity heatmap visible |
 | 6 | QA, full deployment, domain | codexperts.ca live with all features |
 
-Full task breakdown: [`pm_docs/sprint-plan.md`](../sprint-plan.md)
+Full task breakdown: [`docs/sprints/sprint-plan.md`](../sprints/sprint-plan.md)
 
 ---
 
