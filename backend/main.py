@@ -5,7 +5,6 @@ app = FastAPI(title="codeXperts API")
 
 origins = [
     "http://localhost:3000",
-    "https://codexperts-web-production.up.railway.app",
     "https://codexperts-web-psi.vercel.app",
 ]
 
