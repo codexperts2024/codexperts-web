@@ -96,7 +96,7 @@
 | [#41](https://github.com/codexperts2024/codexperts-web/issues/41) | Responsive design audit (mobile optimization) | FE | Medium | P3 | Kai, Andra |
 | [#42](https://github.com/codexperts2024/codexperts-web/issues/42) | Social media feed embed — Elfsight (Seneca + York Instagram) | FE | Easy | P3 | Andra |
 | [#43](https://github.com/codexperts2024/codexperts-web/issues/43) | Domain codexperts.ca connection | BE | Easy | P3 | Dave |
-| [#60](https://github.com/codexperts2024/codexperts-web/issues/60) | Solutions — AI code evaluation (Gemma 3) | FS | Hard | P3 | TBD |
+| [#60](https://github.com/codexperts2024/codexperts-web/issues/60) | Solutions — AI code evaluation (Gemma 4) | FS | Hard | P3 | TBD |
 
 > **Note on Elfsight:** Free plan shows Elfsight branding watermark. Consider paid plan before portfolio demo.
 > **Note on Piston API:** Free external service, no SLA. Handle timeout/error gracefully in UI.

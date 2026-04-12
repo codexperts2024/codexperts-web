@@ -113,7 +113,7 @@
 │                                                     │
 │  ── Evaluation (shown after Evaluate) ────────────  │
 │  ┌─────────────────────────────────────────────┐    │
-│  │  Evaluation  (powered by Gemma 3)           │    │
+│  │  Evaluation  (powered by Gemma 4)           │    │
 │  │  ─────────────────────────────────────────  │    │
 │  │  Forbidden Patterns                         │    │
 │  │   ✅  break       not used                  │    │
@@ -159,7 +159,7 @@ Action: Sends code to Piston API for execution
 > Tracked in GitHub issue #60.
 ```
 Style: Secondary outline
-Action: Sends code to Gemma 3 API for evaluation
+Action: Sends code to Gemma 4 API for evaluation
         Returns two sections:
           1. Forbidden Patterns — checklist per rule
              ✅ rule name — "not used"
@@ -191,7 +191,7 @@ Examples:
   - built-in sort functions
   - recursion (if iterative solution required)
 
-Gemma 3 receives: { code, language, forbidden_rules[] }
+Gemma 4 receives: { code, language, forbidden_rules[] }
 Returns: { patterns: [{rule, detected, line}], complexity: {big_o, score} }
 ```
 
@@ -220,7 +220,7 @@ Visibility: all approved members can see all submissions
 - Community Solutions tab (read-only viewer)
 
 ## P3 / Post-MVP
-- [✦ Evaluate] button and Evaluation panel (Gemma 3 AI)
+- [✦ Evaluate] button and Evaluation panel (Gemma 4 AI)
 - Forbidden rules config per problem by admin
 - In-person feedback from professor — Evaluate is supplementary only
 - Tracked in GitHub issue #60
