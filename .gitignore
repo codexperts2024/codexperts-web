@@ -100,3 +100,5 @@ __pycache__/
 backend/.env
 backend/venv/
 backend/.venv/
+backend/__pycache__/
+backend/.pytest_cache/
