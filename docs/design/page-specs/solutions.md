@@ -21,7 +21,7 @@
 - Render BOTH the selection list view AND the workspace view (`/solutions/:id`) as separate screens.
 - The workspace has EXACTLY TWO tabs: [✏️ My Solution] and [👥 Community Solutions]. Active tab: border-bottom 2px `#C0392B`, bold. Do NOT add more tabs.
 - Tab content is MUTUALLY EXCLUSIVE — only one tab content visible at a time.
-- My Solution tab layout from top to bottom: language selector dropdown (top-right) → Monaco editor (400px tall) → button row ([▶ Run] PRIMARY RED, [✦ Evaluate] SECONDARY, [⬆ Submit] SECONDARY) → Output panel → Evaluation panel. Do NOT reorder.
+- My Solution tab layout from top to bottom: language selector dropdown (top-right) → Monaco editor (400px tall) → button row ([▶ Run] PRIMARY RED, [✦ Evaluate] SECONDARY — **P3/post-MVP**, [⬆ Submit] SECONDARY) → Output panel → Evaluation panel (**P3/post-MVP**). Do NOT reorder.
 - [▶ Run] button: bg `#C0392B`, text white. [✦ Evaluate] and [⬆ Submit]: secondary outline. Do NOT make all three buttons the same style.
 - Output panel: bg `#F9F9F9`, font JetBrains Mono 13px, shows stdout + runtime. Only appears after Run is clicked — render it as visible for the mockup.
 - Evaluation panel: bg `#FFFFFF`, border 1px `#E5E5E5`, radius 8px. Shows two sections: "Forbidden Patterns" checklist (✅/❌ per rule) and "Time Complexity" (Big-O + score /10). Do NOT add answer hints or code suggestions.
@@ -154,7 +154,9 @@ Action: Sends code to Piston API for execution
         Running state: button shows spinner, disabled
 ```
 
-### [✦ Evaluate]
+### [✦ Evaluate] — ⚠️ P3 / Post-MVP (deferred from W3)
+> AI Evaluate is excluded from MVP scope. Run + Submit only for W3.
+> Tracked in GitHub issue #60.
 ```
 Style: Secondary outline
 Action: Sends code to Gemma 3 API for evaluation
@@ -210,7 +212,15 @@ Visibility: all approved members can see all submissions
 
 ## Notes
 - Code execution via Piston API (supports Python, Java, C++, etc.)
-- Evaluation via Gemma 3 (Google) — no answer hints, no full feedback
-- In-person feedback from professor — Evaluate is supplementary only
-- Forbidden rules set per problem by admin at creation time
 - Submit saves to `submissions` table — one submission per member per problem (overwrite on re-submit)
+
+## MVP Scope (W3)
+- [▶ Run] → Piston API execution → Output panel
+- [⬆ Submit] → saves to submissions table
+- Community Solutions tab (read-only viewer)
+
+## P3 / Post-MVP
+- [✦ Evaluate] button and Evaluation panel (Gemma 3 AI)
+- Forbidden rules config per problem by admin
+- In-person feedback from professor — Evaluate is supplementary only
+- Tracked in GitHub issue #60

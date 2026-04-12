@@ -237,9 +237,9 @@ codexperts-web/
 │   │   ├── design-system.md # Color tokens, typography, component specs
 │   │   ├── sitemap.md       # Page routes, visibility rules, nav structure
 │   │   └── page-specs/      # Per-page layout and component specs (FE reference)
-│   ├── guidelines/          # code-conventions.md, git-workflow.md, github-issues.md
+│   ├── guidelines/          # code-conventions.md, git-workflow.md, issue-workflow.md
 │   ├── meeting-notes/       # Sprint meeting records
-│   ├── specs/               # Feature overview and weekly sprint specs (w1–w6)
+│   ├── sprints/             # Sprint plan + weekly specs (sprint-plan.md, w1–w6.md)
 │   └── schema/              # Database schema definitions (schema.sql + per-table .sql files)
 ├── backend/
 │   ├── main.py              # FastAPI entry point (/health, /execute, /attendance/verify)
@@ -287,7 +287,7 @@ The app will be running at `http://localhost:3000`.
 | **Paul** | PM / UI/UX |
 | **Sid** | Backend (Monaco Editor / Piston API) / UI/UX |
 | **Kai** | Frontend |
-| **Andra** | Frontend/Backend |
+| **Andra** | Frontend / Backend |
 | **Gary** | Backend (Supabase / DB & Auth) |
 | **Dave** | Backend (FastAPI / Railway / Deployment) / Frontend |
 
