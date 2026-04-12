@@ -249,7 +249,7 @@ Events                    [Instagram icon ▾]
 | 10a | Edit Profile | `/members/:id` (edit mode, self only) | member | members.md ✅ |
 | 11 | Admin | `/admin` | admin | admin.md ✅ |
 
-**Signup: modal only** — no `/join` page. See `join.md` for modal spec.
+**Signup: modal only** — no `/join` route. Triggered by [Join Us] button. See `join.md` for modal spec.
 
 ---
 
