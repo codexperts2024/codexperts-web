@@ -4,5 +4,5 @@ CREATE TABLE announcements (
   author_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
   content TEXT,
-  created_at TIMESTAMP DEFAULT NOW(),
+  created_at TIMESTAMP DEFAULT NOW()
 );

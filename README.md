@@ -46,6 +46,7 @@ Each sprint begins by defining goals, refining the backlog, and assigning GitHub
 Covers UI/UX wireframes, system architecture decisions, DB schema design, and API contract definition — not just visual design, but how the entire system is structured.
 
 - **Week 1** — Finalized sitemap and page visibility rules · Produced Figma wireframes for all 8 pages · Finalized DB schema (profiles, problems, submissions, sessions, attendances, announcements) · Defined navbar structure and social link config
+- **Week 2** — Members page structure defined · Individual profile page spec (`/members/:id`) · Self-edit mode with per-field visibility controls · Student/Graduate status toggle · Stitch wireframes finalized for all member-facing views
 
 ---
 
@@ -129,9 +130,12 @@ main
 - Combines submission history and attendance records
 - More activity = deeper color
 
-### 4. Member Directory
-- Profile cards: photo, name, school, LinkedIn, GitHub
-- Filter by cohort (class year)
+### 4. Member Directory & Profile
+- Profile cards: photo, name, school, status badge, LinkedIn, GitHub
+- Filter by cohort, school, status, and role
+- Individual profile pages: bio, activity heatmap, achievement badges
+- Self-editable profile — members update their own photo, bio, LinkedIn, GitHub, email, and Student/Graduate status
+- Per-field visibility control — each field can be shown or hidden from other members
 
 ---
 
@@ -167,17 +171,22 @@ Frontend (Next.js — Vercel)
 │   ├── Auth (Google OAuth only)
 │   └── PostgreSQL
 │       ├── profiles       → id, name, email, role (pending|member|executive|admin),
-│       │                     school, linkedin, github, avatar_url
+│       │                     school, cohort, status (student|graduate), bio,
+│       │                     linkedin, github, avatar_url,
+│       │                     profile_visibility (JSONB: photo/bio/linkedin/github/email)
 │       ├── problems       → id, title, description, file_url, created_at
 │       ├── submissions    → profile_id, problem_id, code, language, ai_feedback
 │       ├── sessions       → token, expires_time, is_active (QR attendance sessions)
 │       ├── attendances    → profile_id, session_id, checked_at
 │       └── announcements  → author_id, title, content, created_at
 │
-└── FastAPI (Railway)
-    ├── /execute           → proxy to Piston API (code execution)
-    └── /attendance/verify → QR token validation logic
+└── FastAPI (Railway)                  ← lives in backend/ subfolder
+    ├── /health            → service health check
+    ├── /execute           → proxy to Piston API (code execution)      [W3]
+    └── /attendance/verify → QR token validation logic                 [W4]
 ```
+
+> **Monorepo structure:** Next.js runs from repo root (Vercel), FastAPI lives in `backend/` subfolder (Railway root directory = `backend/`).
 
 ---
 
@@ -224,10 +233,19 @@ codexperts-web/
 │   ├── services/            # Supabase service modules
 │   └── utils/               # Helper functions, constants
 ├── docs/
+│   ├── design/              # Design system, sitemap, and page-level specs
+│   │   ├── design-system.md # Color tokens, typography, component specs
+│   │   ├── sitemap.md       # Page routes, visibility rules, nav structure
+│   │   └── page-specs/      # Per-page layout and component specs (FE reference)
+│   ├── guidelines/          # code-conventions.md, git-workflow.md, issue-workflow.md
 │   ├── meeting-notes/       # Sprint meeting records
-│   ├── guidelines/          # code-conventions.md, git-workflow.md, github-issues.md, design.md
-│   ├── specs/               # Feature overview and weekly sprint specs (w1–w6)
+│   ├── sprints/             # Sprint plan + weekly specs (sprint-plan.md, w1–w6.md)
 │   └── schema/              # Database schema definitions (schema.sql + per-table .sql files)
+├── backend/
+│   ├── main.py              # FastAPI entry point (/health, /execute, /attendance/verify)
+│   ├── requirements.txt     # Python dependencies
+│   ├── .env.example         # Backend env vars template
+│   └── routers/             # Route modules (added per sprint)
 ├── package.json
 └── README.md
 ```
@@ -269,7 +287,7 @@ The app will be running at `http://localhost:3000`.
 | **Paul** | PM / UI/UX |
 | **Sid** | Backend (Monaco Editor / Piston API) / UI/UX |
 | **Kai** | Frontend |
-| **Andra** | Frontend/Backend |
+| **Andra** | Frontend / Backend |
 | **Gary** | Backend (Supabase / DB & Auth) |
 | **Dave** | Backend (FastAPI / Railway / Deployment) / Frontend |
 
