@@ -5,6 +5,9 @@ import { useAuth } from '@/hooks/useAuth'
 import { useRouter, usePathname } from 'next/navigation'
 import { ROLES, STATUS } from '@/utils/constants'
 
+// TEMP DEBUG: Force pending status for testing
+const FORCE_PENDING_TEST = true; // Set to false to disable
+
 function isMemberOnlyPath(pathname) {
   return (
     pathname === '/problems' ||
@@ -30,12 +33,12 @@ const RoleGuard = ({ children }) => {
   useEffect(() => {
     if (loading) return
 
-    if (!user) {
+    if (!user && !FORCE_PENDING_TEST) {
       router.replace('/join')
       return
     }
 
-    if (profile?.status === STATUS.PENDING) return
+    if (profile?.status === STATUS.PENDING || FORCE_PENDING_TEST) return
 
     if (isMemberOnlyPath(pathname) && !canAccessMemberRoutes(profile)) {
       router.replace('/')
@@ -55,11 +58,11 @@ const RoleGuard = ({ children }) => {
     )
   }
 
-  if (!user) {
+  if (!user && !FORCE_PENDING_TEST) {
     return null
   }
 
-  if (profile?.status === STATUS.PENDING) {
+  if (profile?.status === STATUS.PENDING || FORCE_PENDING_TEST) {
     return (
       <main className="min-h-screen flex items-center justify-center">
         <div className="text-center max-w-lg px-4">
