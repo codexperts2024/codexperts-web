@@ -3,10 +3,6 @@
 import { useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter, usePathname } from 'next/navigation'
-import { ROLES, STATUS } from '@/utils/constants'
-
-// TEMP DEBUG: Force pending status for testing
-const FORCE_PENDING_TEST = true; // Set to false to disable
 
 function isMemberOnlyPath(pathname) {
   return (
@@ -22,7 +18,7 @@ function isAdminPath(pathname) {
 }
 
 function canAccessMemberRoutes(profile) {
-  return profile?.role === ROLES.MEMBER || profile?.role === ROLES.ADMIN
+  return profile?.role === 'member' || profile?.role === 'executive'
 }
 
 const RoleGuard = ({ children }) => {
@@ -30,22 +26,27 @@ const RoleGuard = ({ children }) => {
   const router = useRouter()
   const pathname = usePathname()
 
+  console.log('User:', user)
+  console.log('Profile:', profile)
+  console.log('Loading:', loading)
+  console.log('Pathname:', pathname)
+
   useEffect(() => {
     if (loading) return
 
-    if (!user && !FORCE_PENDING_TEST) {
+    if (!user) {
       router.replace('/join')
       return
     }
 
-    if (profile?.status === STATUS.PENDING || FORCE_PENDING_TEST) return
+    if (profile?.role === 'pending') return
 
     if (isMemberOnlyPath(pathname) && !canAccessMemberRoutes(profile)) {
       router.replace('/')
       return
     }
 
-    if (isAdminPath(pathname) && profile?.role !== ROLES.ADMIN) {
+    if (isAdminPath(pathname) && profile?.role !== 'admin') {
       router.replace('/')
     }
   }, [loading, user, profile, pathname, router])
@@ -58,11 +59,11 @@ const RoleGuard = ({ children }) => {
     )
   }
 
-  if (!user && !FORCE_PENDING_TEST) {
+  if (!user) {
     return null
   }
 
-  if (profile?.status === STATUS.PENDING || FORCE_PENDING_TEST) {
+  if (profile?.role === 'pending') {
     return (
       <main className="min-h-screen flex items-center justify-center">
         <div className="text-center max-w-lg px-4">
@@ -83,7 +84,7 @@ const RoleGuard = ({ children }) => {
     return null
   }
 
-  if (isAdminPath(pathname) && profile?.role !== ROLES.ADMIN) {
+  if (isAdminPath(pathname) && profile?.role !== 'admin') {
     return null
   }
 

@@ -468,4 +468,78 @@ minimap: { enabled: false }
 
 ---
 
-_Last updated: 2026-04-07 | Owner: Paul_
+## 10. Usage Guide (How to Use in Code)
+
+### Colors
+Use Tailwind custom tokens instead of hardcoded hex values.
+
+```jsx
+// Do not hardcode colors
+<div className="bg-red-600 text-gray-900 border-gray-200">
+
+// Use design tokens
+<div className="bg-accent text-text-primary border-border">
+```
+
+| Token | Tailwind Class | Use case |
+|-------|---------------|----------|
+| `#C0392B` | `bg-accent` / `text-accent` | CTA buttons, logo X, emphasis |
+| `#A93226` | `bg-accent-hover` | Button hover state |
+| `#FDECEA` | `bg-accent-bg` | Tag/badge background |
+| `#FFFFFF` | `bg-bg-base` | Page background |
+| `#F9F9F9` | `bg-bg-surface` | Cards, sidebar |
+| `#F3F3F3` | `bg-bg-elevated` | Header, dropdowns |
+| `#F5F5F5` | `bg-bg-input` | Input fields |
+| `#1A1A1A` | `text-text-primary` | Body text, labels |
+| `#555555` | `text-text-secondary` | Subtitles, meta info |
+| `#999999` | `text-text-hint` | Placeholder, inactive |
+| `#E5E5E5` | `border-border` | Default divider |
+| `#CCCCCC` | `border-border-strong` | Card border, input focus |
+| `#2E7D5E` | `text-success` / `bg-success` | Success states |
+| `#B45309` | `text-warning` | Warnings |
+| `#1A6FBF` | `text-link` | Links |
+
+---
+
+### Fonts
+Fonts are loaded globally in `layout.js`. Use Tailwind classes to apply.
+
+```jsx
+// Heading (Montserrat)
+<h1 className="font-montserrat font-bold text-4xl">Title</h1>
+<h2 className="font-montserrat font-semibold text-2xl">Subtitle</h2>
+
+// Body (Inter — applied globally, no need to add manually)
+<p className="text-base">Body text</p>
+
+// Code (JetBrains Mono)
+<code className="font-mono text-sm">const x = 1</code>
+```
+
+---
+
+### UI Components
+Base components are in `src/components/ui/`. Import and use directly.
+
+```jsx
+import Button from '@/components/ui/Button'
+import Card from '@/components/ui/Card'
+import Input from '@/components/ui/Input'
+
+// Button variants
+<Button variant="primary">Join Us</Button>
+<Button variant="secondary">About Us</Button>
+
+// Card
+<Card>
+  <h3>Card Title</h3>
+  <p>Card content here</p>
+</Card>
+
+// Input
+<Input type="email" placeholder="Enter your email" />
+```
+
+---
+
+_Last updated: 2026-04-18 | Owner: Paul_

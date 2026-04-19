@@ -1,4 +1,4 @@
-import RoleGuard from '@/components/auth/RoleGuard';
+import RoleGuard from '@/components/auth/RoleGuard'
 
 export default function SolutionsPage() {
   return (
