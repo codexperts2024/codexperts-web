@@ -26,7 +26,15 @@ export function AuthProvider({ children }) {
       async (event, session) => {
         setUser(session?.user ?? null)
         if (session?.user) {
-          await fetchProfile(session.user.id)
+          const profile = await fetchProfile(session.user.id)
+          if (event === 'SIGNED_IN') {
+            const role = profile?.role
+            if (role === 'member' || role === 'admin') {
+              router.push('/')
+            } else {
+              router.push('/pending')
+            }
+          }
         } else {
           setProfile(null)
           setLoading(false)
@@ -46,6 +54,7 @@ export function AuthProvider({ children }) {
 
     if (!error) setProfile(data)
     setLoading(false)
+    return data
   }
 
   async function signOut() {
