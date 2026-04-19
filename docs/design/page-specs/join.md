@@ -1,48 +1,80 @@
-# Signup — Modal (replaces `/join` page)
-> No dedicated page. Triggered by [Join Us] button on Home navbar/CTA.
+# Signup / Login — Auth Flow
+
+> No dedicated page. Triggered by [Log In] or [Join Us] buttons.
+> Google OAuth runs FIRST. Additional info is collected after OAuth only for new users.
 
 ## Design Tokens (summary)
 - Modal bg: `#FFFFFF`, overlay: `rgba(0,0,0,0.4)`
-- Accent: `#C0392B` (Google sign-in button)
-- Input border focus: `#C0392B`
+- Accent: `#C0392B` (Log In button, submit button, input focus)
 - Font: Inter (body / labels)
 
 ---
 
-## Stitch Instructions
+## Auth Flow (Full)
 
-**THIS IS A MODAL, NOT A PAGE. Render it as a modal overlay on top of the Home page.**
-
-- Modal bg: `#FFFFFF`. Overlay behind modal: `rgba(0,0,0,0.4)`. Do NOT render as a full page.
-- Modal width: 420px, centered on screen. Border-radius: 8px. Padding: 32px.
-- Font: Inter for all labels, inputs, and buttons. Do NOT use Montserrat inside the modal.
-- The modal has EXACTLY 3 input fields: Campus (dropdown), Cohort (dropdown), Phone Number (text input). Do NOT add or remove any fields.
-- Field order is FIXED: Campus first, Cohort second, Phone Number third. Do NOT reorder.
-- [Continue with Google] button: bg `#C0392B`, text `#FFFFFF`, full-width, radius 6px, Inter 500 14px. Show Google "G" logo icon on the LEFT of the label.
-- Input fields: bg `#F5F5F5`, border 1px `#CCCCCC`, radius 6px, padding 8px 12px. Focus border: `#C0392B`.
-- "Already a member? Log in →" is a plain text line at the bottom — Inter 13px, color `#555555`. "Log in" is a red link `#C0392B`. Do NOT make this a button.
-- [✕] close button in top-right corner of modal: plain icon, color `#999999`, no background.
-- Do NOT add a terms of service checkbox, email input, or password field.
-- Do NOT add a progress indicator or multi-step wizard — this is a single-screen modal.
+```
+[Log In] or [Join Us] click
+  → Google OAuth
+    → Existing approved member (role: member / executive / admin)
+        → redirect to / (logged in)
+    → New user (not in profiles table)
+        → profile created with: name, email, avatar_url (from Google), role: pending
+        → Profile completion modal opens
+            → user fills in: Campus, Cohort, Phone Number
+            → [Submit] → profile updated → pending screen
+    → Existing pending user
+        → pending screen
+```
 
 ---
 
 ## Trigger Points
+
 ```
-[Join Us] in Navbar        → opens modal
-[Join Us →] on Home CTA    → opens modal
-[Log In] in Navbar         → Google OAuth directly (existing members)
-  → if new Google account  → same modal opens after OAuth
+[Log In] in Navbar         → Google OAuth (same flow for all users)
+[Join Us] in Navbar        → Google OAuth (same flow for all users)
+[Join Us →] on Home CTA    → Google OAuth (same flow for all users)
+[Join Us →] on About CTA   → Google OAuth (same flow for all users)
+```
+
+Log In and Join Us both trigger the same Google OAuth flow.
+Routing after OAuth is handled automatically based on profile state.
+
+---
+
+## Step 1 — Log In / Join Us Button
+
+```
+Button style: bg #C0392B, text #FFFFFF, radius 6px, Inter 500 14px
+Label: "Log In" (Navbar) or "Join Us" (CTA buttons)
+On click: trigger Supabase Google OAuth via authService
 ```
 
 ---
 
-## Modal Layout
+## Step 2 — Profile Completion Modal (new users only)
+
+Shown after Google OAuth for users with no existing profile.
+Google already returned: `name`, `email`, `avatar_url` — these are saved automatically.
+Modal collects the remaining required fields.
+
+**THIS IS A MODAL, NOT A PAGE. Render as overlay on top of current page.**
+
+- Modal width: 420px, centered. Border-radius: 8px. Padding: 32px.
+- Overlay: `rgba(0,0,0,0.4)`
+- Font: Inter for all labels, inputs, buttons.
+- EXACTLY 3 input fields: Campus, Cohort, Phone Number. Do NOT add or remove fields.
+- Field order is FIXED: Campus first, Cohort second, Phone Number third.
+- [Submit] button: bg `#C0392B`, text `#FFFFFF`, full-width, radius 6px, Inter 500 14px.
+- Input fields: bg `#F5F5F5`, border 1px `#CCCCCC`, radius 6px, padding 8px 12px. Focus border: `#C0392B`.
+- No [✕] close button — user must complete the form.
+- Do NOT add terms of service, password, or email fields (email already from Google).
 
 ```
 ┌──────────────────────────────────────────┐
-│  Join codeXperts                    [✕]  │
+│  Complete your profile                   │
 │  ──────────────────────────────────────  │
+│  Signed in as: [avatar] name@gmail.com   │
 │                                          │
 │  Campus                                  │
 │  ┌──────────────────────────────────┐    │
@@ -55,14 +87,12 @@
 │  ┌──────────────────────────────────┐    │
 │  │ Select cohort                  ▾ │    │
 │  └──────────────────────────────────┘    │
-│    └ Winter 2024  (Jan – Apr)            │
-│    └ Summer 2024  (May – Aug)            │
-│    └ Fall 2024    (Sep – Dec)            │
-│    └ Winter 2025                         │
-│    └ Summer 2025                         │
-│    └ Fall 2025                           │
-│    └ Winter 2026                         │
-│    └ Summer 2026  ← current              │
+│    └ Fall 2024    1st                    │
+│    └ Winter 2025  2nd                    │
+│    └ Summer 2025(X)                      │
+│    └ Fall 2025    3rd                    │
+│    └ Winter 2026  4th                    │
+│    └ Summer 2026  ← current (5th)        │
 │                                          │
 │  Phone Number                            │
 │  ┌──────────────────────────────────┐    │
@@ -71,13 +101,23 @@
 │    Format: Canadian  (XXX) XXX-XXXX      │
 │                                          │
 │  ┌──────────────────────────────────┐    │
-│  │  G  Continue with Google         │    │
+│  │         Submit Application       │    │
 │  └──────────────────────────────────┘    │
 │   bg #C0392B, text white, radius 6px     │
-│                                          │
-│  Already a member?  Log in →             │
-│  Inter 13px, color #555555, link #C0392B │
 └──────────────────────────────────────────┘
+```
+
+---
+
+## Step 3 — Pending Screen
+
+Shown after modal submission (or when pending user logs in again).
+
+```
+"Your application is under review."
+"An admin will approve your request soon."
+[Sign out] button
+[Back to home] link
 ```
 
 ---
@@ -88,7 +128,7 @@
 ```
 Options: Seneca College | York University
 Required: yes
-Stored in DB: users.campus
+Stored in DB: profiles.campus
 ```
 
 ### Cohort Dropdown
@@ -96,7 +136,7 @@ Stored in DB: users.campus
 Options: Winter / Summer / Fall + year (generated dynamically)
   Winter = Jan–Apr  |  Summer = May–Aug  |  Fall = Sep–Dec
 Required: yes
-Stored in DB: users.cohort  (e.g. "Fall 2024")
+Stored in DB: profiles.cohort  (e.g. "Fall 2024")
 Purpose: track when member joined, group by semester
 ```
 
@@ -106,32 +146,28 @@ Format: Canadian  (XXX) XXX-XXXX
 Input type: tel
 Validation: must match (XXX) XXX-XXXX pattern
 Required: yes
-Stored in DB: users.phone
+Stored in DB: profiles.phone
+Phone format auto-masked: type 4161234567 → displays (416) 123-4567
 ```
 
 ---
 
-## Post-Submit Flow
+## DB Insert on Signup
 ```
-[Continue with Google] click
-  → validate all 3 fields (show inline errors if missing)
-  → Google OAuth popup
-  → on success:
-      DB insert: {
-        google_id, name, email, avatar_url,   ← from Google
-        campus, cohort, phone,                ← from modal
-        status: "pending",                    ← default
-        created_at: now()
-      }
-  → redirect to confirmation page or show success message:
-      "You're on the list! An admin will approve your request soon."
+From Google OAuth:
+  name, email, avatar_url
+
+From modal:
+  campus, cohort, phone
+
+Auto-set:
+  role: 'pending'
+  created_at: now()
 ```
 
 ---
 
 ## Notes
 - No standalone `/join` route — modal only
-- Cohort list generated dynamically (not hardcoded) — add new semester = one config entry
-- Existing members re-registering: select their original cohort from dropdown
-- Phone format auto-masked on input: type 4161234567 → displays (416) 123-4567
-- All fields required before Google OAuth proceeds
+- Cohort list generated dynamically (not hardcoded)
+- `authService.js` handles all Supabase OAuth calls — no direct Supabase calls in components
