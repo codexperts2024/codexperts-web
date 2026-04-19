@@ -8,13 +8,7 @@ import { useAuth } from '@/hooks/useAuth'
 
 const publicLinks = [
   { label: 'Home', href: '/' },
-  {
-    label: 'About Us',
-    dropdown: [
-      { label: 'Our Story', href: '/about' },
-      { label: 'Team', href: '/team' },
-    ],
-  },
+  { label: 'About Us', href: '/about' },
   {
     label: 'Updates',
     dropdown: [
@@ -26,7 +20,13 @@ const publicLinks = [
 ]
 
 const memberOnlyLinks = [
-  { label: 'Practice', href: '/problems' },
+  {
+    label: 'Practice',
+    dropdown: [
+      { label: 'Problems', href: '/problems' },
+      { label: 'Solutions', href: '/solutions' },
+    ],
+  },
   { label: 'Members', href: '/members' },
 ]
 
