@@ -1,5 +1,7 @@
 // Constants used across the application
 export const ROLES = {
-    ADMIN: 'admin',
-    MEMBER: 'member'
+    PENDING: 'pending',
+    MEMBER: 'member',
+    EXECUTIVE: 'executive',
+    ADMIN: 'admin'
 };

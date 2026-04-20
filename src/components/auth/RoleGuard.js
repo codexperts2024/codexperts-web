@@ -3,33 +3,35 @@
 import { useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter, usePathname } from 'next/navigation'
+import { ROLES } from '@/utils/constants'
+
+function checkPath(pathname, actualPathname) {
+  return (
+    pathname === actualPathname ||
+    pathname.startsWith(`${actualPathname}/`)
+  )
+}
 
 function isMemberOnlyPath(pathname) {
   return (
-    pathname === '/problems' ||
-    pathname.startsWith('/problems/') ||
-    pathname === '/members' ||
-    pathname.startsWith('/members/')
+    checkPath(pathname, '/problems') ||
+    checkPath(pathname, '/solutions') || 
+    checkPath(pathname, '/members')
   )
 }
 
 function isAdminPath(pathname) {
-  return pathname === '/admin' || pathname.startsWith('/admin/')
+  return checkPath(pathname, '/admin')
 }
 
 function canAccessMemberRoutes(profile) {
-  return profile?.role === 'member' || profile?.role === 'executive'
+  return profile?.role === ROLES.MEMBER || profile?.role === ROLES.EXECUTIVE || profile?.role === ROLES.ADMIN
 }
 
 const RoleGuard = ({ children }) => {
   const { user, profile, loading } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
-
-  console.log('User:', user)
-  console.log('Profile:', profile)
-  console.log('Loading:', loading)
-  console.log('Pathname:', pathname)
 
   useEffect(() => {
     if (loading) return
@@ -39,14 +41,14 @@ const RoleGuard = ({ children }) => {
       return
     }
 
-    if (profile?.role === 'pending') return
+    if (profile?.role === ROLES.PENDING) return
 
     if (isMemberOnlyPath(pathname) && !canAccessMemberRoutes(profile)) {
       router.replace('/')
       return
     }
 
-    if (isAdminPath(pathname) && profile?.role !== 'admin') {
+    if (isAdminPath(pathname) && profile?.role !== ROLES.ADMIN) {
       router.replace('/')
     }
   }, [loading, user, profile, pathname, router])
@@ -63,7 +65,7 @@ const RoleGuard = ({ children }) => {
     return null
   }
 
-  if (profile?.role === 'pending') {
+  if (profile?.role === ROLES.PENDING) {
     return (
       <main className="min-h-screen flex items-center justify-center">
         <div className="text-center max-w-lg px-4">
@@ -84,7 +86,7 @@ const RoleGuard = ({ children }) => {
     return null
   }
 
-  if (isAdminPath(pathname) && profile?.role !== 'admin') {
+  if (isAdminPath(pathname) && profile?.role !== ROLES.ADMIN) {
     return null
   }
 
