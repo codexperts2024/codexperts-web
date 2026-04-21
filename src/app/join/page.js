@@ -1,11 +1,22 @@
+'use client'
+
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { signInWithGoogle } from '@/services/authService'
+
+// No standalone /join page — triggers OAuth directly and redirects to /auth/callback.
+// Will be replaced by a modal overlay in issue #20.
 export default function JoinPage() {
+  const router = useRouter()
+
+  useEffect(() => {
+    const redirectTo = `${window.location.origin}/auth/callback`
+    signInWithGoogle(redirectTo).catch(() => router.replace('/'))
+  }, [])
+
   return (
-    <main className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-5xl font-bold text-gray-900">Join Us</h1>
-        <p className="mt-3 text-gray-400 text-lg">Google Sign-In · Membership application</p>
-        <p className="mt-1 text-gray-300 text-sm">Visible to public only · Hidden after approval</p>
-      </div>
+    <main className="min-h-screen flex items-center justify-center bg-bg-base">
+      <span className="w-8 h-8 rounded-full border-2 border-border border-t-accent animate-spin" />
     </main>
   )
 }

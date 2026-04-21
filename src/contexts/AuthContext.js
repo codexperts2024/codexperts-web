@@ -3,6 +3,7 @@
 import { createContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { fetchProfile, signOut as authSignOut } from '@/services/authService'
 
 export const AuthContext = createContext(null)
 
@@ -16,40 +17,30 @@ export function AuthProvider({ children }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
       if (session?.user) {
-        fetchProfile(session.user.id)
+        fetchProfile(session.user.id).then((p) => {
+          setProfile(p)
+          setLoading(false)
+        })
       } else {
         setLoading(false)
       }
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setUser(session?.user ?? null)
-        if (session?.user) {
-          await fetchProfile(session.user.id)
-        } else {
-          setProfile(null)
-          setLoading(false)
-        }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null)
+      if (session?.user) {
+        fetchProfile(session.user.id).then((p) => setProfile(p))
+      } else {
+        setProfile(null)
+        setLoading(false)
       }
-    )
+    })
 
     return () => subscription.unsubscribe()
   }, [])
 
-  async function fetchProfile(userId) {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
-
-    if (!error) setProfile(data)
-    setLoading(false)
-  }
-
   async function signOut() {
-    await supabase.auth.signOut()
+    await authSignOut()
     setUser(null)
     setProfile(null)
     router.push('/')
