@@ -3,14 +3,17 @@ import Button from '@/components/ui/Button'
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen bg-[#f9f9f9]">
       <section>
         <img src="hero.jpg" alt="group photo of codeXperts" className="object-cover object-[0%_60%] w-screen h-[70vh] " />
       </section>
-      <section className="flex justify-evenly items-center m-10 my-16">
-        <div className="border w-[18rem] h-[18rem] bg-zinc-200"></div>
-        <div className="border w-[18rem] h-[18rem] bg-zinc-200"></div>
-        <div className="border w-[18rem] h-[18rem] bg-zinc-200"></div>
+
+      <section className="flex justify-evenly items-center m-10 my-16 py-5 bg-white">
+          <div 
+          className="elfsight-app-6ad46684-1265-4d5d-bcce-41c3310eff1e" 
+          data-elfsight-app-lazy 
+        />        
+
       </section>
       <section className="flex mx-7 my-16 justify-center align-center">
         <div className="flex-[2]">

@@ -2,6 +2,7 @@ import './globals.css'
 import { Montserrat, Inter, JetBrains_Mono } from 'next/font/google'
 import Navbar from '@/components/common/Navbar'
 import { AuthProvider } from '@/contexts/AuthContext'
+import Script from 'next/script'
 
 const montserrat = Montserrat({
   subsets: ['latin'],
@@ -36,6 +37,11 @@ export default function RootLayout({ children }) {
             {children}
           </div>
         </AuthProvider>
+
+        <Script 
+          src="https://elfsightcdn.com/platform.js" 
+          strategy="lazyOnload" 
+        />
       </body>
     </html>
   )
