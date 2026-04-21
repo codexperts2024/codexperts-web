@@ -142,8 +142,8 @@ export default function Navbar() {
   const { user, profile, loading, signOut } = useAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  const role = profile?.role ?? (user ? 'member' : 'public')
-  const isMember = role === 'member' || role === 'admin'
+  const role = profile?.role ?? null
+  const isMember = role === 'member' || role === 'executive' || role === 'admin'
   const isAdmin = role === 'admin'
 
   const centerLinks = isMember ? [...publicLinks, ...memberOnlyLinks] : publicLinks
@@ -160,8 +160,8 @@ export default function Navbar() {
       <div className="relative w-full px-6 h-14 flex items-center">
 
         {/* Logo */}
-        <Link href="/" className="shrink-0 font-montserrat font-bold text-xl text-accent tracking-tight">
-          codeXperts
+        <Link href="/" className="shrink-0">
+          <img src="/codeXpertsLogo.svg" alt="codeXperts" className="h-8 w-auto" />
         </Link>
 
         {/* Desktop center links */}
