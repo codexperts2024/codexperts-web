@@ -15,7 +15,7 @@ export default function HomePage() {
         />        
 
       </section>
-      <section className="flex mx-7 my-16 justify-center align-center">
+      <section className="flex my-16 justify-center align-center container mx-auto p-5">
         <div className="flex-[2]">
           <p className="text-5xl font-semibold mb-4">Who We Are</p>
           <div className="w-12 h-1 bg-red-700"></div>
