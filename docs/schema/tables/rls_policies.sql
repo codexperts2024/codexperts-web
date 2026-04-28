@@ -3,14 +3,28 @@ ALTER TABLE public.problems ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.submissions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.attendances ENABLE ROW LEVEL SECURITY;
-ALTER TABLE PUBLIC.announcements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.announcements ENABLE ROW LEVEL SECURITY;
 
 
 CREATE POLICY profiles_select_all
 ON public.profiles
-FOR SELECT 
+FOR SELECT
 TO authenticated
 USING (TRUE);
+
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (id, email, role)
+  VALUES (NEW.id, NEW.email, 'member'::public.member_role);
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER on_auth_user_created
+AFTER INSERT ON auth.users
+FOR EACH ROW
+EXECUTE PROCEDURE public.handle_new_user();
 
 CREATE POLICY profiles_update_own
 ON public.profiles
@@ -18,11 +32,9 @@ FOR UPDATE
 TO authenticated
 USING (
   auth.uid() = id
-  AND COALESCE(auth.jwt() ->> 'sub', '') = auth.uid()::text
 )
 WITH CHECK (
   auth.uid() = id
-  AND COALESCE(auth.jwt() ->> 'sub', '') = auth.uid()::text
 );
 
 CREATE POLICY problems_select_public
@@ -37,7 +49,6 @@ FOR INSERT
 TO authenticated
 WITH CHECK (
   auth.uid() IS NOT NULL
-  AND COALESCE(auth.jwt() ->> 'sub', '') = auth.uid()::text
   AND EXISTS (
     SELECT 1
     FROM public.profiles AS p
@@ -52,7 +63,6 @@ FOR UPDATE
 TO authenticated
 USING (
   auth.uid() IS NOT NULL
-  AND COALESCE(auth.jwt() ->> 'sub', '') = auth.uid()::text
   AND EXISTS (
     SELECT 1
     FROM public.profiles AS p
@@ -62,7 +72,6 @@ USING (
 )
 WITH CHECK (
   auth.uid() IS NOT NULL
-  AND COALESCE(auth.jwt() ->> 'sub', '') = auth.uid()::text
   AND EXISTS (
     SELECT 1
     FROM public.profiles AS p
@@ -77,7 +86,6 @@ FOR DELETE
 TO authenticated
 USING (
   auth.uid() IS NOT NULL
-  AND COALESCE(auth.jwt() ->> 'sub', '') = auth.uid()::text
   AND EXISTS (
     SELECT 1
     FROM public.profiles AS p
@@ -92,7 +100,6 @@ FOR SELECT
 TO authenticated
 USING (
   auth.uid() IS NOT NULL
-  AND COALESCE(auth.jwt() ->> 'sub', '') = auth.uid()::text
   AND EXISTS (
     SELECT 1
     FROM public.profiles AS p
@@ -107,7 +114,6 @@ FOR INSERT
 TO authenticated
 WITH CHECK (
   profile_id = auth.uid()
-  AND COALESCE(auth.jwt() ->> 'sub', '') = auth.uid()::text
   AND EXISTS (
     SELECT 1
     FROM public.profiles AS p
@@ -122,7 +128,6 @@ FOR UPDATE
 TO authenticated
 USING (
   profile_id = auth.uid()
-  AND COALESCE(auth.jwt() ->> 'sub', '') = auth.uid()::text
   AND EXISTS (
     SELECT 1
     FROM public.profiles AS p
@@ -132,7 +137,6 @@ USING (
 )
 WITH CHECK (
   profile_id = auth.uid()
-  AND COALESCE(auth.jwt() ->> 'sub', '') = auth.uid()::text
   AND EXISTS (
     SELECT 1
     FROM public.profiles AS p
@@ -147,7 +151,6 @@ FOR DELETE
 TO authenticated
 USING (
   profile_id = auth.uid()
-  AND COALESCE(auth.jwt() ->> 'sub', '') = auth.uid()::text
   AND EXISTS (
     SELECT 1
     FROM public.profiles AS p
@@ -168,7 +171,6 @@ FOR INSERT
 TO authenticated
 WITH CHECK (
   auth.uid() IS NOT NULL
-  AND COALESCE(auth.jwt() ->> 'sub', '') = auth.uid()::text
   AND EXISTS (
     SELECT 1
     FROM public.profiles AS p
@@ -177,18 +179,51 @@ WITH CHECK (
   )
 );
 
-CREATE POLICY attendances_select_admin
+CREATE POLICY sessions_update_exec_admin
+ON public.sessions
+FOR UPDATE
+TO authenticated
+USING (
+  auth.uid() IS NOT NULL
+  AND EXISTS (
+    SELECT 1 FROM public.profiles AS p
+    WHERE p.id = auth.uid()
+      AND p.role IN ('executive'::public.member_role, 'admin'::public.member_role)
+  )
+)
+WITH CHECK (
+  auth.uid() IS NOT NULL
+  AND EXISTS (
+    SELECT 1 FROM public.profiles AS p
+    WHERE p.id = auth.uid()
+      AND p.role IN ('executive'::public.member_role, 'admin'::public.member_role)
+  )
+);
+
+CREATE POLICY sessions_delete_exec_admin
+ON public.sessions
+FOR DELETE
+TO authenticated
+USING (
+  auth.uid() IS NOT NULL
+  AND EXISTS (
+    SELECT 1 FROM public.profiles AS p
+    WHERE p.id = auth.uid()
+      AND p.role IN ('executive'::public.member_role, 'admin'::public.member_role)
+  )
+);
+
+CREATE POLICY attendances_select_exec_admin
 ON public.attendances
 FOR SELECT
 TO authenticated
 USING (
   auth.uid() IS NOT NULL
-  AND COALESCE(auth.jwt() ->> 'sub', '') = auth.uid()::text
   AND EXISTS (
     SELECT 1
     FROM public.profiles AS p
     WHERE p.id = auth.uid()
-      AND p.role = 'admin'::public.member_role
+      AND p.role IN ('executive'::public.member_role, 'admin'::public.member_role)
   )
 );
 
@@ -198,7 +233,6 @@ FOR INSERT
 TO authenticated
 WITH CHECK (
   profile_id = auth.uid()
-  AND COALESCE(auth.jwt() ->> 'sub', '') = auth.uid()::text
   AND EXISTS (
     SELECT 1
     FROM public.profiles AS p
@@ -213,7 +247,6 @@ FOR UPDATE
 TO authenticated
 USING (
   profile_id = auth.uid()
-  AND COALESCE(auth.jwt() ->> 'sub', '') = auth.uid()::text
   AND EXISTS (
     SELECT 1
     FROM public.profiles AS p
@@ -223,7 +256,6 @@ USING (
 )
 WITH CHECK (
   profile_id = auth.uid()
-  AND COALESCE(auth.jwt() ->> 'sub', '') = auth.uid()::text
   AND EXISTS (
     SELECT 1
     FROM public.profiles AS p
@@ -238,7 +270,6 @@ FOR DELETE
 TO authenticated
 USING (
   profile_id = auth.uid()
-  AND COALESCE(auth.jwt() ->> 'sub', '') = auth.uid()::text
   AND EXISTS (
     SELECT 1
     FROM public.profiles AS p
@@ -259,7 +290,6 @@ FOR INSERT
 TO authenticated
 WITH CHECK (
   author_id = auth.uid()
-  AND COALESCE(auth.jwt() ->> 'sub', '') = auth.uid()::text
   AND EXISTS (
     SELECT 1
     FROM public.profiles AS p
@@ -274,7 +304,6 @@ FOR UPDATE
 TO authenticated
 USING (
   auth.uid() IS NOT NULL
-  AND COALESCE(auth.jwt() ->> 'sub', '') = auth.uid()::text
   AND EXISTS (
     SELECT 1
     FROM public.profiles AS p
@@ -284,7 +313,6 @@ USING (
 )
 WITH CHECK (
   auth.uid() IS NOT NULL
-  AND COALESCE(auth.jwt() ->> 'sub', '') = auth.uid()::text
   AND EXISTS (
     SELECT 1
     FROM public.profiles AS p
@@ -299,7 +327,6 @@ FOR DELETE
 TO authenticated
 USING (
   auth.uid() IS NOT NULL
-  AND COALESCE(auth.jwt() ->> 'sub', '') = auth.uid()::text
   AND EXISTS (
     SELECT 1
     FROM public.profiles AS p
@@ -307,3 +334,4 @@ USING (
       AND p.role IN ('executive'::public.member_role, 'admin'::public.member_role)
   )
 );
+
