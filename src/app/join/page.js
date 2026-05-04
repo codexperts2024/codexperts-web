@@ -4,15 +4,13 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { signInWithGoogle } from '@/services/authService'
 
-// No standalone /join page — triggers OAuth directly and redirects to /auth/callback.
-// Will be replaced by a modal overlay in issue #20.
 export default function JoinPage() {
   const router = useRouter()
 
   useEffect(() => {
-    const redirectTo = `${window.location.origin}/auth/callback`
-    signInWithGoogle(redirectTo).catch(() => router.replace('/'))
-  }, [])
+    signInWithGoogle(`${window.location.origin}/auth/callback`)
+      .catch(() => router.replace('/'))
+  }, [router])
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-bg-base">

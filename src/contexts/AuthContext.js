@@ -3,7 +3,7 @@
 import { createContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { fetchProfile, signOut as authSignOut } from '@/services/authService'
+import { getSession, fetchProfile, signOut as authSignOut } from '@/services/authService'
 
 export const AuthContext = createContext(null)
 
@@ -14,27 +14,37 @@ export function AuthProvider({ children }) {
   const router = useRouter()
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        fetchProfile(session.user.id).then((p) => {
+    async function init() {
+      try {
+        const session = await getSession()
+        setUser(session?.user ?? null)
+        if (session?.user) {
+          const p = await fetchProfile(session.user.id)
           setProfile(p)
-          setLoading(false)
-        })
-      } else {
+        }
+      } finally {
         setLoading(false)
       }
-    })
+    }
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        fetchProfile(session.user.id).then((p) => setProfile(p))
-      } else {
-        setProfile(null)
-        setLoading(false)
+    init()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        setUser(session?.user ?? null)
+        if (session?.user) {
+          try {
+            const p = await fetchProfile(session.user.id)
+            setProfile(p)
+          } finally {
+            setLoading(false)
+          }
+        } else {
+          setProfile(null)
+          setLoading(false)
+        }
       }
-    })
+    )
 
     return () => subscription.unsubscribe()
   }, [])

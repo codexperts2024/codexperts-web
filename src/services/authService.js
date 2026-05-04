@@ -27,3 +27,23 @@ export async function fetchProfile(userId) {
   if (error && error.code !== 'PGRST116') throw error
   return data ?? null
 }
+
+export async function createProfile({ id, name, email, avatarUrl, campus, cohort, phone }) {
+  const { data, error } = await supabase
+    .from('profiles')
+    .insert({
+      id,
+      name,
+      email,
+      avatar_url: avatarUrl,
+      campus,
+      cohort,
+      phone,
+      role: 'pending',
+    })
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}

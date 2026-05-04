@@ -1,10 +1,27 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 
 export default function PendingPage() {
-  const { user, signOut } = useAuth()
+  const { user, loading, signOut } = useAuth()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/')
+    }
+  }, [loading, user, router])
+
+  if (loading || !user) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-bg-base">
+        <span className="w-8 h-8 rounded-full border-2 border-border border-t-accent animate-spin" />
+      </main>
+    )
+  }
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-bg-base px-4">
