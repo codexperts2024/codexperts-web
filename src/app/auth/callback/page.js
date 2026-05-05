@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { getSession, fetchProfile, createProfile } from '@/services/authService'
+import { getSession, fetchProfile } from '@/services/authService'
 import { isApprovedRole } from '@/utils/constants'
 
 export default function AuthCallbackPage() {
@@ -17,32 +17,14 @@ export default function AuthCallbackPage() {
         return
       }
 
-      let profile = await fetchProfile(session.user.id)
+      const profile = await fetchProfile(session.user.id)
 
       if (!profile) {
-        const campus = sessionStorage.getItem('join_campus')
-        const cohort = sessionStorage.getItem('join_cohort')
-        const phone = sessionStorage.getItem('join_phone')
-
-        if (campus && cohort && phone) {
-          const meta = session.user.user_metadata
-          profile = await createProfile({
-            id: session.user.id,
-            name: meta?.full_name ?? meta?.name ?? '',
-            email: session.user.email,
-            avatarUrl: meta?.avatar_url ?? '',
-            campus,
-            cohort,
-            phone,
-          })
-
-          sessionStorage.removeItem('join_campus')
-          sessionStorage.removeItem('join_cohort')
-          sessionStorage.removeItem('join_phone')
-        }
+        router.replace('/')
+        return
       }
 
-      if (isApprovedRole(profile?.role)) {
+      if (isApprovedRole(profile.role)) {
         router.replace('/')
       } else {
         router.replace('/pending')

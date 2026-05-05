@@ -49,15 +49,25 @@ export function AuthProvider({ children }) {
     return () => subscription.unsubscribe()
   }, [])
 
+  async function refreshProfile() {
+    if (user) {
+      const p = await fetchProfile(user.id)
+      setProfile(p)
+      return p
+    }
+    return null
+  }
+
   async function signOut() {
     await authSignOut()
     setUser(null)
     setProfile(null)
+    sessionStorage.removeItem('join_modal_dismissed')
     router.push('/')
   }
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signOut }}>
+    <AuthContext.Provider value={{ user, profile, loading, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   )

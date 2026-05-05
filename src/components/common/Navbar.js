@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { socialLinks } from '@/config/socialLinks'
 import { useAuth } from '@/hooks/useAuth'
-import { useJoinModal } from '@/contexts/JoinModalContext'
 import { signInWithGoogle } from '@/services/authService'
 
 const publicLinks = [
@@ -136,7 +135,6 @@ function SocialDropdown({ icon, items }) {
 export default function Navbar() {
   const pathname = usePathname()
   const { user, profile, loading, signOut } = useAuth()
-  const { openModal } = useJoinModal()
   const [mobileOpen, setMobileOpen] = useState(false)
 
   const role = profile?.role ?? null
@@ -163,14 +161,17 @@ export default function Navbar() {
 
       <div className="relative w-full px-6 h-14 flex items-center">
 
+        {/* Logo */}
         <Link href="/" className="shrink-0">
           <img src="/codeXpertsLogo.svg" alt="codeXperts" className="h-8 w-auto" />
         </Link>
 
+        {/* Desktop center links */}
         <div className="absolute left-1/2 -translate-x-1/2 hidden lg:flex items-center gap-5">
           {!loading && centerLinks.map(renderDesktopLink)}
         </div>
 
+        {/* Desktop right — social + auth */}
         <div className="ml-auto hidden lg:flex items-center gap-1 shrink-0">
           <SocialDropdown icon={<IconInstagram />} items={socialLinks.instagram} />
           <a href={socialLinks.linkedin.url} target="_blank" rel="noopener noreferrer"
@@ -196,7 +197,7 @@ export default function Navbar() {
                 className="px-3 py-1.5 text-sm font-medium text-text-secondary hover:text-text-primary transition-colors">
                 Log In
               </button>
-              <button onClick={openModal}
+              <button onClick={handleLogIn}
                 className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors">
                 Join Us
               </button>
@@ -209,6 +210,7 @@ export default function Navbar() {
           )}
         </div>
 
+        {/* Mobile — hamburger */}
         <button
           className="ml-auto lg:hidden p-2 text-text-secondary hover:text-text-primary transition-colors"
           onClick={() => setMobileOpen((o) => !o)}
@@ -222,6 +224,7 @@ export default function Navbar() {
         </button>
       </div>
 
+      {/* Mobile menu */}
       {mobileOpen && (
         <div className="lg:hidden border-t border-border bg-white px-6 py-4 flex flex-col gap-1">
 
@@ -257,11 +260,12 @@ export default function Navbar() {
 
           <div className="my-2 h-px bg-border" />
 
+          {/* Social links */}
           <div className="flex items-center gap-4 px-2 py-1">
             {socialLinks.instagram.map(({ campus, url }) => (
               <a key={campus} href={url} target="_blank" rel="noopener noreferrer"
                 className="text-sm text-text-secondary hover:text-text-primary transition-colors">
-                IG · {campus}
+                IG &middot; {campus}
               </a>
             ))}
           </div>
@@ -272,7 +276,7 @@ export default function Navbar() {
           {isMember && socialLinks.discord.map(({ campus, url }) => (
             <a key={campus} href={url} target="_blank" rel="noopener noreferrer"
               className="px-2 py-1 text-sm text-text-secondary hover:text-text-primary transition-colors">
-              Discord · {campus}
+              Discord &middot; {campus}
             </a>
           ))}
           <a href={socialLinks.email.url}
@@ -282,6 +286,7 @@ export default function Navbar() {
 
           <div className="my-2 h-px bg-border" />
 
+          {/* Auth */}
           {!loading && (user ? (
             <button onClick={() => { signOut(); setMobileOpen(false) }}
               className="w-full px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center">
@@ -293,7 +298,7 @@ export default function Navbar() {
                 className="w-full px-4 py-2.5 rounded-md text-sm font-medium border border-border text-text-primary hover:bg-bg-surface transition-colors text-center">
                 Log In
               </button>
-              <button onClick={() => { setMobileOpen(false); openModal() }}
+              <button onClick={() => { setMobileOpen(false); handleLogIn() }}
                 className="w-full px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center">
                 Join Us
               </button>

@@ -47,3 +47,15 @@ export async function createProfile({ id, name, email, avatarUrl, campus, cohort
   if (error) throw error
   return data
 }
+
+export async function updateProfile(userId, fields) {
+  const { data, error } = await supabase
+    .from('profiles')
+    .update(fields)
+    .eq('id', userId)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
