@@ -16,7 +16,7 @@ CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
   INSERT INTO public.profiles (id, email, role)
-  VALUES (NEW.id, NEW.email, 'member'::public.member_role);
+  VALUES (NEW.id, NEW.email, 'pending'::public.member_role);
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -48,7 +48,6 @@ ON public.problems
 FOR INSERT
 TO authenticated
 WITH CHECK (
-  auth.uid() IS NOT NULL
   AND EXISTS (
     SELECT 1
     FROM public.profiles AS p
@@ -62,7 +61,6 @@ ON public.problems
 FOR UPDATE
 TO authenticated
 USING (
-  auth.uid() IS NOT NULL
   AND EXISTS (
     SELECT 1
     FROM public.profiles AS p
@@ -71,7 +69,6 @@ USING (
   )
 )
 WITH CHECK (
-  auth.uid() IS NOT NULL
   AND EXISTS (
     SELECT 1
     FROM public.profiles AS p
@@ -85,7 +82,6 @@ ON public.problems
 FOR DELETE
 TO authenticated
 USING (
-  auth.uid() IS NOT NULL
   AND EXISTS (
     SELECT 1
     FROM public.profiles AS p
@@ -99,7 +95,6 @@ ON public.submissions
 FOR SELECT
 TO authenticated
 USING (
-  auth.uid() IS NOT NULL
   AND EXISTS (
     SELECT 1
     FROM public.profiles AS p
@@ -170,7 +165,6 @@ ON public.sessions
 FOR INSERT
 TO authenticated
 WITH CHECK (
-  auth.uid() IS NOT NULL
   AND EXISTS (
     SELECT 1
     FROM public.profiles AS p
@@ -184,7 +178,6 @@ ON public.sessions
 FOR UPDATE
 TO authenticated
 USING (
-  auth.uid() IS NOT NULL
   AND EXISTS (
     SELECT 1 FROM public.profiles AS p
     WHERE p.id = auth.uid()
@@ -192,7 +185,6 @@ USING (
   )
 )
 WITH CHECK (
-  auth.uid() IS NOT NULL
   AND EXISTS (
     SELECT 1 FROM public.profiles AS p
     WHERE p.id = auth.uid()
@@ -205,7 +197,6 @@ ON public.sessions
 FOR DELETE
 TO authenticated
 USING (
-  auth.uid() IS NOT NULL
   AND EXISTS (
     SELECT 1 FROM public.profiles AS p
     WHERE p.id = auth.uid()
@@ -218,7 +209,6 @@ ON public.attendances
 FOR SELECT
 TO authenticated
 USING (
-  auth.uid() IS NOT NULL
   AND EXISTS (
     SELECT 1
     FROM public.profiles AS p
@@ -303,7 +293,6 @@ ON public.announcements
 FOR UPDATE
 TO authenticated
 USING (
-  auth.uid() IS NOT NULL
   AND EXISTS (
     SELECT 1
     FROM public.profiles AS p
@@ -312,7 +301,6 @@ USING (
   )
 )
 WITH CHECK (
-  auth.uid() IS NOT NULL
   AND EXISTS (
     SELECT 1
     FROM public.profiles AS p
@@ -326,7 +314,6 @@ ON public.announcements
 FOR DELETE
 TO authenticated
 USING (
-  auth.uid() IS NOT NULL
   AND EXISTS (
     SELECT 1
     FROM public.profiles AS p
