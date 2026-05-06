@@ -48,7 +48,7 @@ ON public.problems
 FOR INSERT
 TO authenticated
 WITH CHECK (
-  AND EXISTS (
+  EXISTS (
     SELECT 1
     FROM public.profiles AS p
     WHERE p.id = auth.uid()
@@ -61,7 +61,7 @@ ON public.problems
 FOR UPDATE
 TO authenticated
 USING (
-  AND EXISTS (
+  EXISTS (
     SELECT 1
     FROM public.profiles AS p
     WHERE p.id = auth.uid()
@@ -69,7 +69,7 @@ USING (
   )
 )
 WITH CHECK (
-  AND EXISTS (
+  EXISTS (
     SELECT 1
     FROM public.profiles AS p
     WHERE p.id = auth.uid()
@@ -82,7 +82,7 @@ ON public.problems
 FOR DELETE
 TO authenticated
 USING (
-  AND EXISTS (
+  EXISTS (
     SELECT 1
     FROM public.profiles AS p
     WHERE p.id = auth.uid()
@@ -95,7 +95,7 @@ ON public.submissions
 FOR SELECT
 TO authenticated
 USING (
-  AND EXISTS (
+  EXISTS (
     SELECT 1
     FROM public.profiles AS p
     WHERE p.id = auth.uid()
@@ -165,7 +165,7 @@ ON public.sessions
 FOR INSERT
 TO authenticated
 WITH CHECK (
-  AND EXISTS (
+  EXISTS (
     SELECT 1
     FROM public.profiles AS p
     WHERE p.id = auth.uid()
@@ -178,14 +178,14 @@ ON public.sessions
 FOR UPDATE
 TO authenticated
 USING (
-  AND EXISTS (
+  EXISTS (
     SELECT 1 FROM public.profiles AS p
     WHERE p.id = auth.uid()
       AND p.role IN ('executive'::public.member_role, 'admin'::public.member_role)
   )
 )
 WITH CHECK (
-  AND EXISTS (
+  EXISTS (
     SELECT 1 FROM public.profiles AS p
     WHERE p.id = auth.uid()
       AND p.role IN ('executive'::public.member_role, 'admin'::public.member_role)
@@ -197,7 +197,7 @@ ON public.sessions
 FOR DELETE
 TO authenticated
 USING (
-  AND EXISTS (
+  EXISTS (
     SELECT 1 FROM public.profiles AS p
     WHERE p.id = auth.uid()
       AND p.role IN ('executive'::public.member_role, 'admin'::public.member_role)
@@ -209,7 +209,7 @@ ON public.attendances
 FOR SELECT
 TO authenticated
 USING (
-  AND EXISTS (
+  EXISTS (
     SELECT 1
     FROM public.profiles AS p
     WHERE p.id = auth.uid()
@@ -293,7 +293,7 @@ ON public.announcements
 FOR UPDATE
 TO authenticated
 USING (
-  AND EXISTS (
+  EXISTS (
     SELECT 1
     FROM public.profiles AS p
     WHERE p.id = auth.uid()
@@ -301,7 +301,7 @@ USING (
   )
 )
 WITH CHECK (
-  AND EXISTS (
+  EXISTS (
     SELECT 1
     FROM public.profiles AS p
     WHERE p.id = auth.uid()
@@ -314,7 +314,7 @@ ON public.announcements
 FOR DELETE
 TO authenticated
 USING (
-  AND EXISTS (
+  EXISTS (
     SELECT 1
     FROM public.profiles AS p
     WHERE p.id = auth.uid()
