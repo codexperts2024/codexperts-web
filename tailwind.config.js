@@ -32,6 +32,16 @@ module.exports = {
         warning: '#B45309',
         link: '#1A6FBF',
       },
+      animation: {
+        'fade-up': 'fadeUp 0.4s ease-out both',
+        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+      },
+      keyframes: {
+        fadeUp: {
+          '0%': { opacity: '0', transform: 'translateY(16px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+      },
       fontFamily: {
         inter: ['var(--font-inter)', 'sans-serif'],
         montserrat: ['var(--font-montserrat)', 'sans-serif'],

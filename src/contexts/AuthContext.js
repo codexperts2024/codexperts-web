@@ -3,6 +3,7 @@
 import { createContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { getSession, fetchProfile, signOut as authSignOut } from '@/services/authService'
 
 export const AuthContext = createContext(null)
 
@@ -13,20 +14,31 @@ export function AuthProvider({ children }) {
   const router = useRouter()
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        await fetchProfile(session.user.id)
-      } else {
-        setLoading(false)
-      }
-    })
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+    async function init() {
+      try {
+        const session = await getSession()
         setUser(session?.user ?? null)
         if (session?.user) {
-          await fetchProfile(session.user.id)
+          const p = await fetchProfile(session.user.id)
+          setProfile(p)
+        }
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    init()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        setUser(session?.user ?? null)
+        if (session?.user) {
+          try {
+            const p = await fetchProfile(session.user.id)
+            setProfile(p)
+          } finally {
+            setLoading(false)
+          }
         } else {
           setProfile(null)
           setLoading(false)
@@ -37,26 +49,25 @@ export function AuthProvider({ children }) {
     return () => subscription.unsubscribe()
   }, [])
 
-  async function fetchProfile(userId) {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
-
-    if (!error) setProfile(data)
-    setLoading(false)
+  async function refreshProfile() {
+    if (user) {
+      const p = await fetchProfile(user.id)
+      setProfile(p)
+      return p
+    }
+    return null
   }
 
   async function signOut() {
-    await supabase.auth.signOut()
+    await authSignOut()
     setUser(null)
     setProfile(null)
+    sessionStorage.removeItem('join_modal_dismissed')
     router.push('/')
   }
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signOut }}>
+    <AuthContext.Provider value={{ user, profile, loading, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   )
