@@ -38,6 +38,7 @@ Planning → Design → Development → Testing → Review & Release
 Each sprint begins by defining goals, refining the backlog, and assigning GitHub Issues to team members.
 
 - **Week 1** — Defined 6-week roadmap and MVP scope · Created GitHub Issues · Assigned tasks across FE/BE · Set up GitHub Projects Kanban board
+- **Week 3** — Issue #18 (Schedule page) scoped and carried forward · Judy onboarded as Frontend
 
 ---
 
@@ -47,6 +48,7 @@ Covers UI/UX wireframes, system architecture decisions, DB schema design, and AP
 
 - **Week 1** — Finalized sitemap and page visibility rules · Produced Figma wireframes for all 8 pages · Finalized DB schema (profiles, problems, submissions, sessions, attendances, announcements) · Defined navbar structure and social link config
 - **Week 2** — Members page structure defined · Individual profile page spec (`/members/:id`) · Self-edit mode with per-field visibility controls · Student/Graduate status toggle · Stitch wireframes finalized for all member-facing views
+- **Week 3** — 3-Layer Depth System designed (L0 `#F9F9F9` → L1 `#EAEAEA` → L2 `#DBDBDB`) and documented in design-system.md · Schedule page spec fully rewritten to match implementation · Tailwind custom depth tokens defined (`bg-bg-layer1/2/2Hover`)
 
 ---
 
@@ -55,6 +57,7 @@ Covers UI/UX wireframes, system architecture decisions, DB schema design, and AP
 Team members work on feature branches tied to their assigned issues. No direct commits to `develop` or `main`.
 
 - **Week 1** — Next.js + Tailwind project setup · Supabase project created + Google OAuth configured · RLS policies drafted · Vercel + Railway pipelines connected · Placeholder pages scaffolded for all routes
+- **Week 3** — `feature/schedule-page-issue-18`: server-side iCal parser (`/api/calendar`) with RRULE expansion and EXDATE support · Schedule page rebuilt with Google Calendar embed, custom month nav, event list with start/end time, and event detail modal (Google Maps link) · UTC→Toronto timezone conversion for event times · Join flow converted from dedicated route to Navbar modal (`/join` → redirect)
 
 ---
 
@@ -63,6 +66,7 @@ Team members work on feature branches tied to their assigned issues. No direct c
 Manual QA on Vercel preview deployments. Each PR is reviewed by at least one team member before merging to `develop`.
 
 - **Week 1** — Google login → pending user flow tested end-to-end · Vercel preview deploy verified · Environment variable setup confirmed across team
+- **Week 3** — EXDATE `VALUE=DATE` timezone day-shift bug found and fixed · UTC time offset bug (01:30 UTC displaying as 1:30 AM instead of 9:30 PM EDT) caught and fixed · Copilot AI review: 5 issues addressed (race condition, RRULE UNTIL boundary, dead code, React key, modal scroll lock) · Vercel preview QA passed
 
 ---
 
@@ -71,6 +75,7 @@ Manual QA on Vercel preview deployments. Each PR is reviewed by at least one tea
 Sprint retrospective held at each Saturday meeting. `develop` is merged to `main` when the sprint goals are met and testing passes.
 
 - **Week 1** — Sprint retrospective completed · Foundation merged to `develop` · Preview URL shared with team
+- **Week 3** — PR #78 opened with Copilot automated review · All review comments triaged and addressed · Issue #18 implementation summary posted · `develop` merge pending final approval
 
 ---
 
@@ -213,9 +218,11 @@ codexperts-web/
 │   │   ├── page.js          # / Home
 │   │   ├── about/           # /about
 │   │   ├── schedule/        # /schedule
+│   │   ├── api/             # Next.js API routes
+│   │   │   └── calendar/    # GET /api/calendar — iCal fetch + parse (no API key)
 │   │   ├── announcements/   # /announcements
 │   │   ├── events/          # /events
-│   │   ├── join/            # /join
+│   │   ├── join/            # /join — redirects to / (join flow is Navbar modal)
 │   │   ├── problems/        # /problems (member only)
 │   │   ├── solutions/       # /solutions (member only)
 │   │   ├── members/         # /members (member only)
@@ -290,6 +297,7 @@ The app will be running at `http://localhost:3000`.
 | **Andra** | Frontend / Backend |
 | **Gary** | Backend (Supabase / DB & Auth) |
 | **Dave** | Backend (FastAPI / Railway / Deployment) / Frontend |
+| **Judy** | Frontend |
 
 ---
 
