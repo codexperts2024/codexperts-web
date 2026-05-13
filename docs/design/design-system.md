@@ -79,7 +79,67 @@
 
 ---
 
-## 4. Component Specs
+## 4. 3-Layer Depth System
+
+Used on surfaces that need visual hierarchy without color or border overload. Applied first on the Schedule page event list and modal.
+
+### Color Layers (-15 RGB step from base surface)
+
+| Layer | Hex | RGB | Use |
+|-------|-----|-----|-----|
+| Layer 0 | `#F9F9F9` | 249 | Section background (bg-surface token) |
+| Layer 1 | `#EAEAEA` | 234 | Container card (wraps a grouped set of rows) |
+| Layer 2 | `#DBDBDB` | 219 | Individual row / pill (interactive element) |
+| Layer 2 hover | `#CFCFCF` | 207 | Row / pill hover state |
+
+Each step subtracts ~15 from all RGB channels, creating a consistent, perceptible depth without needing borders.
+
+### Shadow System (two-layer: dark sharp + soft spread)
+
+Each layer adds a shadow composed of two `box-shadow` values:
+
+```
+Layer 1 container:
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12),
+              0 2px 6px rgba(0,0,0,0.06);
+
+Layer 2 row (default):
+  box-shadow: 0 1px 2px rgba(0,0,0,0.19),
+              0 2px 4px rgba(0,0,0,0.08);
+
+Layer 2 row (hover):
+  box-shadow: 0 2px 4px rgba(0,0,0,0.22),
+              0 4px 8px rgba(0,0,0,0.10);
+```
+
+- **First value** — tight, dark shadow for a defined edge (high opacity, small blur/spread)
+- **Second value** — soft ambient shadow for perceived lift (low opacity, larger blur)
+
+### Usage Rules
+
+- Layer 0 is always the section background (`#F9F9F9`). Do not apply shadow here.
+- Layer 1 wraps a logical group (e.g., the entire event list card, a modal card).
+- Layer 2 is each individual interactive item within Layer 1 (pill, row, detail block).
+- Use `border-radius: 1rem` (Tailwind `rounded-2xl`) on Layer 1 containers and modal cards.
+- Use `border-radius: 9999px` (Tailwind `rounded-full`) on full-width row pills.
+- Use `border-radius: 1rem` (Tailwind `rounded-2xl`) on detail pills inside a modal.
+- Do NOT add a border to any layer — shadow provides the depth signal.
+- This system replaces the standard card border (`1px solid #E5E5E5`) on these surfaces.
+
+### When to Use
+
+Apply the 3-Layer Depth System when:
+- A section has a list of interactive items grouped under a heading card
+- A modal contains detail fields that should feel like nested elements
+- You want tactile depth (clickable rows) without accent color or border noise
+
+Do NOT apply to standard content cards, input fields, or navigation — use the existing Card / Input specs for those.
+
+---
+
+## 5. Component Specs
+
+> Standard reusable components. For surface-level grouped interactions, see Section 4 (3-Layer Depth System).
 
 ### Buttons
 
@@ -166,7 +226,7 @@ Style:
 
 ---
 
-## 5. Navigation Bar
+## 6. Navigation Bar
 
 ```
 [codeXperts logo]  Home  About▾  Updates▾  Events  |  (Practice▾)  (Members)  Join Us  [LinkedIn] [Email] [Instagram▾] ([Discord▾]) ({⚙})  [Log In]
@@ -216,7 +276,7 @@ Practice dropdown (member only):
 
 ---
 
-## 6. Footer
+## 7. Footer
 
 ```
 [codeXperts logo + tagline]
@@ -232,7 +292,7 @@ Events                    [Instagram icon ▾]
 
 ---
 
-## 7. Page Index
+## 8. Page Index
 
 | # | Page | Route | Visibility | Stitch File |
 |---|------|-------|------------|-------------|
@@ -253,7 +313,7 @@ Events                    [Instagram icon ▾]
 
 ---
 
-## 8. Page Layouts (Stitch Reference)
+## 9. Page Layouts (Stitch Reference)
 
 ### Page 1: `/` Home (public)
 
@@ -445,7 +505,7 @@ text-align: center
 
 ---
 
-## 8. Spacing & Responsive
+## 10. Spacing & Responsive
 
 ```
 Base unit: 4px multiples (8, 12, 16, 24, 32, 48)
@@ -456,7 +516,7 @@ Card grid: repeat(auto-fit, minmax(280px, 1fr))
 
 ---
 
-## 9. Monaco Editor Config (Problems page)
+## 11. Monaco Editor Config (Problems page)
 
 ```javascript
 theme: "vs"               // light theme — white background
@@ -468,7 +528,7 @@ minimap: { enabled: false }
 
 ---
 
-## 10. Usage Guide (How to Use in Code)
+## 12. Usage Guide (How to Use in Code)
 
 ### Colors
 Use Tailwind custom tokens instead of hardcoded hex values.

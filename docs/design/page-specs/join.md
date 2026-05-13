@@ -22,7 +22,11 @@
         → Profile completion modal opens
             → user fills in: Campus, Cohort, Phone Number
             → [Submit] → profile updated → pending screen
-    → Existing pending user
+            → [✕] dismiss → modal closes, user stays on home (pending state)
+                → next login: auth/callback detects incomplete profile → modal re-opens
+    → Existing pending user with incomplete profile
+        → Profile completion modal opens (resume flow)
+    → Existing pending user with complete profile
         → pending screen
 ```
 
@@ -67,7 +71,8 @@ Modal collects the remaining required fields.
 - Field order is FIXED: Campus first, Cohort second, Phone Number third.
 - [Submit] button: bg `#C0392B`, text `#FFFFFF`, full-width, radius 6px, Inter 500 14px.
 - Input fields: bg `#F5F5F5`, border 1px `#CCCCCC`, radius 6px, padding 8px 12px. Focus border: `#C0392B`.
-- No [✕] close button — user must complete the form.
+- [✕] close button in top-right corner — dismisses modal, user returns to current page.
+- On dismiss: pending profile is preserved. Next login re-opens modal automatically if campus/cohort/phone are missing.
 - Do NOT add terms of service, password, or email fields (email already from Google).
 
 ```
