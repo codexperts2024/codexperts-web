@@ -3,6 +3,7 @@ import { Montserrat, Inter, JetBrains_Mono } from 'next/font/google'
 import Navbar from '@/components/common/Navbar'
 import JoinModal from '@/components/common/JoinModal'
 import { AuthProvider } from '@/contexts/AuthContext'
+import { JoinModalProvider } from '@/contexts/JoinModalContext'
 import Script from 'next/script'
 
 const montserrat = Montserrat({
