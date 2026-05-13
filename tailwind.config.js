@@ -18,6 +18,10 @@ module.exports = {
           surface: '#F9F9F9',
           elevated: '#F3F3F3',
           input: '#F5F5F5',
+          // 3-Layer Depth System — each step is -15 RGB from the previous layer
+          layer1: '#EAEAEA',      // #EAEAEA (234) — container card
+          layer2: '#DBDBDB',      // #DBDBDB (219) — row / pill default
+          layer2Hover: '#CFCFCF', // #CFCFCF (207) — row / pill hover
         },
         text: {
           primary: '#1A1A1A',
