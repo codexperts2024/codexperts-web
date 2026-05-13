@@ -1,0 +1,219 @@
+import { NextResponse } from 'next/server';
+
+const ICS_URL =
+  'https://calendar.google.com/calendar/ical/codexperts2024%40gmail.com/public/basic.ics';
+
+const DAY_ABBR = { SU: 0, MO: 1, TU: 2, WE: 3, TH: 4, FR: 5, SA: 6 };
+
+// Parse a raw DTSTART / DTEND / UNTIL value into a JS Date.
+// Handles: 20260408T180000Z  |  20260408T180000  |  20260408
+const parseIcsDate = (raw) => {
+  if (!raw) return null;
+  // Strip any TZID=... prefix before the colon
+  const clean = raw.includes(':') ? raw.split(':').pop().trim() : raw.trim();
+  if (clean.length === 8) {
+    return new Date(`${clean.slice(0, 4)}-${clean.slice(4, 6)}-${clean.slice(6, 8)}`);
+  }
+  return new Date(
+    `${clean.slice(0, 4)}-${clean.slice(4, 6)}-${clean.slice(6, 8)}T` +
+      `${clean.slice(9, 11)}:${clean.slice(11, 13)}:${clean.slice(13, 15)}` +
+      (clean.endsWith('Z') ? 'Z' : '')
+  );
+};
+
+// Unfold iCal line continuations (CRLF + space/tab)
+const unfoldLines = (text) =>
+  text.replace(/\r\n[ \t]/g, '').replace(/\n[ \t]/g, '');
+
+// Clean escaped characters from a summary string
+const cleanText = (s) =>
+  s.replace(/\\n/g, ' ').replace(/\\,/g, ',').replace(/\\/g, '');
+
+// Build a Google Calendar day-view URL for a given date
+const buildDayUrl = (date) => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `https://calendar.google.com/calendar/r/day/${y}/${m}/${d}`;
+};
+
+// Parse RRULE string into a key-value object
+// e.g. "FREQ=WEEKLY;BYDAY=MO,WE;INTERVAL=2" → { FREQ:'WEEKLY', BYDAY:'MO,WE', INTERVAL:'2' }
+const parseRRule = (rruleStr) => {
+  const rule = {};
+  rruleStr.split(';').forEach((part) => {
+    const idx = part.indexOf('=');
+    if (idx !== -1) rule[part.slice(0, idx)] = part.slice(idx + 1);
+  });
+  return rule;
+};
+
+// Add N days to a Date (returns a new Date)
+const addDays = (d, n) => new Date(d.getTime() + n * 86400000);
+
+// Add N months to a Date (returns a new Date, preserving time-of-day)
+const addMonths = (d, n) => {
+  const result = new Date(d);
+  result.setMonth(result.getMonth() + n);
+  return result;
+};
+
+// Expand a recurring VEVENT into concrete dates that fall within [rangeStart, rangeEnd]
+const expandRRule = (dtstart, rruleStr, exdates, rangeStart, rangeEnd) => {
+  const rule = parseRRule(rruleStr);
+  const freq = rule.FREQ;
+  const interval = parseInt(rule.INTERVAL ?? '1', 10);
+  const until = rule.UNTIL ? parseIcsDate(rule.UNTIL) : null;
+  const count = rule.COUNT ? parseInt(rule.COUNT, 10) : Infinity;
+
+  // Days of week for WEEKLY+BYDAY (e.g. ["MO","WE"])
+  const byDays = rule.BYDAY
+    ? rule.BYDAY.split(',').map((d) => d.replace(/^[+-]?\d+/, ''))
+    : null;
+
+  const occurrences = [];
+  let current = new Date(dtstart);
+  let totalGenerated = 0;
+  const MAX_ITER = 2000; // safety cap
+
+  for (let iter = 0; iter < MAX_ITER; iter++) {
+    // Termination checks
+    if (until && current > until) break;
+    if (totalGenerated >= count) break;
+    if (current > rangeEnd) break;
+
+    if (freq === 'WEEKLY' && byDays) {
+      // Emit all matching days within the current week
+      const weekStart = new Date(current);
+      for (let di = 0; di < 7; di++) {
+        const candidate = addDays(weekStart, di);
+        const abbr = Object.keys(DAY_ABBR).find(
+          (k) => DAY_ABBR[k] === candidate.getDay()
+        );
+        if (byDays.includes(abbr)) {
+          totalGenerated++;
+          const isExdate = exdates.some(
+            (ex) => ex.toDateString() === candidate.toDateString()
+          );
+          if (!isExdate && candidate >= rangeStart && candidate <= rangeEnd) {
+            occurrences.push(new Date(candidate));
+          }
+          if (totalGenerated >= count) break;
+        }
+      }
+      // Advance by INTERVAL weeks
+      current = addDays(current, 7 * interval);
+    } else {
+      // DAILY / MONTHLY / YEARLY  (or WEEKLY without BYDAY)
+      const isExdate = exdates.some(
+        (ex) => ex.toDateString() === current.toDateString()
+      );
+      if (!isExdate && current >= rangeStart) {
+        occurrences.push(new Date(current));
+      }
+      totalGenerated++;
+
+      switch (freq) {
+        case 'DAILY':
+          current = addDays(current, interval);
+          break;
+        case 'WEEKLY':
+          current = addDays(current, 7 * interval);
+          break;
+        case 'MONTHLY':
+          current = addMonths(current, interval);
+          break;
+        case 'YEARLY':
+          current = addMonths(current, 12 * interval);
+          break;
+        default:
+          return occurrences; // unsupported FREQ — bail out
+      }
+    }
+  }
+
+  return occurrences;
+};
+
+// Parse all VEVENT blocks and return events for the requested month
+const parseEvents = (icsText, year, month) => {
+  const text = unfoldLines(icsText);
+  const blocks = text.split('BEGIN:VEVENT').slice(1);
+
+  const rangeStart = new Date(year, month - 1, 1, 0, 0, 0);
+  const rangeEnd = new Date(year, month, 0, 23, 59, 59);
+
+  const events = [];
+
+  for (const block of blocks) {
+    const get = (key) => {
+      // Match KEY or KEY;param=value: value
+      const re = new RegExp(`^${key}(?:;[^:]*)?:(.+)`, 'm');
+      const m = block.match(re);
+      return m ? m[1].trim() : null;
+    };
+
+    const rawStart = get('DTSTART');
+    const summary = get('SUMMARY') || 'Untitled Event';
+    const rrule = get('RRULE');
+
+    if (!rawStart) continue;
+
+    const dtstart = parseIcsDate(rawStart);
+    if (!dtstart || isNaN(dtstart)) continue;
+
+    const title = cleanText(summary);
+
+    // Extract additional event fields
+    const location = get('LOCATION') ? cleanText(get('LOCATION')) : null;
+    const description = get('DESCRIPTION') ? cleanText(get('DESCRIPTION')) : null;
+
+    if (rrule) {
+      // --- Recurring event ---
+      const exdates = [];
+      const exdateRe = /^EXDATE(?:;[^:]*)?:(.+)/gm;
+      let exMatch;
+      while ((exMatch = exdateRe.exec(block)) !== null) {
+        exMatch[1].split(',').forEach((raw) => {
+          const d = parseIcsDate(raw.trim());
+          if (d && !isNaN(d)) exdates.push(d);
+        });
+      }
+
+      const occurrences = expandRRule(dtstart, rrule, exdates, rangeStart, rangeEnd);
+      for (const occ of occurrences) {
+        events.push({ date: occ.toISOString(), title, location, description });
+      }
+    } else {
+      // --- One-time event ---
+      if (dtstart >= rangeStart && dtstart <= rangeEnd) {
+        events.push({ date: dtstart.toISOString(), title, location, description });
+      }
+    }
+  }
+
+  events.sort((a, b) => new Date(a.date) - new Date(b.date));
+  return events;
+};
+
+export async function GET(request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const year = parseInt(searchParams.get('year'), 10);
+    const month = parseInt(searchParams.get('month'), 10);
+
+    if (!year || !month || month < 1 || month > 12) {
+      return NextResponse.json({ error: 'Invalid year or month' }, { status: 400 });
+    }
+
+    const res = await fetch(ICS_URL, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`Failed to fetch calendar: ${res.status}`);
+
+    const icsText = await res.text();
+    const events = parseEvents(icsText, year, month);
+
+    return NextResponse.json({ events });
+  } catch {
+    return NextResponse.json({ error: 'Failed to load calendar events' }, { status: 500 });
+  }
+}
