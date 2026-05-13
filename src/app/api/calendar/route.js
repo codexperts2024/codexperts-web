@@ -44,14 +44,6 @@ const unfoldLines = (text) =>
 const cleanText = (s) =>
   s.replace(/\\n/g, ' ').replace(/\\,/g, ',').replace(/\\/g, '');
 
-// Build a Google Calendar day-view URL for a given date
-const buildDayUrl = (date) => {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `https://calendar.google.com/calendar/r/day/${y}/${m}/${d}`;
-};
-
 // Parse RRULE string into a key-value object
 // e.g. "FREQ=WEEKLY;BYDAY=MO,WE;INTERVAL=2" → { FREQ:'WEEKLY', BYDAY:'MO,WE', INTERVAL:'2' }
 const parseRRule = (rruleStr) => {
@@ -106,6 +98,7 @@ const expandRRule = (dtstart, rruleStr, exdates, rangeStart, rangeEnd) => {
           (k) => DAY_ABBR[k] === candidate.getDay()
         );
         if (byDays.includes(abbr)) {
+          if (until && candidate > until) break; // candidate exceeds UNTIL — end of recurrence
           totalGenerated++;
           const isExdate = exdates.some(
             (ex) => ex.toDateString() === candidate.toDateString()

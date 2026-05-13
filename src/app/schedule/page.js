@@ -37,11 +37,15 @@ const buildCalendarSrc = (year, month) => {
 
 // Event detail modal
 const EventModal = ({ event, onClose }) => {
-  // Close on Escape key
+  // Lock body scroll and close on Escape key while modal is open
   useEffect(() => {
+    document.body.style.overflow = 'hidden';
     const handleKey = (e) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKey);
+    };
   }, [onClose]);
 
   const d = new Date(event.date);
@@ -138,25 +142,31 @@ export default function SchedulePage() {
   const [hasError, setHasError] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
 
-  const fetchEvents = async (y, m) => {
+  const fetchEvents = useCallback(async (y, m, signal) => {
     setIsLoading(true);
     setHasError(false);
     try {
-      const res = await fetch(`/api/calendar?year=${y}&month=${m}`, { cache: 'no-store' });
+      const res = await fetch(`/api/calendar?year=${y}&month=${m}`, {
+        cache: 'no-store',
+        signal,
+      });
       if (!res.ok) throw new Error('Network error');
       const data = await res.json();
       setEvents(data.events ?? []);
-    } catch {
+      setIsLoading(false);
+    } catch (err) {
+      if (err.name === 'AbortError') return; // newer request is in flight — ignore
       setHasError(true);
       setEvents([]);
-    } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchEvents(year, month);
-  }, [year, month]);
+    const controller = new AbortController();
+    fetchEvents(year, month, controller.signal);
+    return () => controller.abort();
+  }, [year, month, fetchEvents]);
 
   const handleCloseModal = useCallback(() => setSelectedEvent(null), []);
 
@@ -292,8 +302,8 @@ export default function SchedulePage() {
 
             {!isLoading && !hasError && events.length > 0 && (
               <ul className="space-y-3">
-                {events.map((event, i) => (
-                  <li key={i}>
+                {events.map((event) => (
+                  <li key={`${event.date}-${event.title}`}>
                     {/* Layer 2 — clickable pill: opens event detail modal */}
                     <button
                       onClick={() => setSelectedEvent(event)}
