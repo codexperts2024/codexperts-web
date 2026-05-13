@@ -49,11 +49,31 @@ const cleanText = (s) =>
 const cleanRaw = (raw) =>
   raw ? (raw.includes(':') ? raw.split(':').pop().trim() : raw.trim()) : '';
 
-// Format a bare iCal datetime string as "h:mm AM/PM".
-// Returns null for date-only strings (no time component).
-// Time is extracted as a string operation — no Date object, no timezone conversion.
+// Format a bare iCal datetime string as "h:mm AM/PM" in America/Toronto time.
+// Returns null for date-only strings (no time component, length < 15).
+//
+// Two formats exist in the wild:
+//   "20260513T013000Z"   — UTC (Z suffix) → convert to Toronto via Intl API
+//   "20260525T180000"    — local/TZID-stripped → treat as Toronto wall-clock time
 const formatIcsTime = (clean) => {
   if (!clean || clean.length < 15) return null;
+
+  if (clean.endsWith('Z')) {
+    // UTC datetime — convert to America/Toronto using the Intl API (handles DST correctly)
+    const utcDate = new Date(
+      `${clean.slice(0, 4)}-${clean.slice(4, 6)}-${clean.slice(6, 8)}T` +
+      `${clean.slice(9, 11)}:${clean.slice(11, 13)}:${clean.slice(13, 15)}Z`
+    );
+    return utcDate.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'America/Toronto',
+    });
+  }
+
+  // TZID-stripped local time (e.g. TZID=America/Toronto:20260525T180000 → "20260525T180000")
+  // The wall-clock digits are already Toronto time — extract directly.
   const h = parseInt(clean.slice(9, 11), 10);
   const m = parseInt(clean.slice(11, 13), 10);
   const period = h >= 12 ? 'PM' : 'AM';
