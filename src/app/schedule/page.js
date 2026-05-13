@@ -83,7 +83,14 @@ const EventModal = ({ event, onClose }) => {
           {event.title}
         </h4>
         {/* Date */}
-        <p className="font-inter text-sm text-[#555555] mb-4">{fullDate}</p>
+        <p className="font-inter text-sm text-[#555555] mb-1">{fullDate}</p>
+        {/* Time (only for timed events) */}
+        {event.startTime && (
+          <p className="font-inter text-sm text-[#555555] mb-4">
+            {event.startTime}{event.endTime ? ` – ${event.endTime}` : ''}
+          </p>
+        )}
+        {!event.startTime && <div className="mb-4" />}
 
         {/* Details — Layer 2 pills */}
         <div className="space-y-3">
@@ -326,9 +333,14 @@ export default function SchedulePage() {
                       <span className="font-inter text-xs font-semibold text-[#1A1A1A] shrink-0 w-12">
                         {formatEventDate(event.date)}
                       </span>
-                      <span className="font-inter text-sm font-normal text-[#555555]">
+                      <span className="font-inter text-sm font-normal text-[#555555] flex-1 min-w-0 truncate">
                         {event.title}
                       </span>
+                      {event.startTime && (
+                        <span className="font-inter text-xs text-[#999999] shrink-0 ml-1">
+                          {event.startTime}{event.endTime ? ` – ${event.endTime}` : ''}
+                        </span>
+                      )}
                     </button>
                   </li>
                 ))}

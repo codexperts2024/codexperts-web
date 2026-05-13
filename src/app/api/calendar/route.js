@@ -44,6 +44,23 @@ const unfoldLines = (text) =>
 const cleanText = (s) =>
   s.replace(/\\n/g, ' ').replace(/\\,/g, ',').replace(/\\/g, '');
 
+// Strip TZID/VALUE prefix and return the bare datetime string
+// e.g. "America/Toronto:20260525T180000" → "20260525T180000"
+const cleanRaw = (raw) =>
+  raw ? (raw.includes(':') ? raw.split(':').pop().trim() : raw.trim()) : '';
+
+// Format a bare iCal datetime string as "h:mm AM/PM".
+// Returns null for date-only strings (no time component).
+// Time is extracted as a string operation — no Date object, no timezone conversion.
+const formatIcsTime = (clean) => {
+  if (!clean || clean.length < 15) return null;
+  const h = parseInt(clean.slice(9, 11), 10);
+  const m = parseInt(clean.slice(11, 13), 10);
+  const period = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  return `${h12}:${m.toString().padStart(2, '0')} ${period}`;
+};
+
 // Parse RRULE string into a key-value object
 // e.g. "FREQ=WEEKLY;BYDAY=MO,WE;INTERVAL=2" → { FREQ:'WEEKLY', BYDAY:'MO,WE', INTERVAL:'2' }
 const parseRRule = (rruleStr) => {
@@ -162,6 +179,7 @@ const parseEvents = (icsText, year, month) => {
     };
 
     const rawStart = get('DTSTART');
+    const rawEnd = get('DTEND');
     const summary = get('SUMMARY') || 'Untitled Event';
     const rrule = get('RRULE');
 
@@ -175,6 +193,12 @@ const parseEvents = (icsText, year, month) => {
     // Extract additional event fields
     const location = get('LOCATION') ? cleanText(get('LOCATION')) : null;
     const description = get('DESCRIPTION') ? cleanText(get('DESCRIPTION')) : null;
+
+    // Extract start/end times directly from raw iCal strings to avoid timezone conversion.
+    // All occurrences of a recurring event share the same clock time, so we derive
+    // the time once from DTSTART/DTEND and reuse it for every occurrence.
+    const startTime = formatIcsTime(cleanRaw(rawStart));
+    const endTime = rawEnd ? formatIcsTime(cleanRaw(rawEnd)) : null;
 
     if (rrule) {
       // --- Recurring event ---
@@ -190,12 +214,12 @@ const parseEvents = (icsText, year, month) => {
 
       const occurrences = expandRRule(dtstart, rrule, exdates, rangeStart, rangeEnd);
       for (const occ of occurrences) {
-        events.push({ date: occ.toISOString(), title, location, description });
+        events.push({ date: occ.toISOString(), title, location, description, startTime, endTime });
       }
     } else {
       // --- One-time event ---
       if (dtstart >= rangeStart && dtstart <= rangeEnd) {
-        events.push({ date: dtstart.toISOString(), title, location, description });
+        events.push({ date: dtstart.toISOString(), title, location, description, startTime, endTime });
       }
     }
   }
