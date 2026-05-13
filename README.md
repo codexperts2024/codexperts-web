@@ -38,6 +38,7 @@ Planning → Design → Development → Testing → Review & Release
 Each sprint begins by defining goals, refining the backlog, and assigning GitHub Issues to team members.
 
 - **Week 1** — Defined 6-week roadmap and MVP scope · Created GitHub Issues · Assigned tasks across FE/BE · Set up GitHub Projects Kanban board
+- **Week 2** — Sprint goal defined: complete auth flow and build all public-facing pages · Issues #14 (role-based navbar), #15 (Google OAuth login), #20 (Join Us modal) scoped and assigned · Design system tokens scoped as prerequisite for all UI work
 - **Week 3** — Issue #18 (Schedule page) scoped and carried forward · Judy onboarded as Frontend
 
 ---
@@ -57,6 +58,7 @@ Covers UI/UX wireframes, system architecture decisions, DB schema design, and AP
 Team members work on feature branches tied to their assigned issues. No direct commits to `develop` or `main`.
 
 - **Week 1** — Next.js + Tailwind project setup · Supabase project created + Google OAuth configured · RLS policies drafted · Vercel + Railway pipelines connected · Placeholder pages scaffolded for all routes
+- **Week 2** — Design system initialized: color tokens, Inter/Montserrat fonts, base UI components (#64, #66, #67) · Role-based navbar with social hover dropdowns (#14) · Google OAuth login + pending screen (#15) · Homepage built: hero section, Elfsight Instagram embed, About section · `feature/auth-role-guard`: ProtectedRoute middleware, PENDING/EXECUTIVE roles, RoleGuard refactored (#65) · RLS policies finalized for all Supabase tables (#70) · `feature/join-modal-issue-20`: Google OAuth signup modal with campus/cohort/phone fields and profile completion (#72)
 - **Week 3** — `feature/schedule-page-issue-18`: server-side iCal parser (`/api/calendar`) with RRULE expansion and EXDATE support · Schedule page rebuilt with Google Calendar embed, custom month nav, event list with start/end time, and event detail modal (Google Maps link) · UTC→Toronto timezone conversion for event times · Join flow converted from dedicated route to Navbar modal (`/join` → redirect)
 
 ---
@@ -66,6 +68,7 @@ Team members work on feature branches tied to their assigned issues. No direct c
 Manual QA on Vercel preview deployments. Each PR is reviewed by at least one team member before merging to `develop`.
 
 - **Week 1** — Google login → pending user flow tested end-to-end · Vercel preview deploy verified · Environment variable setup confirmed across team
+- **Week 2** — Google OAuth → pending screen → admin approval → member role flow tested end-to-end · Protected Route enforcement validated (pending users blocked from member-only pages) · RLS policy enforcement verified on Supabase · All public pages reviewed on Vercel preview deployment
 - **Week 3** — EXDATE `VALUE=DATE` timezone day-shift bug found and fixed · UTC time offset bug (01:30 UTC displaying as 1:30 AM instead of 9:30 PM EDT) caught and fixed · Copilot AI review: 5 issues addressed (race condition, RRULE UNTIL boundary, dead code, React key, modal scroll lock) · Vercel preview QA passed
 
 ---
@@ -75,6 +78,7 @@ Manual QA on Vercel preview deployments. Each PR is reviewed by at least one tea
 Sprint retrospective held at each Saturday meeting. `develop` is merged to `main` when the sprint goals are met and testing passes.
 
 - **Week 1** — Sprint retrospective completed · Foundation merged to `develop` · Preview URL shared with team
+- **Week 2** — 7 PRs reviewed and merged to develop (#64, #65, #66, #67, #70, #71, #72) · Sprint 2 retrospective completed · Auth flow and all public pages live on Vercel preview
 - **Week 3** — PR #78 opened with Copilot automated review · All review comments triaged and addressed · Issue #18 implementation summary posted · `develop` merge pending final approval
 
 ---
