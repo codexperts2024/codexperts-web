@@ -102,3 +102,6 @@ backend/venv/
 backend/.venv/
 backend/__pycache__/
 backend/.pytest_cache/
+
+# Local MCP config (contains personal API tokens)
+.mcp.json

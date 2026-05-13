@@ -1,6 +1,7 @@
 import './globals.css'
 import { Montserrat, Inter, JetBrains_Mono } from 'next/font/google'
 import Navbar from '@/components/common/Navbar'
+import JoinModal from '@/components/common/JoinModal'
 import { AuthProvider } from '@/contexts/AuthContext'
 import Script from 'next/script'
 
@@ -32,10 +33,13 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className={`${montserrat.variable} ${inter.variable} ${jetbrainsMono.variable} font-inter bg-bg-base text-text-primary antialiased`}>
         <AuthProvider>
-          <Navbar />
-          <div className="pt-14">
-            {children}
-          </div>
+          <JoinModalProvider>
+            <Navbar />
+            <JoinModal />
+            <div className="pt-14">
+              {children}
+            </div>
+          </JoinModalProvider>
         </AuthProvider>
 
         <Script 
