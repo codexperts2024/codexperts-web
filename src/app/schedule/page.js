@@ -142,7 +142,7 @@ export default function SchedulePage() {
     setIsLoading(true);
     setHasError(false);
     try {
-      const res = await fetch(`/api/calendar?year=${y}&month=${m}`);
+      const res = await fetch(`/api/calendar?year=${y}&month=${m}`, { cache: 'no-store' });
       if (!res.ok) throw new Error('Network error');
       const data = await res.json();
       setEvents(data.events ?? []);

@@ -1,18 +1,33 @@
 import { NextResponse } from 'next/server';
 
+// Force this route to be dynamic so Next.js never caches the response
+export const dynamic = 'force-dynamic';
+
 const ICS_URL =
   'https://calendar.google.com/calendar/ical/codexperts2024%40gmail.com/public/basic.ics';
 
 const DAY_ABBR = { SU: 0, MO: 1, TU: 2, WE: 3, TH: 4, FR: 5, SA: 6 };
 
-// Parse a raw DTSTART / DTEND / UNTIL value into a JS Date.
-// Handles: 20260408T180000Z  |  20260408T180000  |  20260408
+// Parse a raw DTSTART / DTEND / UNTIL / EXDATE value into a JS Date.
+// Handles:
+//   20260408T180000Z  — datetime UTC
+//   20260408T180000   — datetime local (no tz)
+//   20260408          — date-only (VALUE=DATE)
+//
+// IMPORTANT: date-only values must be constructed with new Date(y, m, d) so
+// that they land at LOCAL midnight. Using new Date("2026-06-08") instead
+// produces UTC midnight, which in western timezones (UTC-N) resolves to the
+// previous calendar day and breaks EXDATE comparisons.
 const parseIcsDate = (raw) => {
   if (!raw) return null;
-  // Strip any TZID=... prefix before the colon
+  // Strip any TZID=... or VALUE=DATE prefix before the colon
   const clean = raw.includes(':') ? raw.split(':').pop().trim() : raw.trim();
   if (clean.length === 8) {
-    return new Date(`${clean.slice(0, 4)}-${clean.slice(4, 6)}-${clean.slice(6, 8)}`);
+    // Date-only: parse as local midnight to avoid UTC-offset day-shift
+    const y = parseInt(clean.slice(0, 4), 10);
+    const m = parseInt(clean.slice(4, 6), 10) - 1; // 0-indexed month
+    const d = parseInt(clean.slice(6, 8), 10);
+    return new Date(y, m, d);
   }
   return new Date(
     `${clean.slice(0, 4)}-${clean.slice(4, 6)}-${clean.slice(6, 8)}T` +
@@ -212,7 +227,9 @@ export async function GET(request) {
     const icsText = await res.text();
     const events = parseEvents(icsText, year, month);
 
-    return NextResponse.json({ events });
+    return NextResponse.json({ events }, {
+      headers: { 'Cache-Control': 'no-store' },
+    });
   } catch {
     return NextResponse.json({ error: 'Failed to load calendar events' }, { status: 500 });
   }
