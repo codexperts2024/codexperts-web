@@ -1,11 +1,20 @@
 import Link from 'next/link'
+import Image from 'next/image'
+import Script from 'next/script'
 import Button from '@/components/ui/Button'
 
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-[#f9f9f9]">
       <section>
-        <img src="hero.jpg" alt="group photo of codeXperts" className="object-cover object-[0%_60%] w-screen h-[50vh] md:h-[70vh]" />
+        <Image
+          src="/hero.jpg"
+          alt="group photo of codeXperts"
+          width={1920}
+          height={1080}
+          className="object-cover object-[0%_60%] w-screen h-[50vh] md:h-[70vh]"
+          priority
+        />
       </section>
 
       <section className="flex justify-evenly items-center m-4 md:m-10 my-8 md:my-16 py-5 bg-white">
@@ -28,7 +37,7 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row gap-4 pt-4 md:pt-6 justify-center md:justify-start">
             <Link href="/join" className="w-full sm:w-auto">
               <Button
-                className="w-full sm:w-auto bg-[#C0392B] hover:bg-[#E87A6E] px-8 py-4 flex items-center justify-center gap-2 shadow-xl"
+                className="w-full sm:w-auto bg-brand-primary hover:bg-brand-hover px-8 py-4 flex items-center justify-center gap-2 shadow-xl"
               >
                 Join Us <span>→</span>
               </Button>
@@ -45,6 +54,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      <Script src="https://elfsightcdn.com/platform.js" />
     </main>
   )
 }

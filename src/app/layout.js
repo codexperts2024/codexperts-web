@@ -4,7 +4,6 @@ import Navbar from '@/components/common/Navbar'
 import JoinModal from '@/components/common/JoinModal'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { JoinModalProvider } from '@/contexts/JoinModalContext'
-import Script from 'next/script'
 
 const montserrat = Montserrat({
   subsets: ['latin'],
@@ -42,11 +41,6 @@ export default function RootLayout({ children }) {
             </div>
           </JoinModalProvider>
         </AuthProvider>
-
-        <Script 
-          src="https://elfsightcdn.com/platform.js" 
-          strategy="lazyOnload" 
-        />
       </body>
     </html>
   )
