@@ -12,9 +12,12 @@ export default function EventsPage() {
       {/* Hero section - Now uses max-w-7xl to match cards */}
       <div className="px-6 md:px-8 py-16 md:py-24">
         <div className="max-w-7xl mx-auto">
-          <span className="inline-flex items-center rounded-md bg-gray-50 px-3 py-1 text-xs font-semibold text-gray-600 inset-ring inset-ring-gray-500/10">
-            Calendar of Innovation
-          </span>
+
+          <div className="mb-8 md:mb-12">
+            <span className="inline-flex items-center rounded-md bg-gray-50 px-3 py-1 text-xs font-semibold text-gray-600 inset-ring inset-ring-gray-500/10">
+              Calendar of Innovation
+            </span>
+          </div>
 
           <h1 className="text-5xl font-bold text-gray-900">Events</h1>
           <p className="mt-3 text-gray-600 max-w-2xl text-base leading-7">
