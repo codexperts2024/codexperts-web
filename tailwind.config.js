@@ -7,6 +7,10 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        brand: {
+          primary: '#C0392B',
+          hover: '#E87A6E',
+        },
         accent: {
           DEFAULT: '#C0392B',
           light: '#E87A6E',
