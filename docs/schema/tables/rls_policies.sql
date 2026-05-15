@@ -6,6 +6,19 @@ ALTER TABLE public.attendances ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.announcements ENABLE ROW LEVEL SECURITY;
 
 
+-- Helper used by profiles_select_directory_member_plus to avoid the RLS
+-- infinite-recursion error that occurs when a policy on profiles subqueries
+-- profiles. SECURITY DEFINER runs with row security disabled.
+CREATE OR REPLACE FUNCTION public.get_my_role()
+RETURNS public.member_role
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT role FROM public.profiles WHERE id = auth.uid()
+$$;
+
 CREATE POLICY profiles_select_self
 ON public.profiles
 FOR SELECT
@@ -17,12 +30,7 @@ ON public.profiles
 FOR SELECT
 TO authenticated
 USING (
-  EXISTS (
-    SELECT 1
-    FROM public.profiles AS p
-    WHERE p.id = auth.uid()
-      AND p.role IN ('member'::public.member_role, 'executive'::public.member_role, 'admin'::public.member_role)
-  )
+  public.get_my_role() IN ('member'::public.member_role, 'executive'::public.member_role, 'admin'::public.member_role)
 );
 
 CREATE OR REPLACE FUNCTION public.handle_new_user()

@@ -17,7 +17,7 @@ origins = [
 # preview URL explicitly.
 origin_regex = os.getenv(
     "CORS_ORIGIN_REGEX",
-    r"https://codexperts-web.*\.vercel\.app",
+    r"https://codexperts-web[\w-]*\.vercel\.app$",
 )
 
 app.add_middleware(

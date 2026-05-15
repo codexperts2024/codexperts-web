@@ -13,6 +13,8 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
+  // fetchProfile / authSignOut are stable module imports; intentionally mount-only.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     async function init() {
       try {
@@ -47,9 +49,6 @@ export function AuthProvider({ children }) {
     )
 
     return () => subscription.unsubscribe()
-    // fetchProfile / authSignOut are stable module imports; this effect is
-    // intentionally mount-only.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   async function refreshProfile() {

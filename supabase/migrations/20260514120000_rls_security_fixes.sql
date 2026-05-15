@@ -59,6 +59,21 @@ USING (
 -- 5. profiles: split the blanket SELECT so pending users can read their own
 --    row (needed for AuthContext + JoinModal) but cannot browse the member
 --    directory.
+--
+--    A policy ON profiles cannot subquery profiles itself without triggering
+--    "infinite recursion detected in policy for relation 'profiles'".
+--    The fix is a SECURITY DEFINER helper that reads the caller's role with
+--    row security disabled, breaking the cycle.
+CREATE OR REPLACE FUNCTION public.get_my_role()
+RETURNS public.member_role
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT role FROM public.profiles WHERE id = auth.uid()
+$$;
+
 DROP POLICY IF EXISTS profiles_select_all ON public.profiles;
 
 CREATE POLICY profiles_select_self
@@ -72,10 +87,5 @@ ON public.profiles
 FOR SELECT
 TO authenticated
 USING (
-  EXISTS (
-    SELECT 1
-    FROM public.profiles AS p
-    WHERE p.id = auth.uid()
-      AND p.role IN ('member'::public.member_role, 'executive'::public.member_role, 'admin'::public.member_role)
-  )
+  public.get_my_role() IN ('member'::public.member_role, 'executive'::public.member_role, 'admin'::public.member_role)
 );
