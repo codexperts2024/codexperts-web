@@ -478,8 +478,10 @@ text-align: center
 ### Page 7: Join Us (modal, public)
 
 Signup is a modal triggered from the [Join Us] button — there is no `/join`
-route. The modal runs Google OAuth first and then collects name/school as a
-profile-completion step. See `page-specs/join.md` for the full modal spec.
+route. The modal runs Google OAuth first; name and email are pulled from
+Google metadata automatically. The profile-completion step then collects
+campus, cohort, and phone number. See `page-specs/join.md` for the full
+modal spec.
 
 ---
 

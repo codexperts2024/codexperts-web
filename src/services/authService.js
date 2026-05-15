@@ -31,7 +31,7 @@ export async function fetchProfile(userId) {
 export async function createProfile({ id, name, email, avatarUrl, campus, cohort, phone }) {
   const { data, error } = await supabase
     .from('profiles')
-    .insert({
+    .upsert({
       id,
       name,
       email,

@@ -15,9 +15,9 @@ origins = [
 
 # Allow every Vercel preview deployment for this project without listing each
 # preview URL explicitly.
-origin_regex = os.getenv(
-    "CORS_ORIGIN_REGEX",
-    r"https://codexperts-web[\w-]*\.vercel\.app$",
+origin_regex = (
+    os.getenv("CORS_ORIGIN_REGEX", r"https://codexperts-web[\w-]*\.vercel\.app$").strip()
+    or None
 )
 
 app.add_middleware(

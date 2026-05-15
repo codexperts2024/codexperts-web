@@ -47,7 +47,7 @@ export default function JoinModal() {
   const cohorts = generateCohorts()
   const overlayRef = useRef(null)
 
-  const needsCompletion = !loading && user && !profile
+  const needsCompletion = !loading && !!user && !!profile && !profile.name
 
   useEffect(() => {
     if (needsCompletion && !sessionStorage.getItem('join_modal_dismissed')) {
