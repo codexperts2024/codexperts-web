@@ -34,7 +34,7 @@
 ```
 
 **Rules:**
-- Always include the week prefix — check `pm_docs/sprint-plan.md` if unsure
+- Always include the week prefix — check `docs/sprints/sprint-plan.md` if unsure
 - Lowercase type
 - No period at the end
 
@@ -68,10 +68,10 @@ Click **Assignees** on the right sidebar → assign whoever picks up the task at
 
 | Name | GitHub |
 |------|--------|
-| Paul | `paulsik` | PM / UI/UX |
+| Paul | `minsikpaul92` | PM / UI/UX |
 | Sid | `siddiecity` | Backend (Monaco / Piston API) / UI/UX |
 | Kai | `naik26m3` | Frontend |
-| Andra | *(pending — assign once joined the org)* | Frontend / Backend (Supabase) |
+| Andra | `kazzledazz` | Frontend / Backend (Supabase) |
 | Gary | `GarySkywalker-droid` | Backend (Supabase / DB & Auth) |
 | Dave | `SystemProgrammerWizzard` | Backend (FastAPI / Deployment) / Frontend |
 
