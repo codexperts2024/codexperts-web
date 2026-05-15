@@ -13,7 +13,7 @@ export default function EventsPage() {
       <div className="px-6 md:px-8 py-16 md:py-24">
         <div className="max-w-7xl mx-auto">
 
-          <div className="mb-8 md:mb-12">
+          <div className="mb-4 md:mb-6">
             <span className="inline-flex items-center rounded-md bg-gray-50 px-3 py-1 text-xs font-semibold text-gray-600 inset-ring inset-ring-gray-500/10">
               Calendar of Innovation
             </span>
@@ -34,12 +34,12 @@ export default function EventsPage() {
           <div className="mb-12 flex items-start justify-between">
             <div>
               <h2 className="text-4xl font-bold text-[#222]">Past Events</h2>
-              <p className="mt-2 text-sm text-gray-700">
+              <p className="mt-2 text-sm text-gray-600">
                 Archived technical sessions and community highlights.
               </p>
             </div>
 
-            <button className="hidden md:block text-sm font-semibold tracking-[0.1em] text-red-600 transition hover:text-red-800">
+            <button className="hidden md:block text-sm font-semibold tracking-[0.1em] text-red-700 transition hover:text-red-900">
               VIEW ARCHIVE →
             </button>
           </div>
@@ -71,7 +71,7 @@ export default function EventsPage() {
                     {event.description || "Experience this memorable event with our community."}
                   </p>
 
-                  <button className="mt-10 w-fit text-sm font-semibold uppercase tracking-[0.1em] text-red-600 transition hover:text-red-700">
+                  <button className="mt-10 w-fit text-sm font-semibold uppercase tracking-[0.1em] text-red-700 transition hover:text-red-900 border-b border-red-700">
                     {event.cta}
                   </button>
                 </div>
