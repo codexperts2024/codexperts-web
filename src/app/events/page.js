@@ -1,8 +1,10 @@
+import event1Img from './images/event1.jpg';
+
 export default function EventsPage() {
 
   const clubEvents = [
     {id: 1, category: 'Social', title: 'CodeXperts Year-End Event ', date: '2025-12-30', description: 'Join us for an evening of celebration and networking.', cta: 'Gallery', image:''},
-    {id: 2, category: 'Social', title: 'CodeXperts Chicken & Networking Event ', date: '2026-03-09', description: 'A casual meetup with great food and even better company.', cta: 'Gallery', image:''},
+    {id: 2, category: 'Social', title: 'CodeXperts Chicken & Networking Event ', date: '2026-03-09', description: 'A casual meetup with great food and even better company.', cta: 'Gallery', image: event1Img},
     {id: 3, category: 'Workshop', title: 'Advanced React Patterns', date: '2026-04-15', description: 'Deep dive into advanced React concepts including compound components, render props, and custom hooks.', cta: 'Learn More', image: ''}
   ]
 
@@ -48,8 +50,14 @@ export default function EventsPage() {
             {clubEvents.map((event) => (
               <div key={event.id} className="group overflow-hidden bg-[#f8f8f8] hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-out rounded-lg">
                 <div className="relative h-54 overflow-hidden bg-black rounded-t-lg">
-                  <div className="absolute inset-0 bg-black/35"/>
-                  <span className="absolute left-4 top-4 bg-black/70 px-3 py-1 text-[10px] font-semibold uppercase text-white rounded">
+                   <div className="relative h-56 overflow-hidden bg-black rounded-t-lg">
+                  <img 
+                    src={event.image} 
+                    alt={event.title} 
+                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors duration-300"/>
+                  <span className="absolute left-4 top-4 bg-black/70 backdrop-blur-sm px-3 py-1 text-[10px] font-semibold uppercase text-white rounded">
                     {event.category}
                   </span>
                 </div>
