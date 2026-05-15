@@ -6,20 +6,45 @@ ALTER TABLE public.attendances ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.announcements ENABLE ROW LEVEL SECURITY;
 
 
-CREATE POLICY profiles_select_all
+-- Helper used by profiles_select_directory_member_plus to avoid the RLS
+-- infinite-recursion error that occurs when a policy on profiles subqueries
+-- profiles. SECURITY DEFINER runs with row security disabled.
+CREATE OR REPLACE FUNCTION public.get_my_role()
+RETURNS public.member_role
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT role FROM public.profiles WHERE id = auth.uid()
+$$;
+
+CREATE POLICY profiles_select_self
 ON public.profiles
 FOR SELECT
 TO authenticated
-USING (TRUE);
+USING (auth.uid() = id);
+
+CREATE POLICY profiles_select_directory_member_plus
+ON public.profiles
+FOR SELECT
+TO authenticated
+USING (
+  public.get_my_role() IN ('member'::public.member_role, 'executive'::public.member_role, 'admin'::public.member_role)
+);
 
 CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
 BEGIN
   INSERT INTO public.profiles (id, email, role)
   VALUES (NEW.id, NEW.email, 'pending'::public.member_role);
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 CREATE TRIGGER on_auth_user_created
 AFTER INSERT ON auth.users
@@ -37,11 +62,18 @@ WITH CHECK (
   auth.uid() = id
 );
 
-CREATE POLICY problems_select_public
+CREATE POLICY problems_select_member_plus
 ON public.problems
 FOR SELECT
-TO anon, authenticated
-USING (TRUE);
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1
+    FROM public.profiles AS p
+    WHERE p.id = auth.uid()
+      AND p.role IN ('member'::public.member_role, 'executive'::public.member_role, 'admin'::public.member_role)
+  )
+);
 
 CREATE POLICY problems_insert_exec_admin
 ON public.problems
@@ -154,11 +186,18 @@ USING (
   )
 );
 
-CREATE POLICY sessions_select_public_active
+CREATE POLICY sessions_select_exec_admin
 ON public.sessions
 FOR SELECT
-TO anon, authenticated
-USING (is_active = TRUE);
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1
+    FROM public.profiles AS p
+    WHERE p.id = auth.uid()
+      AND p.role IN ('executive'::public.member_role, 'admin'::public.member_role)
+  )
+);
 
 CREATE POLICY sessions_insert_exec_admin
 ON public.sessions

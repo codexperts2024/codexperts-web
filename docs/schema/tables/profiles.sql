@@ -10,10 +10,10 @@ $$ LANGUAGE plpgsql;
 
 CREATE TABLE profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  name TEXT NOT NULL,
+  name TEXT,
   email TEXT UNIQUE NOT NULL,
   role member_role NOT NULL DEFAULT 'pending',
-  school TEXT NOT NULL,
+  school TEXT,
   linkedin TEXT,
   github TEXT,
   avatar_url TEXT,

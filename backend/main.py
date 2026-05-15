@@ -1,16 +1,29 @@
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="codeXperts API")
 
+# Comma-separated list of explicit origins. Production domain and any extra
+# Vercel preview aliases should be set here in the Railway environment.
 origins = [
-    "http://localhost:3000",
-    "https://codexperts-web-psi.vercel.app",
+    o.strip()
+    for o in os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
+    if o.strip()
 ]
+
+# Allow every Vercel preview deployment for this project without listing each
+# preview URL explicitly.
+origin_regex = (
+    os.getenv("CORS_ORIGIN_REGEX", r"https://codexperts-web[\w-]*\.vercel\.app$").strip()
+    or None
+)
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_origin_regex=origin_regex,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
