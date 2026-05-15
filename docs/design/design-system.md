@@ -251,7 +251,7 @@ Practice dropdown (member only):
 | About | dropdown | public | About Us + Our Team |
 | Updates | dropdown | public | Announcements + Schedule |
 | Events | `/events` | public | |
-| Join Us | `/join` | public | Hidden after login & approval |
+| Join Us | modal | public | Opens signup modal; hidden after login & approval |
 | Practice | dropdown | member | Problems + Solutions |
 | Members | `/members` | member | |
 | LinkedIn | external | public | Icon button |
@@ -475,9 +475,11 @@ text-align: center
 
 ---
 
-### Page 7: `/join` Join Us (public)
+### Page 7: Join Us (modal, public)
 
-> TBD — confirm layout in next session
+Signup is a modal triggered from the [Join Us] button — there is no `/join`
+route. The modal runs Google OAuth first and then collects name/school as a
+profile-completion step. See `page-specs/join.md` for the full modal spec.
 
 ---
 

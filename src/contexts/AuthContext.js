@@ -47,6 +47,9 @@ export function AuthProvider({ children }) {
     )
 
     return () => subscription.unsubscribe()
+    // fetchProfile / authSignOut are stable module imports; this effect is
+    // intentionally mount-only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   async function refreshProfile() {
