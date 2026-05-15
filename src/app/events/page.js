@@ -1,20 +1,19 @@
 export default function EventsPage() {
 
   const clubEvents = [
-    {id: 1, category: 'Social', title: 'CodeXperts Year-End Event ', date: '2025-12-30', description: 'Join us for an evening of celebration and networking.', cta: 'Gallery', image:''},
-    {id: 2, category: 'Social', title: 'CodeXperts Chicken & Networking Event ', date: '2026-03-09', description: 'A casual meetup with great food and even better company.', cta: 'Gallery', image: './images/event1.jpg'},
-    {id: 3, category: 'Workshop', title: 'Advanced React Patterns', date: '2026-04-15', description: 'Deep dive into advanced React concepts including compound components, render props, and custom hooks.', cta: 'Learn More', image: ''}
+    {id: 1, category: 'Social', title: 'CodeXperts Year-End Event ', date: '2025-12-30', description: 'Celebrating the end of the year with an amazing lunch of pizza, wings, and salad.', cta: 'Gallery', image:''},
+    {id: 2, category: 'Social', title: 'CodeXperts Chicken & Networking Event ', date: '2026-03-09', description: 'Networking events filled with delicious fried chicken, Krispy Kreme donuts, and great conversations.', cta: 'Gallery', image: './images/event1.jpg'},
+    {id: 3, category: 'Coding Competition', title: 'CodeXperts Coding Competition', date: '2026-03-21', description: 'Programmers of all levels joined to solve algorithms for grand prizes.', cta: 'Learn More', image: ''}
   ]
 
   return (
     <main className="min-h-screen w-full bg-white">
 
-      {/* Hero section - Now uses max-w-7xl to match cards */}
-      <div className="px-6 md:px-8 py-16 md:py-24">
+      <div className="bg-gray-50 px-6 md:px-8 py-16 md:py-24">
         <div className="max-w-7xl mx-auto">
 
           <div className="mb-4 md:mb-6">
-            <span className="inline-flex items-center rounded-md bg-gray-50 px-3 py-1 text-xs font-semibold text-gray-600 inset-ring inset-ring-gray-500/10">
+            <span className="inline-flex items-center rounded-md bg-gray-200 px-3 py-1 text-xs font-semibold text-gray-600 inset-ring inset-ring-gray-500/10">
               Calendar of Innovation
             </span>
           </div>
@@ -28,11 +27,12 @@ export default function EventsPage() {
       </div>
 
       {/* Upcoming Event */}
-      <div className="px-6 md:px-8">
-        <div className="max-w-7xl mx-auto">
+      <section className="w-full bg-[#efefef] pt-8 pb-20 md:pt-2 md:pb-24">
+        <div className="px-6 md:px-8">
+        <div className=" max-w-7xl mx-auto">
           <section className="mt-24">
             <div className="flex items-center justify-between mb-8">
-              <h2 className="text-3xl font-semibold">Upcoming</h2>
+              <h2 className="text-4xl font-semibold">Upcoming</h2>
               <div className="w-20 h-px bg-gray-300" />
             </div>
 
@@ -57,7 +57,7 @@ export default function EventsPage() {
                     Featured Competition
                   </span>
                   <span className="text-gray-300 text-xs tracking-wider uppercase">
-                    March 14–16, 2026
+                    March 14-16, 2026
                   </span>
                 </div>
 
@@ -86,9 +86,10 @@ export default function EventsPage() {
           </section>
         </div>
       </div>
+      </section>
 
       {/* Past Events Section */}
-      <section className="w-full bg-[#efefef] py-20 px-6 md:px-8">
+      <section className="w-full bg-gray-50 py-20 px-6 md:px-8">
         <div className="mx-auto max-w-7xl">
           
           <div className="mb-12 flex items-start justify-between">
@@ -106,7 +107,7 @@ export default function EventsPage() {
 
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {clubEvents.map((event) => (
-              <div key={event.id} className="group overflow-hidden bg-[#f8f8f8] hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-out rounded-lg">
+              <div key={event.id} className="group overflow-hidden bg-white hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-out rounded-lg">
                 <div className="relative h-56 overflow-hidden bg-black rounded-t-lg">
                   <img 
                     src={event.image} 
@@ -145,6 +146,35 @@ export default function EventsPage() {
             ))}
           </div>
 
+        </div>
+      </section>
+
+      <section className="w-full bg-gray-100 py-24 px-6 md:px-8">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-3xl font-bold text-gray-900">
+            Never miss a{" "}
+            <span className="text-red-700">Sprint.</span>
+          </h2>
+
+          <p className="mt-6 text-gray-600 text-base">
+            Join our announcement list for exclusive event invitations and
+            technical updates.
+          </p>
+
+          <form className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <input
+              type="email"
+              placeholder="Your academic email"
+              className="w-full sm:w-96 px-4 py-3 bg-white border border-gray-200 rounded-sm outline-none focus:ring-2 focus:ring-red-700 text-sm"
+            />
+
+            <button
+              type="submit"
+              className="bg-red-700 hover:bg-red-800 text-white font-semibold px-8 py-3 rounded-sm transition-colors duration-200"
+            >
+              SUBSCRIBE
+            </button>
+          </form>
         </div>
       </section>
       
