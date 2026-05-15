@@ -1,10 +1,8 @@
-import event1Img from './images/event1.jpg';
-
 export default function EventsPage() {
 
   const clubEvents = [
     {id: 1, category: 'Social', title: 'CodeXperts Year-End Event ', date: '2025-12-30', description: 'Join us for an evening of celebration and networking.', cta: 'Gallery', image:''},
-    {id: 2, category: 'Social', title: 'CodeXperts Chicken & Networking Event ', date: '2026-03-09', description: 'A casual meetup with great food and even better company.', cta: 'Gallery', image: event1Img},
+    {id: 2, category: 'Social', title: 'CodeXperts Chicken & Networking Event ', date: '2026-03-09', description: 'A casual meetup with great food and even better company.', cta: 'Gallery', image: './images/event1.jpg'},
     {id: 3, category: 'Workshop', title: 'Advanced React Patterns', date: '2026-04-15', description: 'Deep dive into advanced React concepts including compound components, render props, and custom hooks.', cta: 'Learn More', image: ''}
   ]
 
@@ -29,7 +27,67 @@ export default function EventsPage() {
         </div>
       </div>
 
-      {/* Past Events Section - Same max-w-7xl */}
+      {/* Upcoming Event */}
+      <div className="px-6 md:px-8">
+        <div className="max-w-7xl mx-auto">
+          <section className="mt-24">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-3xl font-semibold">Upcoming</h2>
+              <div className="w-20 h-px bg-gray-300" />
+            </div>
+
+            {/* Single Featured Event Banner */}
+            <div className="relative overflow-hidden rounded-lg bg-black min-h-[420px]">
+              {/* Image Placeholder */}
+              <div className="absolute inset-0 bg-gradient-to-br from-red-600 to-red-800">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <svg className="w-24 h-24 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+              </div>
+
+              {/* Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent" />
+
+              {/* Content */}
+              <div className="relative z-10 p-10 md:p-16 max-w-2xl">
+                <div className="flex items-center gap-4 mb-6">
+                  <span className="bg-red-600 text-white text-[10px] uppercase tracking-widest px-3 py-1 rounded">
+                    Featured Competition
+                  </span>
+                  <span className="text-gray-300 text-xs tracking-wider uppercase">
+                    March 14–16, 2026
+                  </span>
+                </div>
+
+                <h3 className="text-5xl md:text-6xl font-bold text-white leading-none mb-6">
+                  Spring Coding
+                  <br />
+                  Competition 2026
+                </h3>
+
+                <p className="text-gray-300 leading-7 text-sm md:text-base max-w-lg mb-10">
+                  Join 200+ developers for a 48-hour sprint. Solve algorithmic
+                  puzzles, build innovative tools, and win exclusive prizes from
+                  the Digital Atelier.
+                </p>
+
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <button className="bg-red-600 hover:bg-red-700 transition text-white px-6 py-3 text-sm font-medium rounded">
+                    Register Now
+                  </button>
+                  <button className="border border-white/20 hover:bg-white hover:text-black transition text-white px-6 py-3 text-sm font-medium rounded">
+                    Learn More
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      {/* Past Events Section */}
       <section className="w-full bg-[#efefef] py-20 px-6 md:px-8">
         <div className="mx-auto max-w-7xl">
           
@@ -49,15 +107,15 @@ export default function EventsPage() {
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {clubEvents.map((event) => (
               <div key={event.id} className="group overflow-hidden bg-[#f8f8f8] hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-out rounded-lg">
-                <div className="relative h-54 overflow-hidden bg-black rounded-t-lg">
-                   <div className="relative h-56 overflow-hidden bg-black rounded-t-lg">
+                <div className="relative h-56 overflow-hidden bg-black rounded-t-lg">
                   <img 
                     src={event.image} 
                     alt={event.title} 
                     className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                   />
+
                   <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors duration-300"/>
-                  <span className="absolute left-4 top-4 bg-black/70 backdrop-blur-sm px-3 py-1 text-[10px] font-semibold uppercase text-white rounded">
+                  <span className="absolute left-4 top-4 bg-black/70 px-3 py-1 text-[10px] font-semibold uppercase text-white rounded">
                     {event.category}
                   </span>
                 </div>
