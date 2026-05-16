@@ -1,3 +1,5 @@
+import { useNavigate } from "react-router-dom";
+
 export default function EventsPage() {
 
   const clubEvents = [
@@ -5,6 +7,8 @@ export default function EventsPage() {
     {id: 2, category: 'Social', title: 'CodeXperts Chicken & Networking Event ', date: '2026-03-09', description: 'Networking events filled with delicious fried chicken, Krispy Kreme donuts, and great conversations.', cta: 'Gallery', image: './images/event1.jpg'},
     {id: 3, category: 'Coding Competition', title: 'CodeXperts Coding Competition', date: '2026-03-21', description: 'Programmers of all levels joined to solve algorithms for grand prizes.', cta: 'Learn More', image: ''}
   ]
+
+  const newPage = useNavigate();
 
   return (
     <main className="min-h-screen w-full bg-white">
@@ -26,7 +30,6 @@ export default function EventsPage() {
         </div>
       </div>
 
-      {/* Upcoming Event */}
       <section className="w-full bg-[#efefef] pt-8 pb-20 md:pt-2 md:pb-24">
         <div className="px-6 md:px-8">
         <div className=" max-w-7xl mx-auto">
@@ -36,7 +39,6 @@ export default function EventsPage() {
               <div className="w-20 h-px bg-gray-300" />
             </div>
 
-            {/* Single Featured Event Banner */}
             <div className="relative overflow-hidden rounded-lg bg-black min-h-[420px]">
               {/* Image Placeholder */}
               <div className="absolute inset-0 bg-gradient-to-br from-red-600 to-red-800">
@@ -47,10 +49,9 @@ export default function EventsPage() {
                 </div>
               </div>
 
-              {/* Overlay */}
               <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent" />
 
-              {/* Content */}
+
               <div className="relative z-10 p-10 md:p-16 max-w-2xl">
                 <div className="flex items-center gap-4 mb-6">
                   <span className="bg-red-600 text-white text-[10px] uppercase tracking-widest px-3 py-1 rounded">
@@ -77,7 +78,9 @@ export default function EventsPage() {
                   <button className="bg-red-600 hover:bg-red-700 transition text-white px-6 py-3 text-sm font-medium rounded">
                     Register Now
                   </button>
-                  <button className="border border-white/20 hover:bg-white hover:text-black transition text-white px-6 py-3 text-sm font-medium rounded">
+                  <button 
+                    onClick={() => navigate('/upcoming')}
+                    className="border border-white/20 hover:bg-white hover:text-black transition text-white px-6 py-3 text-sm font-medium rounded">
                     Learn More
                   </button>
                 </div>
@@ -88,7 +91,6 @@ export default function EventsPage() {
       </div>
       </section>
 
-      {/* Past Events Section */}
       <section className="w-full bg-gray-50 py-20 px-6 md:px-8">
         <div className="mx-auto max-w-7xl">
           
@@ -170,7 +172,7 @@ export default function EventsPage() {
 
             <button
               type="submit"
-              className="bg-red-700 hover:bg-red-800 text-white font-semibold px-8 py-3 rounded-sm transition-colors duration-200"
+              className="bg-red-700 hover:bg-red-900 text-white font-semibold px-8 py-3 rounded-sm transition-colors duration-200"
             >
               SUBSCRIBE
             </button>
