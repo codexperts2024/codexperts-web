@@ -1,5 +1,3 @@
-import { useNavigate } from "react-router-dom";
-
 export default function EventsPage() {
 
   const clubEvents = [
@@ -7,8 +5,6 @@ export default function EventsPage() {
     {id: 2, category: 'Social', title: 'CodeXperts Chicken & Networking Event ', date: '2026-03-09', description: 'Networking events filled with delicious fried chicken, Krispy Kreme donuts, and great conversations.', cta: 'Gallery', image: './images/event1.jpg'},
     {id: 3, category: 'Coding Competition', title: 'CodeXperts Coding Competition', date: '2026-03-21', description: 'Programmers of all levels joined to solve algorithms for grand prizes.', cta: 'Learn More', image: ''}
   ]
-
-  const newPage = useNavigate();
 
   return (
     <main className="min-h-screen w-full bg-white">
@@ -78,9 +74,7 @@ export default function EventsPage() {
                   <button className="bg-red-600 hover:bg-red-700 transition text-white px-6 py-3 text-sm font-medium rounded">
                     Register Now
                   </button>
-                  <button 
-                    onClick={() => navigate('/upcoming')}
-                    className="border border-white/20 hover:bg-white hover:text-black transition text-white px-6 py-3 text-sm font-medium rounded">
+                  <button className="border border-white/20 hover:bg-white hover:text-black transition text-white px-6 py-3 text-sm font-medium rounded">
                     Learn More
                   </button>
                 </div>
@@ -140,9 +134,12 @@ export default function EventsPage() {
                     {event.description || "Experience this memorable event with our community."}
                   </p>
 
-                  <button className="mt-10 w-fit text-sm font-semibold uppercase tracking-[0.1em] text-red-700 transition hover:text-red-900 border-b border-red-700">
-                    {event.cta}
-                  </button>
+                  <a href="/upcoming">
+                    <button className="mt-10 w-fit text-sm font-semibold uppercase tracking-[0.1em] text-red-700 transition hover:text-red-900 border-b border-red-700">
+                      {event.cta}
+                    </button>
+                  </a>
+        
                 </div>
               </div>
             ))}
