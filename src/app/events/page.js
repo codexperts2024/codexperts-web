@@ -7,7 +7,7 @@ export default function EventsPage() {
   ]
 
   return (
-    <main className="min-h-screen w-full bg-white">
+    <main className="min-h-screen w-full bg-white font-inter">
 
       <div className="bg-gray-50 px-6 md:px-8 py-16 md:py-24">
         <div className="max-w-7xl mx-auto">
@@ -18,7 +18,7 @@ export default function EventsPage() {
             </span>
           </div>
 
-          <h1 className="text-5xl font-bold text-gray-900">Events</h1>
+          <h1 className="text-5xl font-bold text-gray-900 font-montserrat">Events</h1>
           <p className="mt-3 text-gray-600 max-w-2xl text-base leading-7">
             Where theory meets application. Explore our upcoming challenges, technical
             workshops, and community-led sessions at the Digital Atelier.
@@ -31,7 +31,7 @@ export default function EventsPage() {
         <div className=" max-w-7xl mx-auto">
           <section className="mt-24">
             <div className="flex items-center justify-between mb-8">
-              <h2 className="text-4xl font-semibold">Upcoming</h2>
+              <h2 className="text-4xl font-semibold font-montserrat">Upcoming</h2>
               <div className="w-20 h-px bg-gray-300" />
             </div>
 
@@ -58,7 +58,7 @@ export default function EventsPage() {
                   </span>
                 </div>
 
-                <h3 className="text-5xl md:text-6xl font-bold text-white leading-none mb-6">
+                <h3 className="text-5xl md:text-6xl font-bold text-white font-montserrat leading-none mb-6">
                   Spring Coding
                   <br />
                   Competition 2026
@@ -90,7 +90,7 @@ export default function EventsPage() {
           
           <div className="mb-12 flex items-start justify-between">
             <div>
-              <h2 className="text-4xl font-bold text-[#222]">Past Events</h2>
+              <h2 className="text-4xl font-bold text-[#222] font-montserrat">Past Events</h2>
               <p className="mt-2 text-sm text-gray-600">
                 Archived technical sessions and community highlights.
               </p>
@@ -126,7 +126,7 @@ export default function EventsPage() {
                     })}
                   </p>
 
-                  <h3 className="mb-4 text-2xl font-semibold leading-tight text-zinc-900">
+                  <h3 className="mb-4 text-2xl font-semibold leading-tight text-zinc-900 font-montserrat">
                     {event.title}
                   </h3>
 
@@ -134,12 +134,9 @@ export default function EventsPage() {
                     {event.description || "Experience this memorable event with our community."}
                   </p>
 
-                  <a href="/upcoming">
-                    <button className="mt-10 w-fit text-sm font-semibold uppercase tracking-[0.1em] text-red-700 transition hover:text-red-900 border-b border-red-700">
-                      {event.cta}
-                    </button>
-                  </a>
-        
+                  <button className="mt-10 w-fit text-sm font-semibold uppercase tracking-[0.1em] text-red-700 transition hover:text-red-900 border-b border-red-700">
+                    {event.cta}
+                  </button>
                 </div>
               </div>
             ))}
@@ -150,7 +147,7 @@ export default function EventsPage() {
 
       <section className="w-full bg-gray-100 py-24 px-6 md:px-8">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl font-bold text-gray-900">
+          <h2 className="text-3xl font-bold text-gray-900 font-montserrat">
             Never miss a{" "}
             <span className="text-red-700">Sprint.</span>
           </h2>
