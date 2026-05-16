@@ -63,7 +63,7 @@ export default function AboutPage() {
             <div className="absolute -left-[9px] top-1 w-4 h-4 bg-red-800 rounded-full border-4 border-white"></div>
 
             <div className="flex flex-col md:flex-row md:items-baseline gap-1 md:gap-8">
-              <span className="text-red-800 font-bold whitespace-nowrap">2026 Winter</span>
+              <span className="text-red-800 font-bold whitespace-nowrap">2025 Winter</span>
               <div>
                 <h3 className="font-bold text-gray-900">Scaling Up</h3>
                 <p className="text-gray-500 mt-1 md:mt-2">The group grew to 50 members and hosted its first regional hackathon, focusing on systems programming and low-level optimization.</p>
@@ -75,7 +75,7 @@ export default function AboutPage() {
             <div className="absolute -left-[9px] top-1 w-4 h-4 bg-red-800 rounded-full border-4 border-white"></div>
 
             <div className="flex flex-col md:flex-row md:items-baseline gap-1 md:gap-8">
-              <span className="text-red-800 font-bold whitespace-nowrap">2026 Fall</span>
+              <span className="text-red-800 font-bold whitespace-nowrap">2026d Fall</span>
               <div>
                 <h3 className="font-bold text-gray-900">The Digital Atelier</h3>
                 <p className="text-gray-500 mt-1 md:mt-2">Officially rebranding and launching our dedicated lab space, providing a permanent home for technical innovation and research.</p>

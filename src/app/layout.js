@@ -42,11 +42,6 @@ export default function RootLayout({ children }) {
             </div>
           </JoinModalProvider>
         </AuthProvider>
-
-        <Script 
-          src="https://elfsightcdn.com/platform.js" 
-          strategy="lazyOnload" 
-        />
       </body>
     </html>
   )

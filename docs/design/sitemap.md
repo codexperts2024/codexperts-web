@@ -25,8 +25,8 @@ RIGHT: [LinkedIn] [Email] [Instagram▾] ([Discord▾])  [Log In]
 | Members | `/members` | member | |
 | LinkedIn | external | public | Icon button |
 | Email | mailto: | public | Icon button |
-| Instagram▾ | — | public | Hover dropdown (Seneca / York / TMU) |
-| Discord▾ | — | member | Hover dropdown (Seneca / York / TMU) |
+| Instagram▾ | — | public | Hover dropdown (Seneca / York) |
+| Discord▾ | — | member | Hover dropdown (Seneca / York) |
 | Join Us | (modal) | public (non-member only) | Triggers signup modal overlay on current page. No `/join` route. Hidden after approval. |
 | Log In | Google OAuth | logged-out only | Far right |
 | ⚙ (gear) | `/admin` | admin | Icon only, right of Join Us |
