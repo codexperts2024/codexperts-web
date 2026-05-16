@@ -99,65 +99,7 @@ export default function EventsPage() {
       </div>
       </section>
 
-      <section className="w-full bg-[#F9F9F9] py-12 px-6 md:px-8">
-        <div className="mx-auto max-w-7xl">
-          
-          <div className="mb-12 flex items-start justify-between">
-            <div>
-              <h2 className="text-4xl font-bold text-[#222] font-montserrat">Past Events</h2>
-              <p className="mt-2 text-sm text-gray-600">
-                Archived technical sessions and community highlights.
-              </p>
-            </div>
-
-            <button className="hidden md:block text-sm font-semibold tracking-[0.1em] text-red-700 transition hover:text-red-900">
-              VIEW ARCHIVE →
-            </button>
-          </div>
-
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {clubEvents.map((event) => (
-              <div key={event.id} className="group overflow-hidden bg-white hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-out hover:shadow-[0_4px_12px_rgba(0,0,0,0.10) rounded-t-lg">
-                <div className="relative h-[200px] overflow-hidden bg-black rounded-t-lg">
-                  <img 
-                    src={event.image} 
-                    alt={event.title} 
-                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                  />
-
-                  <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors duration-300"/>
-                  <span className="absolute left-4 top-4 bg-black/70 px-3 py-1 text-[10px] font-semibold uppercase text-white rounded">
-                    {event.category}
-                  </span>
-                </div>
-
-                <div className="flex min-h-[280px] flex-col justify-between p-8">
-                  <p className="text-[11px] uppercase tracking-[0.1em] text-gray-400">
-                    {new Date(event.date).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
-                  </p>
-
-                  <h3 className="mb-4 text-2xl font-semibold leading-tight text-zinc-900 font-montserrat">
-                    {event.title}
-                  </h3>
-
-                  <p className="text-sm mb-8 leading-relaxed text-gray-600">
-                    {event.description || "Experience this memorable event with our community."}
-                  </p>
-
-                  <button className="mt-10 w-fit text-sm font-semibold uppercase tracking-[0.1em] text-red-700 transition hover:text-red-900 border-b border-red-700">
-                    {event.cta}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-
-        </div>
-      </section>
+      <PastEventId />
 
       <section className="w-full bg-gray-100 py-24 px-6 md:px-8">
         <div className="max-w-3xl mx-auto text-center">
