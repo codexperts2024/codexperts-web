@@ -1,3 +1,7 @@
+'use client';
+import { useState } from 'react';
+import upcoming from '@/components/upcoming';
+
 export default function EventsPage() {
 
   const clubEvents = [
@@ -6,10 +10,17 @@ export default function EventsPage() {
     {id: 3, category: 'Coding Competition', title: 'CodeXperts Coding Competition', date: '2026-03-21', description: 'Programmers of all levels joined to solve algorithms for grand prizes.', cta: 'Learn More', image: ''}
   ]
 
+  const [showCompetition, setShowCompetition] = useState(false);
+
+  // If showing competition detail, render that component
+  if (showCompetition) {
+    return <upcoming />;
+  }
+
   return (
     <main className="min-h-screen w-full bg-white font-inter">
 
-      <div className="bg-gray-50 px-6 md:px-8 py-16 md:py-24">
+      <div className="bg-[#F9F9F9] px-6 md:px-8 py-8">
         <div className="max-w-7xl mx-auto">
 
           <div className="mb-4 md:mb-6">
@@ -31,7 +42,7 @@ export default function EventsPage() {
         <div className=" max-w-7xl mx-auto">
           <section className="mt-24">
             <div className="flex items-center justify-between mb-8">
-              <h2 className="text-4xl font-semibold font-montserrat">Upcoming</h2>
+              <h2 className="text-4xl font-bold font-montserrat">Upcoming</h2>
               <div className="w-20 h-px bg-gray-300" />
             </div>
 
@@ -71,10 +82,12 @@ export default function EventsPage() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <button className="bg-red-600 hover:bg-red-700 transition text-white px-6 py-3 text-sm font-medium rounded">
+                  <button 
+                    onClick={() => setShowCompetition(true)}
+                    className="bg-red-600 hover:bg-red-700 transition text-white px-6 py-3 text-sm font-medium rounded">
                     Register Now
                   </button>
-                  <button className="border border-white/20 hover:bg-white hover:text-black transition text-white px-6 py-3 text-sm font-medium rounded">
+                  <button className="border border-white/20 hover:bg-white hover:text-black transition text-white px-6 py-3 text-sm font-medium rounded hover:text-[#C0392B]">
                     Learn More
                   </button>
                 </div>
@@ -85,7 +98,7 @@ export default function EventsPage() {
       </div>
       </section>
 
-      <section className="w-full bg-gray-50 py-20 px-6 md:px-8">
+      <section className="w-full bg-[#F9F9F9] py-12 px-6 md:px-8">
         <div className="mx-auto max-w-7xl">
           
           <div className="mb-12 flex items-start justify-between">
@@ -103,8 +116,8 @@ export default function EventsPage() {
 
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {clubEvents.map((event) => (
-              <div key={event.id} className="group overflow-hidden bg-white hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-out rounded-lg">
-                <div className="relative h-56 overflow-hidden bg-black rounded-t-lg">
+              <div key={event.id} className="group overflow-hidden bg-white hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-out hover:shadow-[0_4px_12px_rgba(0,0,0,0.10) rounded-t-lg">
+                <div className="relative h-[200px] overflow-hidden bg-black rounded-t-lg">
                   <img 
                     src={event.image} 
                     alt={event.title} 
