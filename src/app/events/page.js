@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import upcoming from '@/components/upcoming';
+import Upcoming from '@/components/upcoming';
 
 export default function EventsPage() {
 
@@ -10,11 +10,11 @@ export default function EventsPage() {
     {id: 3, category: 'Coding Competition', title: 'CodeXperts Coding Competition', date: '2026-03-21', description: 'Programmers of all levels joined to solve algorithms for grand prizes.', cta: 'Learn More', image: ''}
   ]
 
-  const [showCompetition, setShowCompetition] = useState(false);
+  const [showEvent, setEvent] = useState(false);
 
   // If showing competition detail, render that component
-  if (showCompetition) {
-    return <upcoming />;
+  if (showEvent) {
+    return <Upcoming />;
   }
 
   return (
@@ -83,11 +83,12 @@ export default function EventsPage() {
 
                 <div className="flex flex-col sm:flex-row gap-4">
                   <button 
-                    onClick={() => setShowCompetition(true)}
                     className="bg-red-600 hover:bg-red-700 transition text-white px-6 py-3 text-sm font-medium rounded">
                     Register Now
                   </button>
-                  <button className="border border-white/20 hover:bg-white hover:text-black transition text-white px-6 py-3 text-sm font-medium rounded hover:text-[#C0392B]">
+                  <button 
+                    onClick={() => setEvent(true)}
+                    className="border border-white/20 hover:bg-white hover:text-black transition text-white px-6 py-3 text-sm font-medium rounded hover:text-[#C0392B]">
                     Learn More
                   </button>
                 </div>
