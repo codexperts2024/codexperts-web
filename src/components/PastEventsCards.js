@@ -3,7 +3,7 @@ import Link from 'next/link';
 export default function PastEventsCards({event}) {
     return (
         <Link href={`/events/${event.id}`} className="block group">
-            <div className="group overflow-hidden bg-white hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-out hover:shadow-[0_4px_12px_rgba(0,0,0,0.10) rounded-t-lg">
+            <div className="group rounded-t-lg overflow-hidden bg-white hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-out hover:shadow-[0_4px_12px_rgba(0,0,0,0.10) rounded-t-lg">
                 <div className="relative h-[200px] overflow-hidden bg-black rounded-t-lg">
                   <img 
                     src={event.image} 
@@ -34,7 +34,7 @@ export default function PastEventsCards({event}) {
                     {event.description}
                   </p>
 
-                  <button className="mt-10 w-fit text-sm font-semibold uppercase tracking-[0.1em] text-red-700 transition hover:text-red-900 border-b border-red-700">
+                  <button className="mt-auto w-fit text-sm font-semibold uppercase tracking-[0.1em] text-red-700 transition hover:text-red-900 border-b border-red-700">
                     {event.cta}
                   </button>
                 </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import upcoming from '@/components/upcoming';
+import Link from 'next/link';
 import PastEventsId from '@/components/PastEventsId';
 
 

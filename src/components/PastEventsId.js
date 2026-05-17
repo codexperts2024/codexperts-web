@@ -1,10 +1,10 @@
 import PastEventsCards from './PastEventsCards';
 
 const clubEvents = [
-    {id: 1, category: 'Social', title: 'CodeXperts Year-End Event ', date: '2025-12-30', description: 'Celebrating the end of the year with an amazing lunch of pizza, wings, and salad.', cta: 'Gallery', image:'', location:"Professor's House", school:''},
+    {id: 1, category: 'Coding Competition', title: 'CodeXperts Coding Competition', date: '2026-03-21', description: 'Programmers of all levels joined to solve algorithms for grand prizes.', 
+         cta: 'Learn More', image: '', location:'Room 402', school:'Seneca College'},
     {id: 2, category: 'Social', title: 'CodeXperts Chicken & Networking Event ', date: '2026-03-09', description: 'Networking events filled with delicious fried chicken, Krispy Kreme donuts, and great conversations.', cta: 'Gallery', image: './images/event1.jpg', location:'Room S1077', school:'Seneca @ York'},
-    {id: 3, category: 'Coding Competition', title: 'CodeXperts Coding Competition', date: '2026-03-21', description: 'Programmers of all levels joined to solve algorithms for grand prizes.', 
-         cta: 'Learn More', image: '', location:'Room 402', school:'Seneca College'}
+    {id: 3, category: 'Social', title: 'CodeXperts Year-End Event ', date: '2025-12-30', description: 'Celebrating the end of the year with an amazing lunch of pizza, wings, and salad.', cta: 'Gallery', image:'', location:"Professor's House", school:''}
 ];
 
 export default function PastEventsId() {
