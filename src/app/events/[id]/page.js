@@ -11,35 +11,34 @@ const clubEvents = [
 
 // Generate static params for all event IDs
 export async function generateStaticParams() {
-  return pastEvents.map((event) => ({
+  return clubEvents.map((event) => ({
     id: event.id.toString(),
   }));
 }
 
-// Get event by ID
-function getEvent(id) {
-  return pastEvents.find((e) => e.id === id);
+function getPastEvent(id) {
+  return clubEvents.find((e) => e.id === id);
 }
 
-export default function EventDetailPage({ params }) {
+export default function PastEventInfo({ params }) {
   const eventId = parseInt(params.id);
-  const event = getEvent(eventId);
+  const event = getPastEvent(eventId);
 
   if (!event) {
     notFound();
   }
 
-  const currentIndex = pastEvents.findIndex((e) => e.id === eventId);
+  const currentIndex = clubEvents.findIndex((e) => e.id === eventId);
   
   // Previous Event - stays on current if at beginning
-  const previousEvent = currentIndex > 0 ? pastEvents[currentIndex - 1] : event;
+  const previousEvent = currentIndex > 0 ? clubEvents[currentIndex - 1] : event;
   
   // Next Event - stays on current if at end
-  const nextEvent = currentIndex < pastEvents.length - 1 ? pastEvents[currentIndex + 1] : event;
+  const nextEvent = currentIndex < clubEvents.length - 1 ? clubEvents[currentIndex + 1] : event;
   
   // Boolean flags for styling (disable buttons at boundaries)
   const hasPrevious = currentIndex > 0;
-  const hasNext = currentIndex < pastEvents.length - 1;
+  const hasNext = currentIndex < clubEvents.length - 1;
 
   return (
     <div className="min-h-screen w-full bg-[#F9F9F9]">

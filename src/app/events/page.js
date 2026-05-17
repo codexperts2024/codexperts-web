@@ -1,6 +1,8 @@
 'use client';
-import { useState } from 'react';
-import Upcoming from '@/components/upcoming';
+
+import upcoming from '@/components/upcoming';
+import PastEventsId from '@/components/PastEventsId';
+
 
 export default function EventsPage() {
 
@@ -10,12 +12,6 @@ export default function EventsPage() {
     {id: 3, category: 'Coding Competition', title: 'CodeXperts Coding Competition', date: '2026-03-21', description: 'Programmers of all levels joined to solve algorithms for grand prizes.', cta: 'Learn More', image: ''}
   ]
 
-  const [showEvent, setEvent] = useState(false);
-
-  // If showing competition detail, render that component
-  if (showEvent) {
-    return <Upcoming />;
-  }
 
   return (
     <main className="min-h-screen w-full bg-white font-inter">
@@ -99,7 +95,7 @@ export default function EventsPage() {
       </div>
       </section>
 
-      <PastEventId />
+      <PastEventsId />
 
       <section className="w-full bg-gray-100 py-24 px-6 md:px-8">
         <div className="max-w-3xl mx-auto text-center">
