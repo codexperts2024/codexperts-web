@@ -1,0 +1,45 @@
+name: Update Sprint Report in README
+
+on:
+  push:
+    branches: [develop, main]
+  workflow_dispatch:
+
+jobs:
+  update-report:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Update total report
+        run: |
+          REPORT=$(node scripts/sprint-report.js)
+          node scripts/update-readme-report.js TOTAL "$REPORT"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update weekly reports
+        run: |
+          for week in 1 2 3 4 5 6; do
+            REPORT=$(node scripts/sprint-report.js $week)
+            node scripts/update-readme-report.js "W${week}" "$REPORT"
+          done
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git diff --quiet README.md || (
+            git add README.md &&
+            git commit -m "chore: update sprint contribution report" &&
+            git push
+          )
