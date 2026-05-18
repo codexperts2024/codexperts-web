@@ -59,3 +59,26 @@ export async function updateProfile(userId, fields) {
   if (error) throw error
   return data
 }
+
+export async function adminApproval(userID) {
+  const session = await getSession();
+
+  if (!session) {
+    throw new Error('Unauthorized: No active session found.');
+  }
+
+  const profile = await fetchProfile(session.user.id);
+  if (profile?.role !== 'admin') {
+    throw new Error('Unauthorized: Only admins can approve users.');
+  }
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({ role: 'member' })
+    .eq('id', userID)
+    .select()
+    .single();
+
+  if (error) throw error
+  return data;
+}
