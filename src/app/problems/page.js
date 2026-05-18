@@ -8,7 +8,8 @@ import {
 import ReactMarkdown from 'react-markdown'
 import RoleGuard from '@/components/auth/RoleGuard'
 import { useAuth } from '@/hooks/useAuth'
-import { supabase } from '@/lib/supabase'
+import { fetchProblems, deleteProblem } from '@/services/problemsService'
+import { fetchUserSubmissions } from '@/services/submissionsService'
 import { ROLES } from '@/utils/constants'
 
 const SCHOOLS = ['All Schools', 'Seneca College', 'York University']
@@ -46,8 +47,8 @@ function PostView({ problems, currentIdx, setCurrentIdx, setView, profile, onDel
   const router = useRouter()
   const problem = problems[currentIdx]
   const isAdmin = profile?.role === ROLES.ADMIN || profile?.role === ROLES.EXECUTIVE
-  const isFirst = currentIdx === problems.length - 1
-  const isLast = currentIdx === 0
+  const isOldest = currentIdx === problems.length - 1
+  const isNewest = currentIdx === 0
 
   if (!problem) {
     return (
@@ -70,10 +71,10 @@ function PostView({ problems, currentIdx, setCurrentIdx, setView, profile, onDel
           </div>
           {isAdmin && (
             <button
-              className="flex items-center gap-1.5 px-5 py-2 rounded-md text-sm font-medium font-inter text-white transition-colors"
+              disabled
+              title="Coming soon"
+              className="flex items-center gap-1.5 px-5 py-2 rounded-md text-sm font-medium font-inter text-white transition-colors opacity-40 cursor-not-allowed"
               style={{ background: '#C0392B' }}
-              onMouseEnter={e => e.currentTarget.style.background = '#A93226'}
-              onMouseLeave={e => e.currentTarget.style.background = '#C0392B'}
             >
               <Plus size={14} />
               New
@@ -143,7 +144,7 @@ function PostView({ problems, currentIdx, setCurrentIdx, setView, profile, onDel
         <div className="max-w-[800px] mx-auto px-6 flex items-center justify-between">
           <button
             onClick={() => setCurrentIdx(i => i + 1)}
-            disabled={isFirst}
+            disabled={isOldest}
             className="flex items-center gap-1.5 px-5 py-2 rounded-md text-sm font-medium font-inter border transition-colors disabled:opacity-40 disabled:cursor-not-allowed border-border-strong text-text-secondary hover:border-text-primary hover:text-text-primary disabled:hover:border-border-strong disabled:hover:text-text-secondary"
           >
             <ChevronLeft size={14} />
@@ -171,7 +172,7 @@ function PostView({ problems, currentIdx, setCurrentIdx, setView, profile, onDel
           <div className="flex items-center gap-3">
             <button
               onClick={() => setCurrentIdx(i => i - 1)}
-              disabled={isLast}
+              disabled={isNewest}
               className="flex items-center gap-1.5 px-5 py-2 rounded-md text-sm font-medium font-inter border transition-colors disabled:opacity-40 disabled:cursor-not-allowed border-border-strong text-text-secondary hover:border-text-primary hover:text-text-primary disabled:hover:border-border-strong disabled:hover:text-text-secondary"
             >
               Next
@@ -207,10 +208,10 @@ function ListView({ problems, setCurrentIdx, setView, profile, schoolFilter, set
           </div>
           {isAdmin && (
             <button
-              className="flex items-center gap-1.5 px-5 py-2 rounded-md text-sm font-medium font-inter text-white transition-colors"
+              disabled
+              title="Coming soon"
+              className="flex items-center gap-1.5 px-5 py-2 rounded-md text-sm font-medium font-inter text-white transition-colors opacity-40 cursor-not-allowed"
               style={{ background: '#C0392B' }}
-              onMouseEnter={e => e.currentTarget.style.background = '#A93226'}
-              onMouseLeave={e => e.currentTarget.style.background = '#C0392B'}
             >
               <Plus size={14} />
               New
@@ -301,41 +302,35 @@ function ProblemsContent() {
   const [userSubmissions, setUserSubmissions] = useState(new Set())
   const [loading, setLoading] = useState(true)
 
-  const fetchProblems = useCallback(async () => {
+  const loadProblems = useCallback(async () => {
     setLoading(true)
-    let query = supabase
-      .from('problems')
-      .select('*')
-      .order('week', { ascending: false, nullsFirst: false })
-      .order('created_at', { ascending: false })
-
-    if (schoolFilter !== 'All Schools') {
-      query = query.eq('school', schoolFilter)
+    try {
+      const data = await fetchProblems(schoolFilter)
+      setProblems(data)
+    } finally {
+      setLoading(false)
     }
-
-    const { data, error } = await query
-    if (!error && data) setProblems(data)
-    setLoading(false)
   }, [schoolFilter])
 
-  const fetchSubmissions = useCallback(async () => {
+  const loadSubmissions = useCallback(async () => {
     if (!profile?.id) return
-    const { data } = await supabase
-      .from('submissions')
-      .select('problem_id')
-      .eq('profile_id', profile.id)
-    if (data) setUserSubmissions(new Set(data.map(s => s.problem_id)))
+    const solved = await fetchUserSubmissions(profile.id)
+    setUserSubmissions(solved)
   }, [profile?.id])
 
-  useEffect(() => { fetchProblems() }, [fetchProblems])
-  useEffect(() => { fetchSubmissions() }, [fetchSubmissions])
+  useEffect(() => { loadProblems() }, [loadProblems])
+  useEffect(() => { loadSubmissions() }, [loadSubmissions])
   useEffect(() => { setCurrentIdx(0) }, [schoolFilter])
 
   async function handleDelete(id) {
     if (!confirm('Delete this problem? This cannot be undone.')) return
-    await supabase.from('problems').delete().eq('id', id)
-    await fetchProblems()
-    setCurrentIdx(0)
+    try {
+      await deleteProblem(id)
+      await loadProblems()
+      setCurrentIdx(0)
+    } catch {
+      alert('Failed to delete. Please try again.')
+    }
   }
 
   if (loading) {
