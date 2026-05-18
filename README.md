@@ -127,11 +127,11 @@ Sprint Contribution Report — Total
 ───────────────────────────────────
 Name    Issues Contribution
 ───────────────────────────────────
-Paul    8      ████████████████
+Paul    9      ██████████████████
 
 Dave    6      ████████████
 
-Gary    5      ██████████
+Gary    4      ████████
 
 Kai     2      ████
 
@@ -171,7 +171,7 @@ Sprint Contribution Report — Week 1
 ──────────────────────────────────────
 Name    Done/All  Contribution
 ──────────────────────────────────────
-Paul    4/5       ████████░░
+Paul    5/6       ██████████░░
 
 Gary    3/3       ██████
 
@@ -263,6 +263,8 @@ Sprint Contribution Report — Week 3
 ──────────────────────────────────────
 Name    Done/All  Contribution
 ──────────────────────────────────────
+Paul    1/1       ██
+
 Judy    0/2       ░░░░
 
 Sid     0/1       ░░
@@ -274,8 +276,6 @@ Andra   0/1       ░░
 Gary    0/1       ░░
 
 Dave    0/1       ░░
-
-Paul    0         
 
 ──────────────────────────────────────
 ```
@@ -309,6 +309,8 @@ Sprint Contribution Report — Week 4
 ──────────────────────────────────────
 Name    Done/All  Contribution
 ──────────────────────────────────────
+Gary    0/1       ░░
+
 Paul    0         
 
 Sid     0         
@@ -316,8 +318,6 @@ Sid     0
 Kai     0         
 
 Andra   0         
-
-Gary    0         
 
 Dave    0         
 
