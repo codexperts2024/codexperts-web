@@ -1,14 +1,6 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 
-const clubEvents = [
-    {id: 1, category: 'Coding Competition', title: 'CodeXperts Coding Competition', date: '2026-03-21', description: 'Programmers of all levels joined to solve algorithms for grand prizes.', eDescription: 
-        'This intensive laboratory session was a deep-dive into the architectural nuances of systems programming using Rust. Participants explored the intricacies of memory safety without a garbage collector, focusing on ownership, borrowing, and lifetimes. The workshop moved beyond basic syntax, challenging students to implement low-level optimizations and safe concurrency patterns. It was designed for those looking to bridge the gap between high-level logic and metal-level performance, providing a rigorous technical framework for building reliable software systems.',
-         cta: 'Learn More', image: '', location:'Room 402', school:'Seneca College'},
-    {id: 2, category: 'Social', title: 'CodeXperts Chicken & Networking Event ', date: '2026-03-09', description: 'Networking events filled with delicious fried chicken, Krispy Kreme donuts, and great conversations.', eDescription: '', cta: 'Gallery', image: './images/event1.jpg', location:'Room S1077', school:'Seneca @ York'},
-    {id: 3, category: 'Social', title: 'CodeXperts Year-End Event ', date: '2025-12-30', description: 'Celebrating the end of the year with an amazing lunch of pizza, wings, and salad.', eDescription: '', cta: 'Gallery', image:'', location:"Professor's House", school:''}
-];
-
 // Generate static params for all event IDs
 export async function generateStaticParams() {
   return clubEvents.map((event) => ({
@@ -29,16 +21,20 @@ export default function PastEventInfo({ params }) {
   }
 
   const currentIndex = clubEvents.findIndex((e) => e.id === eventId);
-  
+
   // Previous Event - stays on current if at beginning
   const previousEvent = currentIndex > 0 ? clubEvents[currentIndex - 1] : event;
-  
+
   // Next Event - stays on current if at end
   const nextEvent = currentIndex < clubEvents.length - 1 ? clubEvents[currentIndex + 1] : event;
-  
+
   // Boolean flags for styling (disable buttons at boundaries)
   const hasPrevious = currentIndex > 0;
   const hasNext = currentIndex < clubEvents.length - 1;
+
+  const descriptions = event.eDescription && event.eDescription.trim() !== ''
+        ? [event.eDescription]
+        : ['No detailed description available for this event.'];
 
   return (
     <div className="min-h-screen w-full bg-[#F9F9F9]">
@@ -124,7 +120,7 @@ export default function PastEventInfo({ params }) {
           <Link
             href={`/events/${previousEvent.id}`}
             className={`border px-5 py-2.5 rounded-md flex items-center gap-2 transition font-inter text-sm ${
-              !hasPrevious 
+              !hasPrevious
                 ? 'border-gray-200 text-gray-400 cursor-not-allowed pointer-events-none bg-gray-50'
                 : 'border-gray-300 hover:bg-gray-100 text-gray-800'
             }`}
@@ -138,7 +134,7 @@ export default function PastEventInfo({ params }) {
           <Link
             href={`/events/${nextEvent.id}`}
             className={`border px-5 py-2.5 rounded-md flex items-center gap-2 transition font-inter text-sm ${
-              !hasNext 
+              !hasNext
                 ? 'border-gray-200 text-gray-400 cursor-not-allowed pointer-events-none bg-gray-50'
                 : 'border-gray-300 hover:bg-gray-100 text-gray-800'
             }`}
