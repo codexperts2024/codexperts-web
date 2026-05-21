@@ -6,8 +6,7 @@ import { useJoinModal } from '@/contexts/JoinModalContext'
 import { useAuth } from '@/hooks/useAuth'
 import { createProfile } from '@/services/authService'
 import Button from '@/components/ui/Button'
-
-const CAMPUSES = ['Seneca College', 'York University']
+import { CAMPUSES } from '@/utils/constants'
 
 function generateCohorts() {
   const terms = ['Winter', 'Summer', 'Fall']

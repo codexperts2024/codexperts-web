@@ -2,6 +2,7 @@ import './globals.css'
 import { Montserrat, Inter, JetBrains_Mono } from 'next/font/google'
 import Navbar from '@/components/common/Navbar'
 import JoinModal from '@/components/common/JoinModal'
+import Footer from '@/components/common/Footer'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { JoinModalProvider } from '@/contexts/JoinModalContext'
 
@@ -39,6 +40,7 @@ export default function RootLayout({ children }) {
             <div className="pt-14">
               {children}
             </div>
+            <Footer />
           </JoinModalProvider>
         </AuthProvider>
       </body>
