@@ -28,19 +28,22 @@ export async function fetchProfile(userId) {
   return data ?? null
 }
 
-export async function createProfile({ id, name, email, avatarUrl, campus, cohort, phone }) {
+export async function createProfile({ id, name, email, avatarUrl, school, cohort, phone, status, occupation, linkedin, github }) {
   const { data, error } = await supabase
     .from('profiles')
-    .upsert({
-      id,
+    .update({
       name,
       email,
       avatar_url: avatarUrl,
-      campus,
+      school,
       cohort,
       phone,
-      role: 'pending',
+      status,
+      occupation,
+      linkedin,
+      github,
     })
+    .eq('id', id)
     .select()
     .single()
 
