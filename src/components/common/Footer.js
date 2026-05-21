@@ -1,14 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { socialLinks } from '@/config/socialLinks'
 import { CAMPUSES } from '@/utils/constants'
+import { useAuth } from '@/hooks/useAuth'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 
 const sitemapLinks = [
-  { label: 'Home', href: '/' },
+  { label: 'Home', href: '/', scrollTop: true },
   { label: 'About Us', href: '/about' },
   { label: 'Announcements', href: '/announcements' },
   { label: 'Schedule', href: '/schedule' },
@@ -19,9 +20,16 @@ const selectClass =
   'w-full bg-bg-input border border-border-strong rounded-md px-3 py-2 text-sm text-text-primary font-inter focus:outline-none focus:border-accent transition-colors'
 
 export default function Footer() {
+  const { user } = useAuth()
   const [form, setForm] = useState({ email: '', name: '', school: '', message: '' })
   const [status, setStatus] = useState(null) // null | 'sending' | 'sent' | 'error'
   const [errors, setErrors] = useState({})
+
+  useEffect(() => {
+    if (user?.email) {
+      setForm((prev) => ({ ...prev, email: user.email }))
+    }
+  }, [user?.email])
 
   function validate() {
     const next = {}
@@ -46,7 +54,8 @@ export default function Footer() {
       })
       if (!res.ok) throw new Error()
       setStatus('sent')
-      setForm({ email: '', name: '', school: '', message: '' })
+      setForm((prev) => ({ email: prev.email, name: '', school: '', message: '' }))
+      setTimeout(() => setStatus(null), 4000)
     } catch {
       setStatus('error')
     }
@@ -70,10 +79,11 @@ export default function Footer() {
               Site Map
             </h3>
             <ul className="space-y-2">
-              {sitemapLinks.map(({ label, href }) => (
+              {sitemapLinks.map(({ label, href, scrollTop }) => (
                 <li key={href}>
                   <Link
                     href={href}
+                    onClick={scrollTop ? () => window.scrollTo({ top: 0, behavior: 'smooth' }) : undefined}
                     className="text-sm text-text-secondary hover:text-text-primary transition-colors"
                   >
                     {label}
@@ -111,9 +121,9 @@ export default function Footer() {
         </div>
 
         {/* ── Right: Contact Form ── */}
-        <div>
+        <div id="contact">
           <h3 className="font-montserrat font-semibold text-text-primary text-sm uppercase tracking-widest mb-4">
-            Get in Touch
+            Get in Touch (codeXperts2024@gmail.com)
           </h3>
 
           {status === 'sent' ? (
@@ -127,6 +137,8 @@ export default function Footer() {
                   placeholder="Email Address"
                   value={form.email}
                   onChange={update('email')}
+                  readOnly={!!user?.email}
+                  className={user?.email ? 'opacity-60 cursor-not-allowed' : ''}
                 />
                 {errors.email && <p className="text-xs text-red-400 mt-1">{errors.email}</p>}
               </div>

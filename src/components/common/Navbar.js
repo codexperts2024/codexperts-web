@@ -179,10 +179,11 @@ export default function Navbar() {
             <IconLinkedIn />
           </a>
           {isMember && <SocialDropdown icon={<IconDiscord />} items={socialLinks.discord} />}
-          <a href={socialLinks.email.url}
+          <button
+            onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
             className="p-1.5 text-text-secondary hover:text-text-primary transition-colors">
             <IconEmail />
-          </a>
+          </button>
 
           <div className="w-px h-5 bg-border mx-1" />
 
@@ -273,10 +274,11 @@ export default function Navbar() {
               Discord &middot; {campus}
             </a>
           ))}
-          <a href={socialLinks.email.url}
-            className="px-2 py-1 text-sm text-text-secondary hover:text-text-primary transition-colors">
+          <button
+            onClick={() => { setMobileOpen(false); document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' }) }}
+            className="px-2 py-1 text-sm text-text-secondary hover:text-text-primary transition-colors text-left">
             Email us
-          </a>
+          </button>
 
           <div className="my-2 h-px bg-border" />
 
