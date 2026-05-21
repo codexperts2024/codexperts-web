@@ -55,6 +55,10 @@ module.exports = {
         montserrat: ['var(--font-montserrat)', 'sans-serif'],
         mono: ['var(--font-jetbrains-mono)', 'monospace'],
       },
+      maxWidth: {
+        'content': '800px',
+        'content-wide': '1000px',
+      },
     },
   },
   plugins: [],

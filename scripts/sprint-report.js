@@ -21,6 +21,7 @@ const NAME_MAP = {
   'kazzledazz':              'Andra',
   'GarySkywalker-droid':     'Gary',
   'SystemProgrammerWizzard': 'Dave',
+  'judz-n':                  'Judy',
 };
 
 // Parse CLI args — accepts: --sprint 1  OR just: 1
@@ -82,7 +83,7 @@ function aggregateSprint(closedIssues, openIssues) {
 // Total mode bar: ██ per closed issue
 function barTotal(count) {
   if (count === 0) return '';
-  return Array.from({ length: count }, () => '██').join(' ');
+  return Array.from({ length: count }, () => '██').join('');
 }
 
 // Sprint mode bar: ██ closed + ░░ open (no spacing)
@@ -105,6 +106,7 @@ function printTotal(counts) {
   console.log(divider);
   for (const [name, count] of entries) {
     console.log(name.padEnd(COL_NAME) + String(count).padEnd(COL_COUNT) + barTotal(count));
+    console.log('');
   }
   console.log(divider);
   console.log('');
@@ -126,6 +128,7 @@ function printSprint(sprintData, sprint) {
   for (const [name, { closed, total }] of entries) {
     const label = total > 0 ? `${closed}/${total}` : '0';
     console.log(name.padEnd(COL_NAME) + label.padEnd(COL_COUNT) + barSprint(closed, total));
+    console.log('');
   }
   console.log(divider);
   console.log('');
