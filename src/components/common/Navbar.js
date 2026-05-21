@@ -179,10 +179,11 @@ export default function Navbar() {
             <IconLinkedIn />
           </a>
           {isMember && <SocialDropdown icon={<IconDiscord />} items={socialLinks.discord} />}
-          <a href={socialLinks.email.url}
+          <button
+            onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
             className="p-1.5 text-text-secondary hover:text-text-primary transition-colors">
             <IconEmail />
-          </a>
+          </button>
 
           <div className="w-px h-5 bg-border mx-1" />
 
@@ -192,16 +193,10 @@ export default function Navbar() {
               Log out
             </button>
           ) : (
-            <>
-              <button onClick={handleLogIn}
-                className="px-3 py-1.5 text-sm font-medium text-text-secondary hover:text-text-primary transition-colors">
-                Log In
-              </button>
-              <button onClick={handleLogIn}
-                className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors">
-                Join Us
-              </button>
-            </>
+            <button onClick={handleLogIn}
+              className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors">
+              Log In
+            </button>
           ))}
 
           {isAdmin && (
@@ -279,10 +274,11 @@ export default function Navbar() {
               Discord &middot; {campus}
             </a>
           ))}
-          <a href={socialLinks.email.url}
-            className="px-2 py-1 text-sm text-text-secondary hover:text-text-primary transition-colors">
+          <button
+            onClick={() => { setMobileOpen(false); document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' }) }}
+            className="px-2 py-1 text-sm text-text-secondary hover:text-text-primary transition-colors text-left">
             Email us
-          </a>
+          </button>
 
           <div className="my-2 h-px bg-border" />
 
@@ -293,16 +289,10 @@ export default function Navbar() {
               Log out
             </button>
           ) : (
-            <div className="flex flex-col gap-2">
-              <button onClick={() => { setMobileOpen(false); handleLogIn() }}
-                className="w-full px-4 py-2.5 rounded-md text-sm font-medium border border-border text-text-primary hover:bg-bg-surface transition-colors text-center">
-                Log In
-              </button>
-              <button onClick={() => { setMobileOpen(false); handleLogIn() }}
-                className="w-full px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center">
-                Join Us
-              </button>
-            </div>
+            <button onClick={() => { setMobileOpen(false); handleLogIn() }}
+              className="w-full px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center">
+              Log In
+            </button>
           ))}
         </div>
       )}
