@@ -436,6 +436,19 @@ npm run dev
 
 App runs at `http://localhost:3000`.
 
+**Environment variables:**
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Supabase anon key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Backend only | Never expose to client |
+| `NEXT_PUBLIC_API_URL` | Yes | Railway FastAPI URL |
+| `CONTACT_EMAIL_USER` | Yes | Gmail address for contact form SMTP |
+| `CONTACT_EMAIL_PASS` | Yes | Gmail App Password (not your account password) — generate at [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords) |
+
+> **To add York University's club signup link:** open [`src/config/socialLinks.js`](src/config/socialLinks.js) and set the `url` field in the `clubSignup` array for `York University`.
+
 **Sprint contribution report:**
 ```bash
 npm run report          # all-time closed issues per member
