@@ -6,24 +6,54 @@ import { useJoinModal } from '@/contexts/JoinModalContext'
 import { useAuth } from '@/hooks/useAuth'
 import { createProfile } from '@/services/authService'
 import Button from '@/components/ui/Button'
-import { CAMPUSES } from '@/utils/constants'
+
+const SCHOOLS = ['Seneca College', 'York University']
+
+const FIRST_COHORT = { season: 'Fall', year: 2024 }
+const SKIPPED_TERMS = new Set(['Summer 2025'])
+const SEASON_ORDER = ['Winter', 'Summer', 'Fall']
+
+function ordinal(n) {
+  if (n % 100 >= 11 && n % 100 <= 13) return `${n}th`
+  switch (n % 10) {
+    case 1: return `${n}st`
+    case 2: return `${n}nd`
+    case 3: return `${n}rd`
+    default: return `${n}th`
+  }
+}
+
+function getCurrentTerm() {
+  const month = new Date().getMonth() + 1
+  const year = new Date().getFullYear()
+  if (month <= 4) return { season: 'Winter', year }
+  if (month <= 8) return { season: 'Summer', year }
+  return { season: 'Fall', year }
+}
 
 function generateCohorts() {
-  const terms = ['Winter', 'Summer', 'Fall']
-  const termMonths = { Winter: [1, 4], Summer: [5, 8], Fall: [9, 12] }
-  const now = new Date()
-  const currentYear = now.getFullYear()
-  const currentMonth = now.getMonth() + 1
+  const current = getCurrentTerm()
   const cohorts = []
+  let { season, year } = FIRST_COHORT
 
-  for (let year = 2024; year <= currentYear + 1; year++) {
-    for (const term of terms) {
-      const [start] = termMonths[term]
-      if (year > currentYear) break
-      if (year === currentYear && start > currentMonth + 4) break
-      cohorts.push(`${term} ${year}`)
+  while (true) {
+    const term = `${season} ${year}`
+    const isCurrent = season === current.season && year === current.year
+
+    if (!SKIPPED_TERMS.has(term)) {
+      cohorts.push({
+        value: term,
+        label: `${ordinal(cohorts.length + 1)} Cohort (Joined ${term}${isCurrent ? ' ← now' : ''})`,
+      })
     }
+
+    if (isCurrent) break
+
+    const idx = SEASON_ORDER.indexOf(season)
+    if (idx === 2) { season = 'Winter'; year += 1 }
+    else season = SEASON_ORDER[idx + 1]
   }
+
   return cohorts.reverse()
 }
 
@@ -38,9 +68,14 @@ export default function JoinModal() {
   const { isOpen, openModal, closeModal } = useJoinModal()
   const { user, profile, loading, refreshProfile } = useAuth()
   const router = useRouter()
-  const [campus, setCampus] = useState('')
+  const [name, setName] = useState('')
+  const [school, setSchool] = useState('')
   const [cohort, setCohort] = useState('')
   const [phone, setPhone] = useState('')
+  const [status, setStatus] = useState('')
+  const [occupation, setOccupation] = useState('')
+  const [linkedin, setLinkedin] = useState('')
+  const [github, setGithub] = useState('')
   const [errors, setErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
   const cohorts = generateCohorts()
@@ -64,10 +99,22 @@ export default function JoinModal() {
   }, [isOpen])
 
   useEffect(() => {
+    if (isOpen && user) {
+      const meta = user.user_metadata
+      setName(meta?.full_name ?? meta?.name ?? '')
+    }
+  }, [isOpen, user])
+
+  useEffect(() => {
     if (!isOpen) {
-      setCampus('')
+      setName('')
+      setSchool('')
       setCohort('')
       setPhone('')
+      setStatus('')
+      setOccupation('')
+      setLinkedin('')
+      setGithub('')
       setErrors({})
       setSubmitting(false)
     }
@@ -80,9 +127,11 @@ export default function JoinModal() {
 
   function validate() {
     const next = {}
-    if (!campus) next.campus = 'Please select a campus'
+    if (!name.trim()) next.name = 'Please enter your name'
+    if (!school) next.school = 'Please select a school'
     if (!cohort) next.cohort = 'Please select a cohort'
     if (!/^\(\d{3}\) \d{3}-\d{4}$/.test(phone)) next.phone = 'Enter a valid phone number: (XXX) XXX-XXXX'
+    if (!status) next.status = 'Please select your status'
     setErrors(next)
     return Object.keys(next).length === 0
   }
@@ -92,15 +141,18 @@ export default function JoinModal() {
     setSubmitting(true)
 
     try {
-      const meta = user.user_metadata
       await createProfile({
         id: user.id,
-        name: meta?.full_name ?? meta?.name ?? '',
+        name: name.trim(),
         email: user.email,
-        avatarUrl: meta?.avatar_url ?? '',
-        campus,
+        avatarUrl: user.user_metadata?.avatar_url ?? '',
+        school,
         cohort,
         phone,
+        status,
+        occupation,
+        linkedin,
+        github,
       })
 
       sessionStorage.removeItem('join_modal_dismissed')
@@ -162,37 +214,50 @@ export default function JoinModal() {
           </div>
         )}
 
-        {/* Campus */}
+        {/* Name */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-text-primary mb-1.5">Campus</label>
+          <label className="block text-sm font-medium text-text-primary mb-1.5">Name <span className="text-red-500">*</span></label>
+          <input
+            type="text"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            placeholder="Your full name"
+            className={`${inputBase} ${inputFocus} ${errors.name ? 'border-red-400' : inputNormal}`}
+          />
+          {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name}</p>}
+        </div>
+
+        {/* School */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-text-primary mb-1.5">School <span className="text-red-500">*</span></label>
           <select
-            value={campus}
-            onChange={e => setCampus(e.target.value)}
-            className={`${inputBase} ${inputFocus} ${errors.campus ? 'border-red-400' : inputNormal}`}
+            value={school}
+            onChange={e => setSchool(e.target.value)}
+            className={`${inputBase} ${inputFocus} ${errors.school ? 'border-red-400' : inputNormal}`}
           >
-            <option value="">Select your campus</option>
-            {CAMPUSES.map(c => <option key={c} value={c}>{c}</option>)}
+            <option value="">Select your school</option>
+            {SCHOOLS.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
-          {errors.campus && <p className="mt-1 text-xs text-red-500">{errors.campus}</p>}
+          {errors.school && <p className="mt-1 text-xs text-red-500">{errors.school}</p>}
         </div>
 
         {/* Cohort */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-text-primary mb-1.5">Cohort <span className="text-text-hint font-normal">(when did you join?)</span></label>
+          <label className="block text-sm font-medium text-text-primary mb-1.5">Cohort <span className="text-text-hint font-normal">(when did you join?)</span> <span className="text-red-500">*</span></label>
           <select
             value={cohort}
             onChange={e => setCohort(e.target.value)}
             className={`${inputBase} ${inputFocus} ${errors.cohort ? 'border-red-400' : inputNormal}`}
           >
             <option value="">Select cohort</option>
-            {cohorts.map(c => <option key={c} value={c}>{c}</option>)}
+            {cohorts.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
           </select>
           {errors.cohort && <p className="mt-1 text-xs text-red-500">{errors.cohort}</p>}
         </div>
 
         {/* Phone */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-text-primary mb-1.5">Phone Number</label>
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-text-primary mb-1.5">Phone Number <span className="text-red-500">*</span></label>
           <input
             type="tel"
             value={phone}
@@ -201,6 +266,57 @@ export default function JoinModal() {
             className={`${inputBase} ${inputFocus} ${errors.phone ? 'border-red-400' : inputNormal}`}
           />
           {errors.phone && <p className="mt-1 text-xs text-red-500">{errors.phone}</p>}
+        </div>
+
+        {/* Status */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-text-primary mb-1.5">Status <span className="text-red-500">*</span></label>
+          <select
+            value={status}
+            onChange={e => setStatus(e.target.value)}
+            className={`${inputBase} ${inputFocus} ${errors.status ? 'border-red-400' : inputNormal}`}
+          >
+            <option value="">Select your status</option>
+            <option value="student">Student</option>
+            <option value="graduated">Graduated</option>
+          </select>
+          {errors.status && <p className="mt-1 text-xs text-red-500">{errors.status}</p>}
+        </div>
+
+        {/* Occupation */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-text-primary mb-1.5">Occupation <span className="text-text-hint font-normal">(optional)</span></label>
+          <input
+            type="text"
+            value={occupation}
+            onChange={e => setOccupation(e.target.value)}
+            placeholder="e.g. Software Developer, Student"
+            className={`${inputBase} ${inputFocus} ${inputNormal}`}
+          />
+        </div>
+
+        {/* LinkedIn */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-text-primary mb-1.5">LinkedIn <span className="text-text-hint font-normal">(optional)</span></label>
+          <input
+            type="url"
+            value={linkedin}
+            onChange={e => setLinkedin(e.target.value)}
+            placeholder="https://linkedin.com/in/..."
+            className={`${inputBase} ${inputFocus} ${inputNormal}`}
+          />
+        </div>
+
+        {/* GitHub */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-text-primary mb-1.5">GitHub <span className="text-text-hint font-normal">(optional)</span></label>
+          <input
+            type="url"
+            value={github}
+            onChange={e => setGithub(e.target.value)}
+            placeholder="https://github.com/..."
+            className={`${inputBase} ${inputFocus} ${inputNormal}`}
+          />
         </div>
 
         {/* Submit */}
