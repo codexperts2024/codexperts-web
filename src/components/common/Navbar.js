@@ -192,16 +192,10 @@ export default function Navbar() {
               Log out
             </button>
           ) : (
-            <>
-              <button onClick={handleLogIn}
-                className="px-3 py-1.5 text-sm font-medium text-text-secondary hover:text-text-primary transition-colors">
-                Log In
-              </button>
-              <button onClick={handleLogIn}
-                className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors">
-                Join Us
-              </button>
-            </>
+            <button onClick={handleLogIn}
+              className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors">
+              Log In
+            </button>
           ))}
 
           {isAdmin && (
@@ -293,16 +287,10 @@ export default function Navbar() {
               Log out
             </button>
           ) : (
-            <div className="flex flex-col gap-2">
-              <button onClick={() => { setMobileOpen(false); handleLogIn() }}
-                className="w-full px-4 py-2.5 rounded-md text-sm font-medium border border-border text-text-primary hover:bg-bg-surface transition-colors text-center">
-                Log In
-              </button>
-              <button onClick={() => { setMobileOpen(false); handleLogIn() }}
-                className="w-full px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center">
-                Join Us
-              </button>
-            </div>
+            <button onClick={() => { setMobileOpen(false); handleLogIn() }}
+              className="w-full px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center">
+              Log In
+            </button>
           ))}
         </div>
       )}
