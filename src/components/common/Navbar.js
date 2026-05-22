@@ -6,7 +6,6 @@ import { usePathname } from 'next/navigation'
 import { socialLinks } from '@/config/socialLinks'
 import { useAuth } from '@/hooks/useAuth'
 import { signInWithGoogle } from '@/services/authService'
-import UserAvatar from '@/components/common/UserAvatar'
 
 const publicLinks = [
   { label: 'Home', href: '/' },
@@ -73,6 +72,37 @@ function IconChevron() {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3 mt-0.5 transition-transform duration-200 group-hover:rotate-180">
       <path d="M19 9l-7 7-7-7" />
     </svg>
+  )
+}
+
+const ROLE_STYLES = {
+  admin:     'bg-green-100 text-green-700',
+  executive: 'bg-purple-100 text-purple-700',
+  member:    'bg-accent/10 text-accent',
+  pending:   'bg-yellow-100 text-yellow-700',
+}
+
+function UserChip({ user, profile }) {
+  const role = profile?.role
+  const avatarUrl = user?.user_metadata?.avatar_url ?? profile?.avatar_url
+  const initial = (user?.email?.[0] ?? '?').toUpperCase()
+  const roleStyle = ROLE_STYLES[role] ?? 'bg-gray-100 text-gray-500'
+
+  return (
+    <div className="flex items-center gap-1.5">
+      {avatarUrl ? (
+        <img src={avatarUrl} alt="" referrerPolicy="no-referrer" className="w-6 h-6 rounded-full shrink-0" />
+      ) : (
+        <div className="w-6 h-6 rounded-full bg-bg-elevated flex items-center justify-center text-[10px] font-medium text-text-secondary shrink-0">
+          {initial}
+        </div>
+      )}
+      {role && (
+        <span className={`px-1.5 py-0.5 rounded text-[11px] font-medium capitalize ${roleStyle}`}>
+          {role}
+        </span>
+      )}
+    </div>
   )
 }
 
@@ -189,17 +219,13 @@ export default function Navbar() {
           <div className="w-px h-5 bg-border mx-1" />
 
           {!loading && (user ? (
-            <div className="flex items-center gap-2">
-              <UserAvatar
-                avatarUrl={profile?.avatar_url}
-                name={profile?.name || user.email}
-                role={role}
-              />
+            <>
+              <UserChip user={user} profile={profile} />
               <button onClick={signOut}
                 className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors">
                 Log out
               </button>
-            </div>
+            </>
           ) : (
             <button onClick={handleLogIn}
               className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors">
@@ -293,13 +319,8 @@ export default function Navbar() {
           {/* Auth */}
           {!loading && (user ? (
             <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2 px-2 py-1">
-                <UserAvatar
-                  avatarUrl={profile?.avatar_url}
-                  name={profile?.name || user.email}
-                  role={role}
-                />
-                <span className="text-sm text-text-secondary truncate">{profile?.name || user.email}</span>
+              <div className="px-2 py-1">
+                <UserChip user={user} profile={profile} />
               </div>
               <button onClick={() => { signOut(); setMobileOpen(false) }}
                 className="w-full px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center">
