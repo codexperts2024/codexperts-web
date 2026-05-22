@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { socialLinks } from '@/config/socialLinks'
@@ -137,6 +137,16 @@ export default function Navbar() {
   const { user, profile, loading, signOut } = useAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [loggingIn, setLoggingIn] = useState(false)
+
+  // bfcache restores frozen React state — loggingIn would be stuck at true.
+  // Reset it so the Log In button works again after pressing back from Google.
+  useEffect(() => {
+    function handlePageShow(e) {
+      if (e.persisted) setLoggingIn(false)
+    }
+    window.addEventListener('pageshow', handlePageShow)
+    return () => window.removeEventListener('pageshow', handlePageShow)
+  }, [])
 
   const role = profile?.role ?? null
   const isMember = role === 'member' || role === 'executive' || role === 'admin'

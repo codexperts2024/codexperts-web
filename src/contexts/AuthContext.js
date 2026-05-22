@@ -20,6 +20,9 @@ export function AuthProvider({ children }) {
     let initialized = false
 
     async function init() {
+      // Clear any stale OAuth flag left from a previous abandoned flow
+      // (covers the full-remount case where pageshow doesn't reload).
+      sessionStorage.removeItem('oauth_pending')
       try {
         const session = await getSession()
         setUser(session?.user ?? null)
