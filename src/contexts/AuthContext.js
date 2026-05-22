@@ -17,6 +17,8 @@ export function AuthProvider({ children }) {
   // intentionally mount-only.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
+    let initialized = false
+
     async function init() {
       try {
         const session = await getSession()
@@ -27,6 +29,7 @@ export function AuthProvider({ children }) {
         }
       } finally {
         setLoading(false)
+        initialized = true
       }
     }
 
@@ -34,17 +37,20 @@ export function AuthProvider({ children }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
+        // Skip INITIAL_SESSION — init() already handles it and setting state
+        // here before init() completes causes a profile-null flash (navbar
+        // buttons disappear briefly).
+        if (!initialized) return
         setUser(session?.user ?? null)
         if (session?.user) {
           try {
             const p = await fetchProfile(session.user.id)
             setProfile(p)
-          } finally {
-            setLoading(false)
+          } catch {
+            setProfile(null)
           }
         } else {
           setProfile(null)
-          setLoading(false)
         }
       }
     )
@@ -62,7 +68,12 @@ export function AuthProvider({ children }) {
   }
 
   async function signOut() {
-    await authSignOut()
+    try {
+      await authSignOut()
+    } catch {
+      // Supabase sign-out may throw if the session is already expired;
+      // always clean up client state and redirect regardless.
+    }
     setUser(null)
     setProfile(null)
     sessionStorage.removeItem('join_modal_dismissed')
