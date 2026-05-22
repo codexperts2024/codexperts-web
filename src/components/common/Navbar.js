@@ -136,6 +136,7 @@ export default function Navbar() {
   const pathname = usePathname()
   const { user, profile, loading, signOut } = useAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [loggingIn, setLoggingIn] = useState(false)
 
   const role = profile?.role ?? null
   const isMember = role === 'member' || role === 'executive' || role === 'admin'
@@ -149,10 +150,12 @@ export default function Navbar() {
   }
 
   async function handleLogIn() {
+    if (loggingIn) return
+    setLoggingIn(true)
     try {
       await signInWithGoogle(`${window.location.origin}/auth/callback`)
     } catch {
-      // OAuth redirect failed
+      setLoggingIn(false)
     }
   }
 
@@ -193,9 +196,9 @@ export default function Navbar() {
               Log out
             </button>
           ) : (
-            <button onClick={handleLogIn}
-              className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors">
-              Log In
+            <button onClick={handleLogIn} disabled={loggingIn}
+              className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
+              {loggingIn ? 'Redirecting…' : 'Log In'}
             </button>
           )}
 
@@ -289,9 +292,9 @@ export default function Navbar() {
               Log out
             </button>
           ) : (
-            <button onClick={() => { setMobileOpen(false); handleLogIn() }}
-              className="w-full px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center">
-              Log In
+            <button onClick={() => { setMobileOpen(false); handleLogIn() }} disabled={loggingIn}
+              className="w-full px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center disabled:opacity-60 disabled:cursor-not-allowed">
+              {loggingIn ? 'Redirecting…' : 'Log In'}
             </button>
           )}
         </div>
