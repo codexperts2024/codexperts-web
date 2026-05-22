@@ -127,7 +127,7 @@ Sprint Contribution Report — Total
 ───────────────────────────────────
 Name    Issues Contribution
 ───────────────────────────────────
-Paul    14     ████████████████████████████
+Paul    15     ██████████████████████████████
 
 Gary    6      ████████████
 
@@ -309,7 +309,7 @@ Sprint Contribution Report — Week 4
 ──────────────────────────────────────
 Name    Done/All  Contribution
 ──────────────────────────────────────
-Paul    1/5       ██░░░░░░░░
+Paul    2/5       ████░░░░░░
 
 Gary    1/1       ██
 
