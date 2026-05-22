@@ -35,6 +35,23 @@ export function AuthProvider({ children }) {
 
     init()
 
+    // When the browser restores this page from bfcache (back button after
+    // Google OAuth redirect), React state is frozen from before the redirect.
+    // Re-checking the session here ensures the auth buttons reflect reality.
+    function handlePageShow(e) {
+      if (!e.persisted) return
+      getSession()
+        .then(session => {
+          setUser(session?.user ?? null)
+          if (!session?.user) setProfile(null)
+        })
+        .catch(() => {
+          setUser(null)
+          setProfile(null)
+        })
+    }
+    window.addEventListener('pageshow', handlePageShow)
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         // Skip INITIAL_SESSION — init() already handles it and setting state
@@ -55,7 +72,10 @@ export function AuthProvider({ children }) {
       }
     )
 
-    return () => subscription.unsubscribe()
+    return () => {
+      subscription.unsubscribe()
+      window.removeEventListener('pageshow', handlePageShow)
+    }
   }, [])
 
   async function refreshProfile() {
