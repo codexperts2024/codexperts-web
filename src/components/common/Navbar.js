@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { socialLinks } from '@/config/socialLinks'
 import { useAuth } from '@/hooks/useAuth'
 import { signInWithGoogle } from '@/services/authService'
+import UserAvatar from '@/components/common/UserAvatar'
 
 const publicLinks = [
   { label: 'Home', href: '/' },
@@ -188,10 +189,17 @@ export default function Navbar() {
           <div className="w-px h-5 bg-border mx-1" />
 
           {!loading && (user ? (
-            <button onClick={signOut}
-              className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors">
-              Log out
-            </button>
+            <div className="flex items-center gap-2">
+              <UserAvatar
+                avatarUrl={profile?.avatar_url}
+                name={profile?.name || user.email}
+                role={role}
+              />
+              <button onClick={signOut}
+                className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors">
+                Log out
+              </button>
+            </div>
           ) : (
             <button onClick={handleLogIn}
               className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors">
@@ -284,10 +292,20 @@ export default function Navbar() {
 
           {/* Auth */}
           {!loading && (user ? (
-            <button onClick={() => { signOut(); setMobileOpen(false) }}
-              className="w-full px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center">
-              Log out
-            </button>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2 px-2 py-1">
+                <UserAvatar
+                  avatarUrl={profile?.avatar_url}
+                  name={profile?.name || user.email}
+                  role={role}
+                />
+                <span className="text-sm text-text-secondary truncate">{profile?.name || user.email}</span>
+              </div>
+              <button onClick={() => { signOut(); setMobileOpen(false) }}
+                className="w-full px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center">
+                Log out
+              </button>
+            </div>
           ) : (
             <button onClick={() => { setMobileOpen(false); handleLogIn() }}
               className="w-full px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center">
