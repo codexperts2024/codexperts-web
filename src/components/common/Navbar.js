@@ -168,7 +168,7 @@ export default function Navbar() {
 
         {/* Desktop center links */}
         <div className="absolute left-1/2 -translate-x-1/2 hidden lg:flex items-center gap-5">
-          {!loading && centerLinks.map(renderDesktopLink)}
+          {centerLinks.map(renderDesktopLink)}
         </div>
 
         {/* Desktop right — social + auth */}
@@ -223,7 +223,7 @@ export default function Navbar() {
       {mobileOpen && (
         <div className="lg:hidden border-t border-border bg-white px-6 py-4 flex flex-col gap-1">
 
-          {!loading && centerLinks.map((item) => {
+          {centerLinks.map((item) => {
             if (item.dropdown) {
               return (
                 <div key={item.label} className="py-1">
