@@ -36,10 +36,17 @@ export function AuthProvider({ children }) {
     init()
 
     // When the browser restores this page from bfcache (back button after
-    // Google OAuth redirect), React state is frozen from before the redirect.
-    // Re-checking the session here ensures the auth buttons reflect reality.
+    // Google OAuth redirect), Supabase's in-memory PKCE verifier state is
+    // stale, which silently blocks any subsequent login attempt.
+    // If an OAuth flow was in progress, force a full reload so Supabase
+    // starts fresh. Otherwise just re-sync the session into React state.
     function handlePageShow(e) {
       if (!e.persisted) return
+      if (sessionStorage.getItem('oauth_pending')) {
+        sessionStorage.removeItem('oauth_pending')
+        window.location.reload()
+        return
+      }
       getSession()
         .then(session => {
           setUser(session?.user ?? null)
