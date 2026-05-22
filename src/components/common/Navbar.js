@@ -1,12 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { socialLinks } from '@/config/socialLinks'
 import { useAuth } from '@/hooks/useAuth'
 import { signInWithGoogle } from '@/services/authService'
-import UserAvatar from '@/components/common/UserAvatar'
 
 const publicLinks = [
   { label: 'Home', href: '/' },
@@ -137,6 +136,17 @@ export default function Navbar() {
   const pathname = usePathname()
   const { user, profile, loading, signOut } = useAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [loggingIn, setLoggingIn] = useState(false)
+
+  // bfcache restores frozen React state — loggingIn would be stuck at true.
+  // Reset it so the Log In button works again after pressing back from Google.
+  useEffect(() => {
+    function handlePageShow(e) {
+      if (e.persisted) setLoggingIn(false)
+    }
+    window.addEventListener('pageshow', handlePageShow)
+    return () => window.removeEventListener('pageshow', handlePageShow)
+  }, [])
 
   const role = profile?.role ?? null
   const isMember = role === 'member' || role === 'executive' || role === 'admin'
@@ -150,10 +160,12 @@ export default function Navbar() {
   }
 
   async function handleLogIn() {
+    if (loggingIn) return
+    setLoggingIn(true)
     try {
       await signInWithGoogle(`${window.location.origin}/auth/callback`)
     } catch {
-      // OAuth redirect failed
+      setLoggingIn(false)
     }
   }
 
@@ -169,7 +181,7 @@ export default function Navbar() {
 
         {/* Desktop center links */}
         <div className="absolute left-1/2 -translate-x-1/2 hidden lg:flex items-center gap-5">
-          {!loading && centerLinks.map(renderDesktopLink)}
+          {centerLinks.map(renderDesktopLink)}
         </div>
 
         {/* Desktop right — social + auth */}
@@ -188,24 +200,17 @@ export default function Navbar() {
 
           <div className="w-px h-5 bg-border mx-1" />
 
-          {!loading && (user ? (
-            <div className="flex items-center gap-2">
-              <UserAvatar
-                avatarUrl={profile?.avatar_url}
-                name={profile?.name || user.email}
-                role={role}
-              />
-              <button onClick={signOut}
-                className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors">
-                Log out
-              </button>
-            </div>
-          ) : (
-            <button onClick={handleLogIn}
+          {user ? (
+            <button onClick={signOut}
               className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors">
-              Log In
+              Log out
             </button>
-          ))}
+          ) : (
+            <button onClick={handleLogIn} disabled={loggingIn}
+              className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
+              {loggingIn ? 'Redirecting…' : 'Log In'}
+            </button>
+          )}
 
           {isAdmin && (
             <Link href="/admin" title="Admin"
@@ -231,7 +236,7 @@ export default function Navbar() {
       {mobileOpen && (
         <div className="lg:hidden border-t border-border bg-white px-6 py-4 flex flex-col gap-1">
 
-          {!loading && centerLinks.map((item) => {
+          {centerLinks.map((item) => {
             if (item.dropdown) {
               return (
                 <div key={item.label} className="py-1">
@@ -291,27 +296,17 @@ export default function Navbar() {
           <div className="my-2 h-px bg-border" />
 
           {/* Auth */}
-          {!loading && (user ? (
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2 px-2 py-1">
-                <UserAvatar
-                  avatarUrl={profile?.avatar_url}
-                  name={profile?.name || user.email}
-                  role={role}
-                />
-                <span className="text-sm text-text-secondary truncate">{profile?.name || user.email}</span>
-              </div>
-              <button onClick={() => { signOut(); setMobileOpen(false) }}
-                className="w-full px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center">
-                Log out
-              </button>
-            </div>
-          ) : (
-            <button onClick={() => { setMobileOpen(false); handleLogIn() }}
+          {user ? (
+            <button onClick={() => { signOut(); setMobileOpen(false) }}
               className="w-full px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center">
-              Log In
+              Log out
             </button>
-          ))}
+          ) : (
+            <button onClick={() => { setMobileOpen(false); handleLogIn() }} disabled={loggingIn}
+              className="w-full px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center disabled:opacity-60 disabled:cursor-not-allowed">
+              {loggingIn ? 'Redirecting…' : 'Log In'}
+            </button>
+          )}
         </div>
       )}
     </nav>
