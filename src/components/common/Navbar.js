@@ -187,7 +187,7 @@ export default function Navbar() {
 
           <div className="w-px h-5 bg-border mx-1" />
 
-          {!loading && (user ? (
+          {user ? (
             <button onClick={signOut}
               className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors">
               Log out
@@ -197,7 +197,7 @@ export default function Navbar() {
               className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors">
               Log In
             </button>
-          ))}
+          )}
 
           {isAdmin && (
             <Link href="/admin" title="Admin"
@@ -283,7 +283,7 @@ export default function Navbar() {
           <div className="my-2 h-px bg-border" />
 
           {/* Auth */}
-          {!loading && (user ? (
+          {user ? (
             <button onClick={() => { signOut(); setMobileOpen(false) }}
               className="w-full px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center">
               Log out
@@ -293,7 +293,7 @@ export default function Navbar() {
               className="w-full px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center">
               Log In
             </button>
-          ))}
+          )}
         </div>
       )}
     </nav>
