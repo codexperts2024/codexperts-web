@@ -15,4 +15,6 @@ const MEMBER_ROUTE_BLOCKED = [ROLES.PENDING]
 
 export const canAccessMemberRoutes = (role) => !!role && !MEMBER_ROUTE_BLOCKED.includes(role)
 
-export const canAccessAdminRoutes = (role) => role === ROLES.ADMIN
+const ADMIN_ROLES = [ROLES.ADMIN, ROLES.EXECUTIVE]
+
+export const canAccessAdminRoutes = (role) => ADMIN_ROLES.includes(role)
