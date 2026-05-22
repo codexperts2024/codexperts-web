@@ -32,10 +32,10 @@ export default function MemberCard({ member }) {
           <img
             src={avatarUrl}
             alt={name}
-            className="w-16 h-16 rounded-full object-cover group-hover:ring-2 group-hover:ring-accent-DEFAULT"
+            className="w-16 h-16 rounded-full object-cover group-hover:ring-2 group-hover:ring-accent"
           />
         ) : (
-          <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-medium text-sm group-hover:ring-2 group-hover:ring-accent-DEFAULT">
+          <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-medium text-sm group-hover:ring-2 group-hover:ring-accent">
             {getInitials(name)}
           </div>
         )}
@@ -69,7 +69,7 @@ export default function MemberCard({ member }) {
       </span>
 
       {/* Role badge — only if Executive */}
-      {role === 'Executive' && (
+      {(role?.toLowerCase() === 'executive' || role?.toLowerCase() === 'admin') && (
         <span className="mt-1 text-[11px] px-2 py-0.5 rounded bg-[#EAF4F0] text-success">
           Executive
         </span>

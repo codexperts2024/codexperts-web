@@ -1,54 +1,30 @@
+'use client'
 import RoleGuard from '@/components/auth/RoleGuard'
 import MemberCard from '@/components/members/MemberCard'
+import { useEffect, useState } from 'react'
+import { fetchMembers } from '@/services/membersService'
 
-// TODO: link with Supabase for actual members data
-const tempMembers = [
-  {
-    id: '1',
-    name: 'Alice Chen',
-    school: 'Seneca College',
-    workplace: 'Shopify',
-    status: 'Student',
-    role: 'Executive',
-    linkedinUrl: 'https://linkedin.com/in/alice',
-    githubUrl: 'https://github.com/alice',
-  },
-  {
-    id: '2',
-    name: 'Bob Patel',
-    school: 'York University',
-    status: 'Graduate',
-    role: 'Member',
-    githubUrl: 'https://github.com/bob',
-  },
-  {
-    id: '3',
-    name: 'Carlos Diaz',
-    school: 'Seneca College',
-    status: 'Student',
-    role: 'Member',
-  },
-  {
-    id: '4',
-    name: 'Diana Wu',
-    school: 'York University',
-    workplace: 'RBC',
-    status: 'Graduate',
-    role: 'Executive',
-    linkedinUrl: 'https://linkedin.com/in/diana',
-  },
-  {
-    id: '5',
-    name: 'Ethan Brown',
-    school: 'Seneca College',
-    status: 'Student',
-    role: 'Member',
-    linkedinUrl: 'https://linkedin.com/in/ethan',
-    githubUrl: 'https://github.com/ethan',
-  },
-]
 
 export default function MembersPage() {
+  const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false
+    async function load() {
+      try {
+        const data = await fetchMembers()
+        if (!cancelled) setMembers(data)
+      } catch (err) {
+        if (!cancelled) setError(err)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    load()
+    return () => { cancelled = true }
+  }, [])
   return (
     <RoleGuard>
       <main className="min-h-screen">
@@ -102,12 +78,18 @@ export default function MembersPage() {
         {/*MEMBER GRID*/}
         <section className="bg-bg-base py-8 px-6">
           <div className="max-w-[1200px] mx-auto">
-            {/* TODO: sort by activity score */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 justify-items-center">
-              {tempMembers.map((member) => (
-                <MemberCard key={member.id} member={member} />
-              ))}
-            </div>
+            {loading && <p className="text-text-secondary">Loading members…</p>}
+            {error && <p className="text-accent">Couldn't load members. Try refreshing.</p>}
+            {!loading && !error && members.length === 0 && (
+              <p className="text-text-secondary">No members yet.</p>
+            )}
+            {!loading && !error && members.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 justify-items-center">
+                {members.map((member) => (
+                  <MemberCard key={member.id} member={member} />
+                ))}
+              </div>
+            )}
           </div>
         </section>
       </main>
