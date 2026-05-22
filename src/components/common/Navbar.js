@@ -75,37 +75,6 @@ function IconChevron() {
   )
 }
 
-const ROLE_STYLES = {
-  admin:     'bg-green-100 text-green-700',
-  executive: 'bg-purple-100 text-purple-700',
-  member:    'bg-accent/10 text-accent',
-  pending:   'bg-yellow-100 text-yellow-700',
-}
-
-function UserChip({ user, profile }) {
-  const role = profile?.role
-  const avatarUrl = user?.user_metadata?.avatar_url ?? profile?.avatar_url
-  const initial = (user?.email?.[0] ?? '?').toUpperCase()
-  const roleStyle = ROLE_STYLES[role] ?? 'bg-gray-100 text-gray-500'
-
-  return (
-    <div className="flex items-center gap-1.5">
-      {avatarUrl ? (
-        <img src={avatarUrl} alt="" referrerPolicy="no-referrer" className="w-6 h-6 rounded-full shrink-0" />
-      ) : (
-        <div className="w-6 h-6 rounded-full bg-bg-elevated flex items-center justify-center text-[10px] font-medium text-text-secondary shrink-0">
-          {initial}
-        </div>
-      )}
-      {role && (
-        <span className={`px-1.5 py-0.5 rounded text-[11px] font-medium capitalize ${roleStyle}`}>
-          {role}
-        </span>
-      )}
-    </div>
-  )
-}
-
 function NavLink({ href, label, pathname }) {
   const active = pathname === href
   return (
@@ -219,13 +188,10 @@ export default function Navbar() {
           <div className="w-px h-5 bg-border mx-1" />
 
           {!loading && (user ? (
-            <>
-              <UserChip user={user} profile={profile} />
-              <button onClick={signOut}
-                className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors">
-                Log out
-              </button>
-            </>
+            <button onClick={signOut}
+              className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors">
+              Log out
+            </button>
           ) : (
             <button onClick={handleLogIn}
               className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors">
@@ -318,15 +284,10 @@ export default function Navbar() {
 
           {/* Auth */}
           {!loading && (user ? (
-            <div className="flex flex-col gap-2">
-              <div className="px-2 py-1">
-                <UserChip user={user} profile={profile} />
-              </div>
-              <button onClick={() => { signOut(); setMobileOpen(false) }}
-                className="w-full px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center">
-                Log out
-              </button>
-            </div>
+            <button onClick={() => { signOut(); setMobileOpen(false) }}
+              className="w-full px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center">
+              Log out
+            </button>
           ) : (
             <button onClick={() => { setMobileOpen(false); handleLogIn() }}
               className="w-full px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center">
