@@ -1,9 +1,36 @@
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
 
+const senecaMembers = [
+  { key: 'seneca_president', name: 'TBD', role: 'TBD' },
+  { key: 'seneca_vp',        name: 'TBD', role: 'TBD' },
+  { key: 'seneca_treasurer', name: 'TBD', role: 'TBD' },
+]
+
+const yorkMembers = [
+  { key: 'york_president', name: 'TBD', role: 'TBD' },
+  { key: 'york_vp',        name: 'TBD', role: 'TBD' },
+  { key: 'york_treasurer', name: 'TBD', role: 'TBD' },
+  { key: 'york_exec_1',    name: 'TBD', role: 'TBD' },
+  { key: 'york_exec_2',    name: 'TBD', role: 'TBD' },
+]
+
+function MemberCard({ name, role }) {
+  return (
+    <div className="flex flex-col justify-center items-center my-4 md:my-10 w-[45%] sm:w-[30%] md:w-auto">
+      <div className="size-16 bg-gray-200 rounded-xl mb-3 md:mb-5 flex justify-center items-center">T1</div>
+      <p className="mb-1 md:mb-2 text-center text-sm md:text-base">{name}</p>
+      <span className="inline-block px-2 md:px-2.5 py-0.5 rounded-full bg-emerald-50 text-[10px] md:text-xs font-medium text-emerald-700 w-fit mb-1 md:mb-2">{role}</span>
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4 text-gray-600 rotate-45">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
+      </svg>
+    </div>
+  )
+}
+
 export default function AboutPage() {
   return (
-    <main className="min-h-screen bg-[#f9f9f9]">
+    <main className="min-h-screen bg-bg-surface">
       <div className="w-full md:w-[35rem] p-6 md:p-10 mx-auto md:mx-0 text-center md:text-left">
         <p className="text-4xl md:text-5xl font-semibold mb-4">About codeXperts</p>
         <p className="text-gray-500">
@@ -95,76 +122,18 @@ export default function AboutPage() {
       <section className="bg-white w-full py-10 md:py-16 px-6 md:px-10">
         <p className="text-xl font-bold text-center md:text-left mb-6 md:mb-0">Seneca Polytechnic</p>
         <div className="flex flex-wrap justify-center gap-6 md:justify-evenly items-center">
-          <div className="flex flex-col justify-center items-center my-4 md:my-10 w-[45%] md:w-auto">
-            <div className="size-16 bg-gray-200 rounded-xl mb-3 md:mb-5 flex justify-center items-center">T1</div>
-            <p className="mb-1 md:mb-2 text-center text-sm md:text-base">Paul Kim</p>
-            <span className="inline-block px-2 md:px-2.5 py-0.5 rounded-full bg-emerald-50 text-[10px] md:text-xs font-medium text-emerald-700 w-fit mb-1 md:mb-2">President</span>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4 text-gray-600 rotate-45">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
-            </svg>
-          </div>
-          <div className="flex flex-col justify-center items-center my-4 md:my-10 w-[45%] md:w-auto">
-            <div className="size-16 bg-gray-200 rounded-xl mb-3 md:mb-5 flex justify-center items-center">T1</div>
-            <p className="mb-1 md:mb-2 text-center text-sm md:text-base">Paul Kim</p>
-            <span className="inline-block px-2 md:px-2.5 py-0.5 rounded-full bg-emerald-50 text-[10px] md:text-xs font-medium text-emerald-700 w-fit mb-1 md:mb-2">President</span>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4 text-gray-600 rotate-45">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
-            </svg>
-          </div>
-          <div className="flex flex-col justify-center items-center my-4 md:my-10 w-[45%] md:w-auto">
-            <div className="size-16 bg-gray-200 rounded-xl mb-3 md:mb-5 flex justify-center items-center">T1</div>
-            <p className="mb-1 md:mb-2 text-center text-sm md:text-base">Paul Kim</p>
-            <span className="inline-block px-2 md:px-2.5 py-0.5 rounded-full bg-emerald-50 text-[10px] md:text-xs font-medium text-emerald-700 w-fit mb-1 md:mb-2">President</span>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4 text-gray-600 rotate-45">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
-            </svg>
-          </div>
+          {senecaMembers.map((member) => (
+            <MemberCard key={member.key} name={member.name} role={member.role} />
+          ))}
         </div>
       </section>
 
       <section className="bg-white w-full py-10 md:py-16 px-6 md:px-10">
         <p className="text-xl font-bold text-center md:text-left mb-6 md:mb-0">York University</p>
         <div className="flex flex-wrap justify-center gap-6 md:justify-evenly items-center">
-          <div className="flex flex-col justify-center items-center my-4 md:my-10 w-[45%] sm:w-[30%] md:w-auto">
-            <div className="size-16 bg-gray-200 rounded-xl mb-3 md:mb-5 flex justify-center items-center">T1</div>
-            <p className="mb-1 md:mb-2 text-center text-sm md:text-base">Paul Kim</p>
-            <span className="inline-block px-2 md:px-2.5 py-0.5 rounded-full bg-emerald-50 text-[10px] md:text-xs font-medium text-emerald-700 w-fit mb-1 md:mb-2">President</span>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4 text-gray-600 rotate-45">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
-            </svg>
-          </div>
-          <div className="flex flex-col justify-center items-center my-4 md:my-10 w-[45%] sm:w-[30%] md:w-auto">
-            <div className="size-16 bg-gray-200 rounded-xl mb-3 md:mb-5 flex justify-center items-center">T1</div>
-            <p className="mb-1 md:mb-2 text-center text-sm md:text-base">Paul Kim</p>
-            <span className="inline-block px-2 md:px-2.5 py-0.5 rounded-full bg-emerald-50 text-[10px] md:text-xs font-medium text-emerald-700 w-fit mb-1 md:mb-2">President</span>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4 text-gray-600 rotate-45">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
-            </svg>
-          </div>
-          <div className="flex flex-col justify-center items-center my-4 md:my-10 w-[45%] sm:w-[30%] md:w-auto">
-            <div className="size-16 bg-gray-200 rounded-xl mb-3 md:mb-5 flex justify-center items-center">T1</div>
-            <p className="mb-1 md:mb-2 text-center text-sm md:text-base">Paul Kim</p>
-            <span className="inline-block px-2 md:px-2.5 py-0.5 rounded-full bg-emerald-50 text-[10px] md:text-xs font-medium text-emerald-700 w-fit mb-1 md:mb-2">President</span>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4 text-gray-600 rotate-45">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
-            </svg>
-          </div>
-          <div className="flex flex-col justify-center items-center my-4 md:my-10 w-[45%] sm:w-[30%] md:w-auto">
-            <div className="size-16 bg-gray-200 rounded-xl mb-3 md:mb-5 flex justify-center items-center">T1</div>
-            <p className="mb-1 md:mb-2 text-center text-sm md:text-base">Paul Kim</p>
-            <span className="inline-block px-2 md:px-2.5 py-0.5 rounded-full bg-emerald-50 text-[10px] md:text-xs font-medium text-emerald-700 w-fit mb-1 md:mb-2">President</span>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4 text-gray-600 rotate-45">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
-            </svg>
-          </div>
-          <div className="flex flex-col justify-center items-center my-4 md:my-10 w-[45%] sm:w-[30%] md:w-auto">
-            <div className="size-16 bg-gray-200 rounded-xl mb-3 md:mb-5 flex justify-center items-center">T1</div>
-            <p className="mb-1 md:mb-2 text-center text-sm md:text-base">Paul Kim</p>
-            <span className="inline-block px-2 md:px-2.5 py-0.5 rounded-full bg-emerald-50 text-[10px] md:text-xs font-medium text-emerald-700 w-fit mb-1 md:mb-2">President</span>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4 text-gray-600 rotate-45">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
-            </svg>
-          </div>
+          {yorkMembers.map((member) => (
+            <MemberCard key={member.key} name={member.name} role={member.role} />
+          ))}
         </div>
       </section>
 
@@ -177,7 +146,7 @@ export default function AboutPage() {
         <div className="flex-[0.5] w-full md:w-auto flex justify-center md:justify-end">
           <Link href="/join" className="w-full sm:w-auto">
               <Button
-                className="w-full sm:w-auto justify-center bg-[#C0392B] hover:bg-[#E87A6E] px-8 py-4 flex items-center gap-2 shadow-xl"
+                className="w-full sm:w-auto justify-center bg-brand-primary hover:bg-brand-hover px-8 py-4 flex items-center gap-2 shadow-xl"
               >
                 Join Us <span>→</span>
               </Button>
