@@ -15,7 +15,7 @@ export default function MemberCard({ member }) {
     name,
     avatarUrl,
     school,
-    workplace,
+    occupation,
     status,
     role,
     linkedinUrl,
@@ -53,8 +53,8 @@ export default function MemberCard({ member }) {
       <p className="mt-1 font-inter text-xs text-secondary">{school}</p>
 
       {/* Work — only if set */}
-      {workplace && (
-        <p className="mt-0.5 font-inter text-xs text-secondary">{workplace}</p>
+      {occupation && (
+        <p className="mt-0.5 font-inter text-xs text-secondary">{occupation}</p>
       )}
 
       {/* Status badge */}

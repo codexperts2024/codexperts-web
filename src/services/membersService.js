@@ -23,7 +23,7 @@ export async function fetchMembers() {
     name: row.name,
     avatarUrl: row.avatar_url,
     school: row.school,
-    workplace: row.occupation,
+    occupation: row.occupation,
     status: row.status,
     role: row.role,
     linkedinUrl: row.linkedin,
