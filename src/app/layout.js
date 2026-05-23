@@ -1,8 +1,10 @@
 import './globals.css'
 import { Montserrat, Inter, JetBrains_Mono } from 'next/font/google'
 import Navbar from '@/components/common/Navbar'
+import JoinModal from '@/components/common/JoinModal'
+import Footer from '@/components/common/Footer'
 import { AuthProvider } from '@/contexts/AuthContext'
-import Script from 'next/script'
+import { JoinModalProvider } from '@/contexts/JoinModalContext'
 
 const montserrat = Montserrat({
   subsets: ['latin'],
@@ -32,16 +34,15 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className={`${montserrat.variable} ${inter.variable} ${jetbrainsMono.variable} font-inter bg-bg-base text-text-primary antialiased`}>
         <AuthProvider>
-          <Navbar />
-          <div className="pt-14">
-            {children}
-          </div>
+          <JoinModalProvider>
+            <Navbar />
+            <JoinModal />
+            <div className="pt-14">
+              {children}
+            </div>
+            <Footer />
+          </JoinModalProvider>
         </AuthProvider>
-
-        <Script 
-          src="https://elfsightcdn.com/platform.js" 
-          strategy="lazyOnload" 
-        />
       </body>
     </html>
   )

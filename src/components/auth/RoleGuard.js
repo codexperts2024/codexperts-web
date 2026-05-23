@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter, usePathname } from 'next/navigation'
-import { ROLES } from '@/utils/constants'
+import { ROLES, canAccessMemberRoutes, canAccessAdminRoutes } from '@/utils/constants'
 
 function checkPath(pathname, actualPathname) {
   return (
@@ -15,7 +15,7 @@ function checkPath(pathname, actualPathname) {
 function isMemberOnlyPath(pathname) {
   return (
     checkPath(pathname, '/problems') ||
-    checkPath(pathname, '/solutions') || 
+    checkPath(pathname, '/solutions') ||
     checkPath(pathname, '/members')
   )
 }
@@ -24,14 +24,17 @@ function isAdminPath(pathname) {
   return checkPath(pathname, '/admin')
 }
 
-function canAccessMemberRoutes(profile) {
-  return profile?.role === ROLES.MEMBER || profile?.role === ROLES.EXECUTIVE || profile?.role === ROLES.ADMIN
+function getAccessError(pathname, profile) {
+  if (isMemberOnlyPath(pathname) && !canAccessMemberRoutes(profile?.role)) return 'member'
+  if (isAdminPath(pathname) && !canAccessAdminRoutes(profile?.role)) return 'admin'
+  return null
 }
 
 const RoleGuard = ({ children }) => {
   const { user, profile, loading } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
+  const accessError = getAccessError(pathname, profile)
 
   useEffect(() => {
     if (loading) return
@@ -43,15 +46,10 @@ const RoleGuard = ({ children }) => {
 
     if (profile?.role === ROLES.PENDING) return
 
-    if (isMemberOnlyPath(pathname) && !canAccessMemberRoutes(profile)) {
-      router.replace('/')
-      return
-    }
-
-    if (isAdminPath(pathname) && profile?.role !== ROLES.ADMIN) {
+    if (accessError) {
       router.replace('/')
     }
-  }, [loading, user, profile, pathname, router])
+  }, [loading, user, profile, accessError, router])
 
   if (loading) {
     return (
@@ -82,11 +80,7 @@ const RoleGuard = ({ children }) => {
     )
   }
 
-  if (isMemberOnlyPath(pathname) && !canAccessMemberRoutes(profile)) {
-    return null
-  }
-
-  if (isAdminPath(pathname) && profile?.role !== ROLES.ADMIN) {
+  if (accessError) {
     return null
   }
 
