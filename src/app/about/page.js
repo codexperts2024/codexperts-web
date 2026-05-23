@@ -28,7 +28,7 @@ const MemberCard = ({ name, role }) => {
   )
 }
 
-export default function AboutPage() {
+const AboutPage = () => {
   return (
     <main className="min-h-screen bg-bg-surface">
       <div className="w-full md:w-[35rem] p-6 md:p-10 mx-auto md:mx-0 text-center md:text-left">
@@ -157,3 +157,5 @@ export default function AboutPage() {
     </main>
   )
 }
+
+export default AboutPage
