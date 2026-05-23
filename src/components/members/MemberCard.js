@@ -1,19 +1,12 @@
 import Image from 'next/image'
 import Link from 'next/link'
 
-function getInitials(name) {
-  return name
-    .split(' ')
-    .map((part) => part[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase()
-}
-
 export default function MemberCard({ member }) {
   const {
     id,
-    name,
+    firstName,
+    lastName,
+    nickname,
     avatarUrl,
     school,
     occupation,
@@ -22,6 +15,10 @@ export default function MemberCard({ member }) {
     linkedinUrl,
     githubUrl,
   } = member
+
+  const fullName = `${firstName ?? ''} ${lastName ?? ''}`.trim()
+  const displayName = nickname ? `${fullName} (${nickname})` : fullName
+  const initial = (firstName?.[0] ?? '?').toUpperCase()
 
   const hasSocials = linkedinUrl || githubUrl
 
@@ -32,14 +29,14 @@ export default function MemberCard({ member }) {
         {avatarUrl ? (
           <Image
             src={avatarUrl}
-            alt={name}
+            alt={displayName}
             width={64}
             height={64}
             className="rounded-full object-cover group-hover:ring-2 group-hover:ring-accent"
           />
         ) : (
           <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-medium text-sm group-hover:ring-2 group-hover:ring-accent">
-            {getInitials(name)}
+            {initial}
           </div>
         )}
       </Link>
@@ -49,7 +46,7 @@ export default function MemberCard({ member }) {
         href={`/members/${id}`}
         className="mt-2.5 font-inter font-medium text-sm text-text-primary hover:underline"
       >
-        {name}
+        {displayName}
       </Link>
 
       {/* School */}
@@ -86,7 +83,7 @@ export default function MemberCard({ member }) {
               href={linkedinUrl}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label={`${name} on LinkedIn`}
+              aria-label={`${displayName} on LinkedIn`}
               className="text-text-secondary hover:text-link"
             >
               <svg
@@ -105,7 +102,7 @@ export default function MemberCard({ member }) {
               href={githubUrl}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label={`${name} on GitHub`}
+              aria-label={`${displayName} on GitHub`}
               className="text-text-secondary hover:text-text-primary"
             >
               <svg

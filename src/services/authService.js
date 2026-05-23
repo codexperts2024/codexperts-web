@@ -32,11 +32,13 @@ export async function fetchProfile(userId) {
   return data ?? null
 }
 
-export async function createProfile({ id, name, email, avatarUrl, school, cohort, phone, status, occupation, linkedin, github }) {
+export async function createProfile({ id, first_name, last_name, nickname, email, avatarUrl, school, cohort, phone, status, occupation, linkedin, github }) {
   const { data, error } = await supabase
     .from('profiles')
     .update({
-      name,
+      first_name,
+      last_name,
+      nickname: nickname || null,
       email,
       avatar_url: avatarUrl,
       school,

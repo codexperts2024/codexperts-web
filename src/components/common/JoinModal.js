@@ -68,7 +68,9 @@ export default function JoinModal() {
   const { isOpen, openModal, closeModal } = useJoinModal()
   const { user, profile, loading, refreshProfile } = useAuth()
   const router = useRouter()
-  const [name, setName] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [nickname, setNickname] = useState('')
   const [school, setSchool] = useState('')
   const [cohort, setCohort] = useState('')
   const [phone, setPhone] = useState('')
@@ -81,7 +83,7 @@ export default function JoinModal() {
   const cohorts = generateCohorts()
   const overlayRef = useRef(null)
 
-  const needsCompletion = !loading && !!user && !!profile && !profile.name
+  const needsCompletion = !loading && !!user && !!profile && !profile.first_name
 
   useEffect(() => {
     if (needsCompletion && !sessionStorage.getItem('join_modal_dismissed')) {
@@ -101,13 +103,18 @@ export default function JoinModal() {
   useEffect(() => {
     if (isOpen && user) {
       const meta = user.user_metadata
-      setName(meta?.full_name ?? meta?.name ?? '')
+      const fullName = meta?.full_name ?? meta?.name ?? ''
+      const parts = fullName.trim().split(' ')
+      setFirstName(meta?.given_name ?? parts[0] ?? '')
+      setLastName(meta?.family_name ?? parts.slice(1).join(' ') ?? '')
     }
   }, [isOpen, user])
 
   useEffect(() => {
     if (!isOpen) {
-      setName('')
+      setFirstName('')
+      setLastName('')
+      setNickname('')
       setSchool('')
       setCohort('')
       setPhone('')
@@ -127,7 +134,8 @@ export default function JoinModal() {
 
   function validate() {
     const next = {}
-    if (!name.trim()) next.name = 'Please enter your name'
+    if (!firstName.trim()) next.firstName = 'Please enter your first name'
+    if (!lastName.trim()) next.lastName = 'Please enter your last name'
     if (!school) next.school = 'Please select a school'
     if (!cohort) next.cohort = 'Please select a cohort'
     if (!/^\(\d{3}\) \d{3}-\d{4}$/.test(phone)) next.phone = 'Enter a valid phone number: (XXX) XXX-XXXX'
@@ -143,7 +151,9 @@ export default function JoinModal() {
     try {
       await createProfile({
         id: user.id,
-        name: name.trim(),
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        nickname: nickname.trim(),
         email: user.email,
         avatarUrl: user.user_metadata?.avatar_url ?? '',
         school,
@@ -214,17 +224,42 @@ export default function JoinModal() {
           </div>
         )}
 
-        {/* Name */}
+        {/* First Name / Last Name */}
+        <div className="flex gap-3 mb-4">
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-text-primary mb-1.5">First Name <span className="text-red-500">*</span></label>
+            <input
+              type="text"
+              value={firstName}
+              onChange={e => setFirstName(e.target.value)}
+              placeholder="John"
+              className={`${inputBase} ${inputFocus} ${errors.firstName ? 'border-red-400' : inputNormal}`}
+            />
+            {errors.firstName && <p className="mt-1 text-xs text-red-500">{errors.firstName}</p>}
+          </div>
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-text-primary mb-1.5">Last Name <span className="text-red-500">*</span></label>
+            <input
+              type="text"
+              value={lastName}
+              onChange={e => setLastName(e.target.value)}
+              placeholder="Doe"
+              className={`${inputBase} ${inputFocus} ${errors.lastName ? 'border-red-400' : inputNormal}`}
+            />
+            {errors.lastName && <p className="mt-1 text-xs text-red-500">{errors.lastName}</p>}
+          </div>
+        </div>
+
+        {/* Nickname */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-text-primary mb-1.5">Name <span className="text-red-500">*</span></label>
+          <label className="block text-sm font-medium text-text-primary mb-1.5">Nickname <span className="text-text-hint font-normal">(optional)</span></label>
           <input
             type="text"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            placeholder="Your full name"
-            className={`${inputBase} ${inputFocus} ${errors.name ? 'border-red-400' : inputNormal}`}
+            value={nickname}
+            onChange={e => setNickname(e.target.value)}
+            placeholder="e.g. JohnD"
+            className={`${inputBase} ${inputFocus} ${inputNormal}`}
           />
-          {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name}</p>}
         </div>
 
         {/* School */}
