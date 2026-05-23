@@ -40,7 +40,7 @@ const RoleGuard = ({ children }) => {
     if (loading) return
 
     if (!user) {
-      router.replace('/join')
+      router.replace('/')
       return
     }
 

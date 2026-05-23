@@ -243,7 +243,7 @@ export default function JoinModal() {
               type="text"
               value={lastName}
               onChange={e => setLastName(e.target.value)}
-              placeholder="Kim"
+              placeholder="Doe"
               className={`${inputBase} ${inputFocus} ${errors.lastName ? 'border-red-400' : inputNormal}`}
             />
             {errors.lastName && <p className="mt-1 text-xs text-red-500">{errors.lastName}</p>}
@@ -257,7 +257,7 @@ export default function JoinModal() {
             type="text"
             value={nickname}
             onChange={e => setNickname(e.target.value)}
-            placeholder="e.g. JohnK"
+            placeholder="e.g. JohnD"
             className={`${inputBase} ${inputFocus} ${inputNormal}`}
           />
         </div>
