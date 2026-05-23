@@ -1,0 +1,4 @@
+ALTER TABLE public.problems
+ADD COLUMN week INTEGER,
+ADD COLUMN due_date TIMESTAMPTZ,
+ADD COLUMN school TEXT;
