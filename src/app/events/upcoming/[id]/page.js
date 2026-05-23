@@ -158,19 +158,19 @@ export default async function UpcomingEventPage({params}) {
           {/* Smaller column */}
           <div className="space-y-5">
             <div className="bg-[#efefef] rounded-xl p-5">
-              <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-4 font-montserrat">
+              <h3 className="text-lg md:text-xl font-bold text-gray-800 ml-2 mb-4 font-montserrat">
                 Competition Track
               </h3>
 
               {upcomingEvent.tracks.map((track, index) => (
                   <div key={index}>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 mt-2 ml-4">
                       <span className="w-2 h-2 rounded-full bg-red-800 shrink-0"></span>
                       <p className="font-semibold text-gray-800 font-inter text-sm md:text-base">
                         {track.name}
                       </p>
                     </div>
-                    <p className="text-gray-500 text-xs md:text-sm mt-1 ml-4 font-inter">
+                    <p className="text-gray-500 text-xs md:text-sm ml-8 font-inter">
                       {track.sub}
                     </p>
                   </div>
