@@ -50,9 +50,10 @@
 │  [All Cohorts ▾]  [All Schools ▾]  [All Status ▾]  [All Roles ▾]
 │                                                     │
 │  Cohort dropdown:                                   │
-│    All Cohorts / 1st Cohort (Fall 2024) /           │
-│    2nd Cohort (Winter 2025) / 3rd Cohort (Fall 2025)│
-│    / 4th Cohort (Winter 2026) / 5th Cohort (Summer 2026)
+│    All Cohorts / 5th Cohort / 4th Cohort /          │
+│    3rd Cohort / 2nd Cohort / 1st Cohort             │
+│    (newest first; auto-generated from Fall 2024;    │
+│     Summer 2025 skipped; new cohort added each term)│
 │    Label: ordinal name, filter value: DB cohort string│
 │                                                     │
 │  School dropdown:                                   │
