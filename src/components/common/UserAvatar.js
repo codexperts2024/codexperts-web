@@ -7,10 +7,10 @@ const ROLE_BADGE = {
   admin:     { label: 'A', className: 'bg-red-100 text-red-600' },
 }
 
-export default function UserAvatar({ avatarUrl, name, role }) {
+export default function UserAvatar({ avatarUrl, firstName, role }) {
   const [imgError, setImgError] = useState(false)
   const badge = ROLE_BADGE[role] ?? null
-  const initial = (name || '?')[0].toUpperCase()
+  const initial = (firstName || '?')[0].toUpperCase()
 
   return (
     <div className="flex items-center gap-1.5">
@@ -18,7 +18,7 @@ export default function UserAvatar({ avatarUrl, name, role }) {
         {avatarUrl && !imgError ? (
           <img
             src={avatarUrl}
-            alt={name || 'avatar'}
+            alt={firstName || 'avatar'}
             className="h-full w-full object-cover"
             onError={() => setImgError(true)}
           />
