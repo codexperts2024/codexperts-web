@@ -32,14 +32,14 @@ export default function AboutPage() {
   return (
     <main className="min-h-screen bg-bg-surface">
       <div className="w-full md:w-[35rem] p-6 md:p-10 mx-auto md:mx-0 text-center md:text-left">
-        <p className="text-4xl md:text-5xl font-semibold mb-4">About codeXperts</p>
+        <h1 className="text-4xl md:text-5xl font-semibold mb-4">About codeXperts</h1>
         <p className="text-gray-500">
           More than a club — a community of coders going beyond the classroom.</p>
       </div>
 
       <section className="bg-white w-full">
         <div className="flex flex-col md:flex-row justify-center items-center md:items-start container mx-auto px-6 md:px-10 py-10 md:py-16 gap-6 md:gap-0">
-          <p className="text-[#C0392B] font-[550] text-2xl md:text-3xl flex-[1] text-center md:text-left w-full">Why We Exist</p>
+          <h2 className="text-[#C0392B] font-[550] text-2xl md:text-3xl flex-[1] text-center md:text-left w-full">Why We Exist</h2>
           <div className="flex flex-col gap-6 md:gap-10 flex-[2]">
             <p className="text-center md:text-left text-gray-700">
               codeXperts was founded on the principle that programming is an art form best practiced in collaboration. While university lectures provide the theory, our "Digital Atelier" provides the space to build, break, and refine real-world systems.</p>
@@ -81,7 +81,7 @@ export default function AboutPage() {
               <span className="text-red-800 font-bold whitespace-nowrap">2024 Fall</span>
               <div>
                 <h3 className="font-bold text-gray-900">The Foundation</h3>
-                <p className="text-gray-500 mt-1 md:mt-2">Started as a small study group of three CS students looking to build high-performance tools outside of their coursework.</p>
+                <p className="text-gray-500 mt-1 md:mt-2">codeXperts founded at Seneca College by Prof. Yoon and students passionate about going beyond the classroom.</p>
               </div>
             </div>
           </div>
@@ -90,10 +90,10 @@ export default function AboutPage() {
             <div className="absolute -left-[9px] top-1 w-4 h-4 bg-red-800 rounded-full border-4 border-white"></div>
 
             <div className="flex flex-col md:flex-row md:items-baseline gap-1 md:gap-8">
-              <span className="text-red-800 font-bold whitespace-nowrap">2025 Winter</span>
+              <span className="text-red-800 font-bold whitespace-nowrap">2026 Winter</span>
               <div>
-                <h3 className="font-bold text-gray-900">Scaling Up</h3>
-                <p className="text-gray-500 mt-1 md:mt-2">The group grew to 50 members and hosted its first regional hackathon, focusing on systems programming and low-level optimization.</p>
+                <h3 className="font-bold text-gray-900">First Event</h3>
+                <p className="text-gray-500 mt-1 md:mt-2">First official event: Coding Competition hosted at Seneca College.</p>
               </div>
             </div>
           </div>
@@ -104,8 +104,8 @@ export default function AboutPage() {
             <div className="flex flex-col md:flex-row md:items-baseline gap-1 md:gap-8">
               <span className="text-red-800 font-bold whitespace-nowrap">2026 Fall</span>
               <div>
-                <h3 className="font-bold text-gray-900">The Digital Atelier</h3>
-                <p className="text-gray-500 mt-1 md:mt-2">Officially rebranding and launching our dedicated lab space, providing a permanent home for technical innovation and research.</p>
+                <h3 className="font-bold text-gray-900">York University</h3>
+                <p className="text-gray-500 mt-1 md:mt-2">codeXperts officially launched as a York University recognized club. Inter-campus collaboration begins.</p>
               </div>
             </div>
           </div>
@@ -114,7 +114,7 @@ export default function AboutPage() {
       </section>
 
       <section className="w-full md:w-[35rem] p-6 md:p-10 mx-auto md:mx-0 text-center md:text-left">
-        <p className="text-4xl md:text-5xl font-semibold mb-4">Our Team</p>
+        <h2 className="text-4xl md:text-5xl font-semibold mb-4">Our Team</h2>
         <p className="text-gray-500">
           The people behind codeXperts</p>
       </section>
