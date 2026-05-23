@@ -29,8 +29,6 @@ export default async function UpcomingEventPage({params}) {
   const hasPrevious = currentIndex > 0;
   const hasNext = currentIndex < upcomingEvents.length - 1;
 
-  // const { previousEvent, nextEvent, hasPrevious, hasNext } = getNextUpcomingEvents(eventId);
-
   if (!upcomingEvent) {
     return (
       <div className="min-h-screen w-full bg-[#F9F9F9] flex items-center justify-center px-4">
@@ -63,7 +61,6 @@ export default async function UpcomingEventPage({params}) {
 
     <div className="min-h-screen w-full bg-[#F9F9F9]">
 
-      {/* Content Container */}
      <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-6">
         <div className="flex items-center gap-2 text-sm text-gray-500 font-inter">
           <a href="/events" className="hover:text-gray-800 transition">
@@ -76,7 +73,6 @@ export default async function UpcomingEventPage({params}) {
         </div>
       </div>
 
-      {/* Hero Banner - FULL WIDTH - Outside any container */}
       <div className="w-full">
         <div className="relative w-full h-96 bg-gradient-to-r from-red-700 to-red-900 overflow-hidden">
         </div>
@@ -123,7 +119,7 @@ export default async function UpcomingEventPage({params}) {
               </div>
             </div>
 
-            <div className="mt-12">
+            <div className="mt-20">
               <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4 font-montserrat">
                 About this Event
               </h2>
@@ -189,9 +185,9 @@ export default async function UpcomingEventPage({params}) {
                 ? 'border-gray-300 hover:bg-gray-100 text-gray-800'
                 : 'border-gray-200 text-gray-400 cursor-not-allowed bg-gray-50'
             }`}>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
+            <svg className="w-4 h-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 12h14M5 12l4-4m-4 4 4 4" />
+            </svg>
                 Previous Event
             </button>
 
@@ -204,9 +200,9 @@ export default async function UpcomingEventPage({params}) {
                 : 'border-gray-200 text-gray-400 cursor-not-allowed bg-gray-50'
             }`}>
                 Next Event
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
+            <svg className="w-4 h-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 12H5M19 12l-4 4m4-4-4-4" />
+            </svg>
             </button>
         </div>
 

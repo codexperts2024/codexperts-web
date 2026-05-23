@@ -33,8 +33,8 @@ export default async function PastEventInfo({ params }) {
   }
 
   const currentIndex = clubEvents.findIndex(e => e.id === eventId);
-  const previousEvent = currentIndex > 0 ? clubEvents[currentIndex - 1] : null;
-  const nextEvent = currentIndex < clubEvents.length - 1 ? clubEvents[currentIndex + 1] : null;
+  const previous = currentIndex > 0 ? clubEvents[currentIndex - 1] : null;
+  const next = currentIndex < clubEvents.length - 1 ? clubEvents[currentIndex + 1] : null;
   const hasPrevious = currentIndex > 0;
   const hasNext = currentIndex < clubEvents.length - 1;
   
@@ -56,19 +56,19 @@ export default async function PastEventInfo({ params }) {
         </div>
       </div>
 
-      {/* Hero Banner - FULL WIDTH - Outside any container */}
       <div className="w-full">
         <div className="relative w-full h-96 bg-gradient-to-r from-red-700 to-red-900 overflow-hidden">
         </div>
       </div>
 
-      <div className="mb-4 md:mb-6">
-            <span className="inline-flex items-center rounded-md bg-gray-200 px-3 py-1 text-xs font-semibold text-gray-600 inset-ring inset-ring-gray-500/10">
-              Past Event
-            </span>
+      <div className="max-w-4xl mx-auto px-4 md:px-6 py-12 md:py-16 lg:py-20">
+
+        <div className="mb-4 md:mb-6">
+          <span className="inline-flex items-center rounded-md bg-gray-200 px-5 py-2 text-xs text-gray-500 inset-ring inset-ring-gray-500/10 tracking-widest">
+            PAST EVENT
+          </span>
         </div>
 
-      <div className="max-w-4xl mx-auto px-4 md:px-6 py-12 md:py-16 lg:py-20">
         <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 leading-tight font-montserrat mt-4">
           {event.title}
         </h1>
@@ -107,51 +107,57 @@ export default async function PastEventInfo({ params }) {
             )}
             </div>
 
-            <div className="mt-12">
-          <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4 font-montserrat">
-            About this Event
-          </h2>
+          <div className="mt-12">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-10">
+              <div className="md:col-span-1">
+                <h2 className="text-xl md:text-2xl font-bold text-gray-800 font-montserrat">
+                  About this Event
+                </h2>
+              </div>
 
-          <div className="bg-[#efefef] rounded-xl p-6 md:p-8 text-gray-600 leading-relaxed space-y-4 font-inter text-sm md:text-base">
-            {descriptions.map((paragraph, index) => (
-              <p key={index}>
-                {paragraph.trim()}
-              </p>
-            ))}
+              <div className="md:col-span-2">
+                <div className="bg-[#efefef] rounded-xl p-5 md:p-6 text-gray-600 leading-relaxed space-y-3 font-inter text-sm md:text-base">
+                  {descriptions.map((paragraph, index) => (
+                    <p key={index}>
+                      {paragraph.trim()}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 md:px-6 pb-16">
-    <div className="flex items-center justify-between pt-8 border-t border-gray-200">
-      <Link
-        href={hasPrevious ? `/events/past/${previousEvent.id}` : '#'}
-        className={`border px-5 py-2.5 rounded-md flex items-center gap-2 transition font-inter text-sm ${
-          hasPrevious
-            ? 'border-gray-300 hover:bg-gray-100 text-gray-800'
-            : 'border-gray-200 text-gray-400 cursor-not-allowed pointer-events-none bg-gray-50'
-        }`}
-      >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
-        Previous Event
-      </Link>
+    <div className="max-w-4xl mx-auto px-4 md:px-6 pb-16">
+    <div className="flex items-center justify-between mt-10 pt-20 border-t border-gray-100">
+       <Link
+            href={hasPrevious ? `/events/past/${previous.id}` : '#'}
+            className={`border px-5 py-2.5 rounded-md flex items-center gap-2 transition font-inter text-sm ${
+              hasPrevious
+                ? 'border-gray-300 hover:bg-gray-100 text-gray-800 cursor-pointer'
+                : 'border-gray-200 text-gray-400 cursor-not-allowed bg-gray-50'
+            }`}
+          >
+            <svg className="w-4 h-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 12h14M5 12l4-4m-4 4 4 4" />
+            </svg>
+            Previous Event
+          </Link>
 
-      <Link
-        href={hasNext ? `/events/past/${nextEvent.id}` : '#'}
-        className={`border px-5 py-2.5 rounded-md flex items-center gap-2 transition font-inter text-sm ${
-          hasNext
-            ? 'border-gray-300 hover:bg-gray-100 text-gray-800'
-            : 'border-gray-200 text-gray-400 cursor-not-allowed pointer-events-none bg-gray-50'
-        }`}
-      >
-        Next Event
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
-      </Link>
-    </div>
+          <Link
+            href={hasNext ? `/events/past/${next.id}` : '#'}
+            className={`border px-5 py-2.5 rounded-md flex items-center gap-2 transition font-inter text-sm ${
+              hasNext
+                ? 'border-gray-300 hover:bg-gray-100 text-gray-800 cursor-pointer'
+                : 'border-gray-200 text-gray-400 cursor-not-allowed bg-gray-50'
+            }`}
+          >
+            Next Event
+            <svg className="w-4 h-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 12H5M19 12l-4 4m4-4-4-4" />
+            </svg>
+          </Link>
+        </div>
   </div>
 
     </div>
