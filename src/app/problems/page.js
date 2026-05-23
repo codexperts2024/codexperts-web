@@ -14,17 +14,6 @@ import { ROLES } from '@/utils/constants'
 
 const SCHOOLS = ['All Schools', 'Seneca College', 'York University']
 
-function LanguageTag({ lang }) {
-  return (
-    <span
-      className="font-inter inline-block"
-      style={{ background: '#FDECEA', color: '#C0392B', fontSize: 11, padding: '2px 8px', borderRadius: 4 }}
-    >
-      {lang}
-    </span>
-  )
-}
-
 function formatDue(dateStr) {
   if (!dateStr) return null
   return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -58,8 +47,6 @@ function PostView({ problems, currentIdx, navigateTo, setView, profile, onDelete
     )
   }
 
-  const langs = Array.isArray(problem.languages) ? problem.languages : []
-
   return (
     <>
       {/* Page header */}
@@ -92,15 +79,8 @@ function PostView({ problems, currentIdx, navigateTo, setView, profile, onDelete
 
           {/* Meta row */}
           <div className="flex flex-wrap items-center gap-2 text-text-secondary font-inter text-sm mb-4">
-            {langs.length > 0 && (
-              <span className="flex items-center gap-1.5">
-                {langs.map((l, i) => <LanguageTag key={i} lang={l} />)}
-              </span>
-            )}
             {problem.week != null && (
-              <span className={langs.length > 0 ? 'before:content-["·"] before:mr-2' : ''}>
-                Week {problem.week}
-              </span>
+              <span>Week {problem.week}</span>
             )}
             {problem.due_date && (
               <span className="before:content-['📅'] before:mr-1">
@@ -109,9 +89,6 @@ function PostView({ problems, currentIdx, navigateTo, setView, profile, onDelete
             )}
             {problem.school && (
               <span className="text-text-hint">· {problem.school}</span>
-            )}
-            {problem.posted_by && (
-              <span className="text-text-hint">· Posted by: {problem.posted_by}</span>
             )}
           </div>
 
@@ -231,7 +208,6 @@ function ListView({ problems, navigateTo, setView, profile, schoolFilter, setSch
                 <tr className="border-b border-border">
                   <th className="text-left font-inter text-sm font-medium text-text-secondary py-3 pr-4 w-16">Week</th>
                   <th className="text-left font-inter text-sm font-medium text-text-secondary py-3 pr-4">Title</th>
-                  <th className="text-left font-inter text-sm font-medium text-text-secondary py-3 pr-4">Lang</th>
                   <th className="text-left font-inter text-sm font-medium text-text-secondary py-3 pr-4">Due</th>
                   <th className="text-center font-inter text-sm font-medium text-text-secondary py-3 w-10">✓</th>
                 </tr>
@@ -239,7 +215,6 @@ function ListView({ problems, navigateTo, setView, profile, schoolFilter, setSch
               <tbody>
                 {problems.map((p, idx) => {
                   const solved = userSubmissions.has(p.id)
-                  const langs = Array.isArray(p.languages) ? p.languages : []
                   return (
                     <tr
                       key={p.id}
@@ -251,14 +226,6 @@ function ListView({ problems, navigateTo, setView, profile, schoolFilter, setSch
                       </td>
                       <td className="font-inter text-sm text-text-primary py-3.5 pr-4 font-medium">
                         {p.title}
-                      </td>
-                      <td className="py-3.5 pr-4">
-                        <div className="flex flex-wrap gap-1">
-                          {langs.length > 0
-                            ? langs.map((l, i) => <LanguageTag key={i} lang={l} />)
-                            : <span className="text-text-hint text-sm">—</span>
-                          }
-                        </div>
                       </td>
                       <td className="font-inter text-sm text-text-secondary py-3.5 pr-4">
                         {formatDue(p.due_date) ?? '—'}
