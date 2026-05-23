@@ -15,10 +15,10 @@ const yorkMembers = [
   { key: 'york_exec_2',    name: 'TBD', role: 'TBD' },
 ]
 
-function MemberCard({ name, role }) {
+const MemberCard = ({ name, role }) => {
   return (
     <div className="flex flex-col justify-center items-center my-4 md:my-10 w-[45%] sm:w-[30%] md:w-auto">
-      <div className="size-16 bg-gray-200 rounded-xl mb-3 md:mb-5 flex justify-center items-center">T1</div>
+      <div className="size-16 bg-gray-200 rounded-xl mb-3 md:mb-5 flex justify-center items-center"></div>
       <p className="mb-1 md:mb-2 text-center text-sm md:text-base">{name}</p>
       <span className="inline-block px-2 md:px-2.5 py-0.5 rounded-full bg-emerald-50 text-[10px] md:text-xs font-medium text-emerald-700 w-fit mb-1 md:mb-2">{role}</span>
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4 text-gray-600 rotate-45">
@@ -102,7 +102,7 @@ export default function AboutPage() {
             <div className="absolute -left-[9px] top-1 w-4 h-4 bg-red-800 rounded-full border-4 border-white"></div>
 
             <div className="flex flex-col md:flex-row md:items-baseline gap-1 md:gap-8">
-              <span className="text-red-800 font-bold whitespace-nowrap">2026d Fall</span>
+              <span className="text-red-800 font-bold whitespace-nowrap">2026 Fall</span>
               <div>
                 <h3 className="font-bold text-gray-900">The Digital Atelier</h3>
                 <p className="text-gray-500 mt-1 md:mt-2">Officially rebranding and launching our dedicated lab space, providing a permanent home for technical innovation and research.</p>
