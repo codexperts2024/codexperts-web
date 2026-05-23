@@ -67,6 +67,41 @@ function IconEmail() {
   )
 }
 
+const ROLE_LABEL = { pending: 'P', member: 'M', executive: 'E', admin: 'A' }
+const ROLE_COLOR = {
+  pending:   'bg-gray-200 text-gray-600',
+  member:    'bg-blue-100 text-blue-700',
+  executive: 'bg-purple-100 text-purple-700',
+  admin:     'bg-red-100 text-red-700',
+}
+
+function UserChip({ user, profile }) {
+  const avatarUrl = user?.user_metadata?.avatar_url
+  const initial = profile?.nickname
+    ? profile.nickname[0].toUpperCase()
+    : profile?.first_name
+      ? profile.first_name[0].toUpperCase()
+      : '?'
+  const role = profile?.role
+
+  return (
+    <div className="flex items-center gap-1.5">
+      {avatarUrl ? (
+        <img src={avatarUrl} alt={initial} className="w-7 h-7 rounded-full object-cover" />
+      ) : (
+        <div className="w-7 h-7 rounded-full bg-accent text-white text-xs font-semibold flex items-center justify-center">
+          {initial}
+        </div>
+      )}
+      {role && ROLE_LABEL[role] && (
+        <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${ROLE_COLOR[role]}`}>
+          {ROLE_LABEL[role]}
+        </span>
+      )}
+    </div>
+  )
+}
+
 function IconChevron() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3 mt-0.5 transition-transform duration-200 group-hover:rotate-180">
@@ -201,10 +236,13 @@ export default function Navbar() {
           <div className="w-px h-5 bg-border mx-1" />
 
           {user ? (
-            <button onClick={signOut}
-              className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors">
-              Log out
-            </button>
+            <div className="flex items-center gap-2">
+              <UserChip user={user} profile={profile} />
+              <button onClick={signOut}
+                className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors">
+                Log out
+              </button>
+            </div>
           ) : (
             <button onClick={handleLogIn} disabled={loggingIn}
               className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
@@ -297,10 +335,13 @@ export default function Navbar() {
 
           {/* Auth */}
           {user ? (
-            <button onClick={() => { signOut(); setMobileOpen(false) }}
-              className="w-full px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center">
-              Log out
-            </button>
+            <div className="flex items-center gap-2">
+              <UserChip user={user} profile={profile} />
+              <button onClick={() => { signOut(); setMobileOpen(false) }}
+                className="flex-1 px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center">
+                Log out
+              </button>
+            </div>
           ) : (
             <button onClick={() => { setMobileOpen(false); handleLogIn() }} disabled={loggingIn}
               className="w-full px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center disabled:opacity-60 disabled:cursor-not-allowed">
