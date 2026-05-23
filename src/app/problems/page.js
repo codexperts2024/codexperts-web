@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, useCallback, useRef, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import {
   ChevronLeft, ChevronRight, List, Trash2, Plus, Download, PenLine, Check, Minus,
 } from 'lucide-react'
@@ -43,7 +43,7 @@ function downloadMd(problem) {
   URL.revokeObjectURL(url)
 }
 
-function PostView({ problems, currentIdx, setCurrentIdx, setView, profile, onDelete, schoolFilter, setSchoolFilter }) {
+function PostView({ problems, currentIdx, navigateTo, setView, profile, onDelete, schoolFilter, setSchoolFilter }) {
   const router = useRouter()
   const problem = problems[currentIdx]
   const isAdmin = profile?.role === ROLES.ADMIN || profile?.role === ROLES.EXECUTIVE
@@ -143,7 +143,7 @@ function PostView({ problems, currentIdx, setCurrentIdx, setView, profile, onDel
       <div className="border-t border-border py-8 bg-bg-base">
         <div className="max-w-[800px] mx-auto px-6 flex items-center justify-between">
           <button
-            onClick={() => setCurrentIdx(i => i + 1)}
+            onClick={() => navigateTo(currentIdx + 1)}
             disabled={isOldest}
             className="flex items-center gap-1.5 px-5 py-2 rounded-md text-sm font-medium font-inter border transition-colors disabled:opacity-40 disabled:cursor-not-allowed border-border-strong text-text-secondary hover:border-text-primary hover:text-text-primary disabled:hover:border-border-strong disabled:hover:text-text-secondary"
           >
@@ -171,7 +171,7 @@ function PostView({ problems, currentIdx, setCurrentIdx, setView, profile, onDel
 
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setCurrentIdx(i => i - 1)}
+              onClick={() => navigateTo(currentIdx - 1)}
               disabled={isNewest}
               className="flex items-center gap-1.5 px-5 py-2 rounded-md text-sm font-medium font-inter border transition-colors disabled:opacity-40 disabled:cursor-not-allowed border-border-strong text-text-secondary hover:border-text-primary hover:text-text-primary disabled:hover:border-border-strong disabled:hover:text-text-secondary"
             >
@@ -194,7 +194,7 @@ function PostView({ problems, currentIdx, setCurrentIdx, setView, profile, onDel
   )
 }
 
-function ListView({ problems, setCurrentIdx, setView, profile, schoolFilter, setSchoolFilter, userSubmissions }) {
+function ListView({ problems, navigateTo, setView, profile, schoolFilter, setSchoolFilter, userSubmissions }) {
   const isAdmin = profile?.role === ROLES.ADMIN || profile?.role === ROLES.EXECUTIVE
 
   return (
@@ -243,7 +243,7 @@ function ListView({ problems, setCurrentIdx, setView, profile, schoolFilter, set
                   return (
                     <tr
                       key={p.id}
-                      onClick={() => { setCurrentIdx(idx); setView('post') }}
+                      onClick={() => { navigateTo(idx); setView('post') }}
                       className="border-b border-border cursor-pointer transition-colors hover:bg-bg-surface"
                     >
                       <td className="font-inter text-sm text-text-primary py-3.5 pr-4">
@@ -295,18 +295,36 @@ function SchoolFilter({ value, onChange }) {
 
 function ProblemsContent() {
   const { profile } = useAuth()
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
   const [view, setView] = useState('post')
   const [problems, setProblems] = useState([])
   const [currentIdx, setCurrentIdx] = useState(0)
   const [schoolFilter, setSchoolFilter] = useState('All Schools')
   const [userSubmissions, setUserSubmissions] = useState(new Set())
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  // Restore index from URL on first load only
+  const restoredFromUrl = useRef(false)
+  useEffect(() => {
+    if (problems.length === 0 || restoredFromUrl.current) return
+    restoredFromUrl.current = true
+    const id = searchParams.get('id')
+    if (!id) return
+    const idx = problems.findIndex(p => String(p.id) === id)
+    if (idx !== -1) setCurrentIdx(idx)
+  }, [problems, searchParams])
 
   const loadProblems = useCallback(async () => {
     setLoading(true)
+    setError(null)
     try {
       const data = await fetchProblems(schoolFilter)
       setProblems(data)
+    } catch {
+      setError('Failed to load problems. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -314,13 +332,23 @@ function ProblemsContent() {
 
   const loadSubmissions = useCallback(async () => {
     if (!profile?.id) return
-    const solved = await fetchUserSubmissions(profile.id)
-    setUserSubmissions(solved)
+    try {
+      const solved = await fetchUserSubmissions(profile.id)
+      setUserSubmissions(solved)
+    } catch {
+      // Submissions are non-critical; fail silently
+    }
   }, [profile?.id])
 
   useEffect(() => { loadProblems() }, [loadProblems])
   useEffect(() => { loadSubmissions() }, [loadSubmissions])
   useEffect(() => { setCurrentIdx(0) }, [schoolFilter])
+
+  function navigateTo(idx) {
+    setCurrentIdx(idx)
+    const p = problems[idx]
+    if (p) router.push(`/problems?id=${p.id}`, { scroll: false })
+  }
 
   async function handleDelete(id) {
     if (!confirm('Delete this problem? This cannot be undone.')) return
@@ -341,20 +369,28 @@ function ProblemsContent() {
     )
   }
 
+  if (error) {
+    return (
+      <div className="flex-1 flex items-center justify-center py-24">
+        <p className="text-text-secondary font-inter">{error}</p>
+      </div>
+    )
+  }
+
   const sharedProps = { problems, profile, schoolFilter, setSchoolFilter, userSubmissions }
 
   return view === 'post' ? (
     <PostView
       {...sharedProps}
       currentIdx={currentIdx}
-      setCurrentIdx={setCurrentIdx}
+      navigateTo={navigateTo}
       setView={setView}
       onDelete={handleDelete}
     />
   ) : (
     <ListView
       {...sharedProps}
-      setCurrentIdx={setCurrentIdx}
+      navigateTo={navigateTo}
       setView={setView}
     />
   )
@@ -364,7 +400,9 @@ export default function ProblemsPage() {
   return (
     <RoleGuard>
       <div className="min-h-screen flex flex-col bg-bg-base">
-        <ProblemsContent />
+        <Suspense>
+          <ProblemsContent />
+        </Suspense>
       </div>
     </RoleGuard>
   )
