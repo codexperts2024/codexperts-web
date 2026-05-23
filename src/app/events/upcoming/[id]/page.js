@@ -1,27 +1,58 @@
 'use client';
 import { useRouter } from 'next/navigation';
 import { getUpcomingEvent, getNextUpcomingEvents } from '@/components/UpcomingEvents';
+import { upcomingEvents } from '@/components/eventsArr';
+
+// const upcomingEvents = [
+//     {id: 1, category: 'Featured Competition', title: 'Spring Coding Competition 2026', date: '2026-03-14',
+//     endDate: '2026-03-16', description: 'Join 200+ developers for a 48-hour sprint. Solve algorithmic puzzles, build innovative tools, and win exclusive prizes from the Digital Atelier.',
+//          infoDescription: 'Dive into a 48-hour intensive sprint designed to push your technical boundaries. The Spring Coding Competition 2026 brings together the brightest minds to solve complex algorithmic puzzles and build innovative software tools from the ground up.\n\nWhether you are a backend specialist or a creative frontend developer, this is your laboratory to experiment, iterate, and compete for exclusive prizes and industry recognition.',
+//          cta: 'Register Now', location:'Techinal Lab', school:'Seneca College', tracks: [
+//       { name: 'Algorithmic Mastery', sub: 'Optimization & Logic' },
+//       { name: 'Tool Innovation', sub: 'Utility & Design' }
+//     ]},
+
+// ];
 
 
-export default function UpcomingEventPage({params}) {
+export default async function UpcomingEventPage({params}) {
 
   const router = useRouter();
-  const eventId = parseInt(params.id);
-  const upcomingEvent = getUpcomingEvent(eventId);
-  const { previousEvent, nextEvent, hasPrevious, hasNext } = getNextUpcomingEvents(eventId);
+  const {id} = await params;
+  const eventId = parseInt(id);
+
+  const upcomingEvent = upcomingEvents.find(event => event.id === eventId);
+
+  const currentIndex = upcomingEvents.findIndex(event => event.id === eventId);
+  const previousEvent = currentIndex > 0 ? upcomingEvents[currentIndex - 1] : null;
+  const nextEvent = currentIndex < upcomingEvents.length - 1 ? upcomingEvents[currentIndex + 1] : null;
+  const hasPrevious = currentIndex > 0;
+  const hasNext = currentIndex < upcomingEvents.length - 1;
+
+  // const { previousEvent, nextEvent, hasPrevious, hasNext } = getNextUpcomingEvents(eventId);
 
   if (!upcomingEvent) {
-    return <div>Event not found</div>;
+    return (
+      <div className="min-h-screen w-full bg-[#F9F9F9] flex items-center justify-center px-4">
+        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md text-center">
+          <div className="text-6xl mb-4">🔍</div>
+          <h2 className="text-2xl font-bold font-montserrat text-gray-800 mb-2">Event Not Found</h2>
+          <p className="text-gray-500 font-inter">
+            The event you're looking for doesn't exist or has been removed.
+          </p>
+        </div>
+      </div>
+    )
   }
 
     const previous = () => {
-    if (hasPrevious) {
+    if (hasPrevious && previousEvent) {
       router.push(`/events/upcoming/${previousEvent.id}`);
     }
   };
 
   const next = () => {
-    if (hasNext) {
+    if (hasNext && nextEvent) {
       router.push(`/events/upcoming/${nextEvent.id}`);
     }
   };
@@ -51,23 +82,20 @@ export default function UpcomingEventPage({params}) {
         </div>
       </div>
 
-      {/* Content Container - Reduced padding from sides */}
+
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12">
 
-        {/* Desktop: 2/3 + 1/3 Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-10">
 
-          {/* LEFT COLUMN */}
+          {/* Bigger column */}
           <div className="lg:col-span-2">
 
-            {/* Title */}
             <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 leading-tight font-montserrat mt-4">
               {upcomingEvent.title.split(' ').slice(0, 2).join(' ')}
                   <br />
                   {upcomingEvent.title.split(' ').slice(2).join(' ')}
             </h1>
 
-            {/* Event Meta */}
             <div className="flex flex-wrap items-center gap-4 md:gap-6 mt-6 text-sm text-gray-500 font-inter">
               <div className="flex items-center gap-2">
                 <svg className="w-5 h-5 text-red-700 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -95,7 +123,6 @@ export default function UpcomingEventPage({params}) {
               </div>
             </div>
 
-            {/* About Section */}
             <div className="mt-12">
               <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4 font-montserrat">
                 About this Event
@@ -110,7 +137,6 @@ export default function UpcomingEventPage({params}) {
               </div>
             </div>
 
-            {/* Registration Card */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-7 flex flex-col sm:flex-row items-center justify-between gap-4 mt-14">
               <div>
                 <p className="text-xs font-bold tracking-widest text-red-700 uppercase font-inter">
@@ -129,7 +155,7 @@ export default function UpcomingEventPage({params}) {
             </div>
           </div>
 
-          {/* RIGHT COLUMN */}
+          {/* Smaller column */}
           <div className="space-y-5">
             <div className="bg-[#efefef] rounded-xl p-5">
               <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-4 font-montserrat">

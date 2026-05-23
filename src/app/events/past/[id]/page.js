@@ -1,5 +1,15 @@
+'use client';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import { clubEvents } from '@/components/eventsArr';
+
+// const clubEvents = [
+//     {id: 1, category: 'Coding Competition', title: 'CodeXperts Coding Competition', date: '2026-03-21', description: 'Programmers of all levels joined to solve algorithms for grand prizes.', eDescription:
+//         'This intensive laboratory session was a deep-dive into the architectural nuances of systems programming using Rust. Participants explored the intricacies of memory safety without a garbage collector, focusing on ownership, borrowing, and lifetimes.\n\nThe workshop moved beyond basic syntax, challenging students to implement low-level optimizations and safe concurrency patterns. It was designed for those looking to bridge the gap between high-level logic and metal-level performance, providing a rigorous technical framework for building reliable software systems.',
+//          cta: 'Learn More', image: '', location:'Room 402', school:'Seneca College'},
+//     {id: 2, category: 'Social', title: 'CodeXperts Chicken & Networking Event ', date: '2026-03-09', description: 'Networking events filled with delicious fried chicken, Krispy Kreme donuts, and great conversations.', eDescription: '', cta: 'Gallery', image: './images/event1.jpg', location:'Room S1077', school:'Seneca @ York'},
+//     {id: 3, category: 'Social', title: 'CodeXperts Year-End Event ', date: '2025-12-30', description: 'Celebrating the end of the year with an amazing lunch of pizza, wings, and salad.', eDescription: '', cta: 'Gallery', image:'', location:"Professor's House", school:''}
+// ];
 
 // Generate static params for all event IDs
 export async function generateStaticParams() {
@@ -12,29 +22,25 @@ function getPastEvent(id) {
   return clubEvents.find((e) => e.id === id);
 }
 
-export default function PastEventInfo({ params }) {
-  const eventId = parseInt(params.id);
-  const event = getPastEvent(eventId);
+export default async function PastEventInfo({ params }) {
+  const { id } = await params;
+  const eventId = parseInt(id);
+
+  const event = clubEvents.find(e => e.id === eventId);
 
   if (!event) {
     notFound();
   }
 
-  const currentIndex = clubEvents.findIndex((e) => e.id === eventId);
-
-  // Previous Event - stays on current if at beginning
-  const previousEvent = currentIndex > 0 ? clubEvents[currentIndex - 1] : event;
-
-  // Next Event - stays on current if at end
-  const nextEvent = currentIndex < clubEvents.length - 1 ? clubEvents[currentIndex + 1] : event;
-
-  // Boolean flags for styling (disable buttons at boundaries)
+  const currentIndex = clubEvents.findIndex(e => e.id === eventId);
+  const previousEvent = currentIndex > 0 ? clubEvents[currentIndex - 1] : null;
+  const nextEvent = currentIndex < clubEvents.length - 1 ? clubEvents[currentIndex + 1] : null;
   const hasPrevious = currentIndex > 0;
   const hasNext = currentIndex < clubEvents.length - 1;
-
+  
   const descriptions = event.eDescription && event.eDescription.trim() !== ''
-        ? [event.eDescription]
-        : ['No detailed description available for this event.'];
+    ? event.eDescription.split('\n\n')
+    : ['No detailed description available for this event.'];
 
   return (
     <div className="min-h-screen w-full bg-[#F9F9F9]">
@@ -116,35 +122,37 @@ export default function PastEventInfo({ params }) {
         </div>
       </div>
 
-      <div className="flex items-center justify-between mt-16 pt-8 border-t border-gray-200">
-          <Link
-            href={`/events/${previousEvent.id}`}
-            className={`border px-5 py-2.5 rounded-md flex items-center gap-2 transition font-inter text-sm ${
-              !hasPrevious
-                ? 'border-gray-200 text-gray-400 cursor-not-allowed pointer-events-none bg-gray-50'
-                : 'border-gray-300 hover:bg-gray-100 text-gray-800'
-            }`}
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Previous Event
-          </Link>
+      <div className="max-w-4xl mx-auto px-4 md:px-6 pb-16">
+    <div className="flex items-center justify-between pt-8 border-t border-gray-200">
+      <Link
+        href={hasPrevious ? `/events/past/${previousEvent.id}` : '#'}
+        className={`border px-5 py-2.5 rounded-md flex items-center gap-2 transition font-inter text-sm ${
+          hasPrevious
+            ? 'border-gray-300 hover:bg-gray-100 text-gray-800'
+            : 'border-gray-200 text-gray-400 cursor-not-allowed pointer-events-none bg-gray-50'
+        }`}
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+        Previous Event
+      </Link>
 
-          <Link
-            href={`/events/${nextEvent.id}`}
-            className={`border px-5 py-2.5 rounded-md flex items-center gap-2 transition font-inter text-sm ${
-              !hasNext
-                ? 'border-gray-200 text-gray-400 cursor-not-allowed pointer-events-none bg-gray-50'
-                : 'border-gray-300 hover:bg-gray-100 text-gray-800'
-            }`}
-          >
-            Next Event
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
-        </div>
+      <Link
+        href={hasNext ? `/events/past/${nextEvent.id}` : '#'}
+        className={`border px-5 py-2.5 rounded-md flex items-center gap-2 transition font-inter text-sm ${
+          hasNext
+            ? 'border-gray-300 hover:bg-gray-100 text-gray-800'
+            : 'border-gray-200 text-gray-400 cursor-not-allowed pointer-events-none bg-gray-50'
+        }`}
+      >
+        Next Event
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+      </Link>
+    </div>
+  </div>
 
     </div>
   )
