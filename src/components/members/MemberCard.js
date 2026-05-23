@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 
 function getInitials(name) {
@@ -29,10 +30,12 @@ export default function MemberCard({ member }) {
       {/* Avatar */}
       <Link href={`/members/${id}`} className="group">
         {avatarUrl ? (
-          <img
+          <Image
             src={avatarUrl}
             alt={name}
-            className="w-16 h-16 rounded-full object-cover group-hover:ring-2 group-hover:ring-accent"
+            width={64}
+            height={64}
+            className="rounded-full object-cover group-hover:ring-2 group-hover:ring-accent"
           />
         ) : (
           <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-medium text-sm group-hover:ring-2 group-hover:ring-accent">
@@ -44,25 +47,25 @@ export default function MemberCard({ member }) {
       {/* Name */}
       <Link
         href={`/members/${id}`}
-        className="mt-2.5 font-inter font-medium text-sm text-primary hover:underline"
+        className="mt-2.5 font-inter font-medium text-sm text-text-primary hover:underline"
       >
         {name}
       </Link>
 
       {/* School */}
-      <p className="mt-1 font-inter text-xs text-secondary">{school}</p>
+      <p className="mt-1 font-inter text-xs text-text-secondary">{school}</p>
 
       {/* Work — only if set */}
       {occupation && (
-        <p className="mt-0.5 font-inter text-xs text-secondary">{occupation}</p>
+        <p className="mt-0.5 font-inter text-xs text-text-secondary">{occupation}</p>
       )}
 
       {/* Status badge */}
       <span
         className={`mt-2 text-[11px] px-2 py-0.5 rounded ${
-          status === 'Student'
+          status === 'student'
             ? 'bg-[#F0F4FF] text-link'
-            : 'bg-elevated text-secondary'
+            : 'bg-bg-elevated text-text-secondary'
         }`}
       >
         {status}
@@ -84,7 +87,7 @@ export default function MemberCard({ member }) {
               target="_blank"
               rel="noopener noreferrer"
               aria-label={`${name} on LinkedIn`}
-              className="text-secondary hover:text-link"
+              className="text-text-secondary hover:text-link"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -103,7 +106,7 @@ export default function MemberCard({ member }) {
               target="_blank"
               rel="noopener noreferrer"
               aria-label={`${name} on GitHub`}
-              className="text-secondary hover:text-primary"
+              className="text-text-secondary hover:text-text-primary"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"

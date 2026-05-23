@@ -12,7 +12,7 @@ import { supabase } from '@/lib/supabase'
 export async function fetchMembers() {
   const { data, error } = await supabase
     .from('profiles')
-    .select('*')
+    .select('id, name, avatar_url, school, occupation, status, role, linkedin, github, cohort')
     .neq('role', 'pending')
     .order('name', { ascending: true })
 
