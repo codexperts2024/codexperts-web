@@ -335,10 +335,13 @@ export default function Navbar() {
 
           {/* Auth */}
           {user ? (
-            <button onClick={() => { signOut(); setMobileOpen(false) }}
-              className="w-full px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center">
-              Log out
-            </button>
+            <div className="flex items-center gap-2">
+              <UserChip user={user} profile={profile} />
+              <button onClick={() => { signOut(); setMobileOpen(false) }}
+                className="flex-1 px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center">
+                Log out
+              </button>
+            </div>
           ) : (
             <button onClick={() => { setMobileOpen(false); handleLogIn() }} disabled={loggingIn}
               className="w-full px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center disabled:opacity-60 disabled:cursor-not-allowed">
