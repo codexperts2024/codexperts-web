@@ -68,7 +68,7 @@ export default function MemberCard({ member }) {
             : 'bg-bg-elevated text-text-secondary'
         }`}
       >
-        {status}
+        {status === 'student' ? 'Student' : 'Graduate'}
       </span>
 
       {/* Role badge — only if Executive */}
