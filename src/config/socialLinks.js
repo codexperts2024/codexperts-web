@@ -6,6 +6,11 @@ export const socialLinks = {
   email: {
     url: 'mailto:codexperts2024@gmail.com',
   },
+  // Official club signup portals per campus — set url to null until available
+  clubSignup: [
+    { campus: 'Seneca College', url: 'https://clubs.ssfinc.ca/CXS/club_signup' },
+    { campus: 'York University', url: null },
+  ],
   // Public — hover dropdown per campus
   instagram: [
     { campus: 'Seneca', url: 'https://instagram.com/codexperts_seneca' },
