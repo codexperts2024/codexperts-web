@@ -1,6 +1,10 @@
 import { supabase } from '@/lib/supabase'
 
 export async function signInWithGoogle(redirectTo) {
+  // Flag that an OAuth redirect is about to happen so the pageshow handler
+  // can force a reload if the user presses back (bfcache restoration would
+  // leave Supabase's PKCE verifier in a stale state, blocking a second attempt).
+  sessionStorage.setItem('oauth_pending', '1')
   const options = redirectTo ? { redirectTo } : {}
   const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options })
   if (error) throw error
@@ -28,19 +32,22 @@ export async function fetchProfile(userId) {
   return data ?? null
 }
 
-export async function createProfile({ id, name, email, avatarUrl, campus, cohort, phone }) {
+export async function createProfile({ id, name, email, avatarUrl, school, cohort, phone, status, occupation, linkedin, github }) {
   const { data, error } = await supabase
     .from('profiles')
-    .insert({
-      id,
+    .update({
       name,
       email,
       avatar_url: avatarUrl,
-      campus,
+      school,
       cohort,
       phone,
-      role: 'pending',
+      status,
+      occupation,
+      linkedin,
+      github,
     })
+    .eq('id', id)
     .select()
     .single()
 
@@ -58,4 +65,27 @@ export async function updateProfile(userId, fields) {
 
   if (error) throw error
   return data
+}
+
+export async function adminApproval(userID) {
+  const session = await getSession();
+
+  if (!session) {
+    throw new Error('Unauthorized: No active session found.');
+  }
+
+  const profile = await fetchProfile(session.user.id);
+  if (profile?.role !== 'admin') {
+    throw new Error('Unauthorized: Only admins can approve users.');
+  }
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({ role: 'member' })
+    .eq('id', userID)
+    .select()
+    .single();
+
+  if (error) throw error
+  return data;
 }

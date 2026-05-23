@@ -1,3 +1,5 @@
+export const CAMPUSES = ['Seneca College', 'York University']
+
 export const ROLES = {
   PENDING: 'pending',
   MEMBER: 'member',
@@ -13,4 +15,4 @@ const MEMBER_ROUTE_BLOCKED = [ROLES.PENDING]
 
 export const canAccessMemberRoutes = (role) => !!role && !MEMBER_ROUTE_BLOCKED.includes(role)
 
-export const canAccessAdminRoutes = (role) => role === ROLES.ADMIN
+export const canAccessAdminRoutes = (role) => [ROLES.ADMIN, ROLES.EXECUTIVE].includes(role)

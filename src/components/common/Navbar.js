@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { socialLinks } from '@/config/socialLinks'
@@ -136,6 +136,17 @@ export default function Navbar() {
   const pathname = usePathname()
   const { user, profile, loading, signOut } = useAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [loggingIn, setLoggingIn] = useState(false)
+
+  // bfcache restores frozen React state — loggingIn would be stuck at true.
+  // Reset it so the Log In button works again after pressing back from Google.
+  useEffect(() => {
+    function handlePageShow(e) {
+      if (e.persisted) setLoggingIn(false)
+    }
+    window.addEventListener('pageshow', handlePageShow)
+    return () => window.removeEventListener('pageshow', handlePageShow)
+  }, [])
 
   const role = profile?.role ?? null
   const isMember = role === 'member' || role === 'executive' || role === 'admin'
@@ -149,10 +160,12 @@ export default function Navbar() {
   }
 
   async function handleLogIn() {
+    if (loggingIn) return
+    setLoggingIn(true)
     try {
       await signInWithGoogle(`${window.location.origin}/auth/callback`)
     } catch {
-      // OAuth redirect failed
+      setLoggingIn(false)
     }
   }
 
@@ -168,7 +181,7 @@ export default function Navbar() {
 
         {/* Desktop center links */}
         <div className="absolute left-1/2 -translate-x-1/2 hidden lg:flex items-center gap-5">
-          {!loading && centerLinks.map(renderDesktopLink)}
+          {centerLinks.map(renderDesktopLink)}
         </div>
 
         {/* Desktop right — social + auth */}
@@ -179,30 +192,25 @@ export default function Navbar() {
             <IconLinkedIn />
           </a>
           {isMember && <SocialDropdown icon={<IconDiscord />} items={socialLinks.discord} />}
-          <a href={socialLinks.email.url}
+          <button
+            onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
             className="p-1.5 text-text-secondary hover:text-text-primary transition-colors">
             <IconEmail />
-          </a>
+          </button>
 
           <div className="w-px h-5 bg-border mx-1" />
 
-          {!loading && (user ? (
+          {user ? (
             <button onClick={signOut}
               className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors">
               Log out
             </button>
           ) : (
-            <>
-              <button onClick={handleLogIn}
-                className="px-3 py-1.5 text-sm font-medium text-text-secondary hover:text-text-primary transition-colors">
-                Log In
-              </button>
-              <button onClick={handleLogIn}
-                className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors">
-                Join Us
-              </button>
-            </>
-          ))}
+            <button onClick={handleLogIn} disabled={loggingIn}
+              className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
+              {loggingIn ? 'Redirecting…' : 'Log In'}
+            </button>
+          )}
 
           {isAdmin && (
             <Link href="/admin" title="Admin"
@@ -228,7 +236,7 @@ export default function Navbar() {
       {mobileOpen && (
         <div className="lg:hidden border-t border-border bg-white px-6 py-4 flex flex-col gap-1">
 
-          {!loading && centerLinks.map((item) => {
+          {centerLinks.map((item) => {
             if (item.dropdown) {
               return (
                 <div key={item.label} className="py-1">
@@ -279,31 +287,26 @@ export default function Navbar() {
               Discord &middot; {campus}
             </a>
           ))}
-          <a href={socialLinks.email.url}
-            className="px-2 py-1 text-sm text-text-secondary hover:text-text-primary transition-colors">
+          <button
+            onClick={() => { setMobileOpen(false); document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' }) }}
+            className="px-2 py-1 text-sm text-text-secondary hover:text-text-primary transition-colors text-left">
             Email us
-          </a>
+          </button>
 
           <div className="my-2 h-px bg-border" />
 
           {/* Auth */}
-          {!loading && (user ? (
+          {user ? (
             <button onClick={() => { signOut(); setMobileOpen(false) }}
               className="w-full px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center">
               Log out
             </button>
           ) : (
-            <div className="flex flex-col gap-2">
-              <button onClick={() => { setMobileOpen(false); handleLogIn() }}
-                className="w-full px-4 py-2.5 rounded-md text-sm font-medium border border-border text-text-primary hover:bg-bg-surface transition-colors text-center">
-                Log In
-              </button>
-              <button onClick={() => { setMobileOpen(false); handleLogIn() }}
-                className="w-full px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center">
-                Join Us
-              </button>
-            </div>
-          ))}
+            <button onClick={() => { setMobileOpen(false); handleLogIn() }} disabled={loggingIn}
+              className="w-full px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center disabled:opacity-60 disabled:cursor-not-allowed">
+              {loggingIn ? 'Redirecting…' : 'Log In'}
+            </button>
+          )}
         </div>
       )}
     </nav>
