@@ -103,8 +103,10 @@ export default function JoinModal() {
   useEffect(() => {
     if (isOpen && user) {
       const meta = user.user_metadata
-      setFirstName(meta?.given_name ?? '')
-      setLastName(meta?.family_name ?? '')
+      const fullName = meta?.full_name ?? meta?.name ?? ''
+      const parts = fullName.trim().split(' ')
+      setFirstName(meta?.given_name ?? parts[0] ?? '')
+      setLastName(meta?.family_name ?? parts.slice(1).join(' ') ?? '')
     }
   }, [isOpen, user])
 
