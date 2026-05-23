@@ -41,9 +41,10 @@ function generateCohorts() {
     const isCurrent = season === current.season && year === current.year
 
     if (!SKIPPED_TERMS.has(term)) {
+      const num = cohorts.length + 1
       cohorts.push({
-        value: term,
-        label: `${ordinal(cohorts.length + 1)} Cohort (Joined ${term}${isCurrent ? ' ← now' : ''})`,
+        value: String(num),
+        label: `${ordinal(num)} Cohort (Joined ${term}${isCurrent ? ' ← now' : ''})`,
       })
     }
 
@@ -334,7 +335,7 @@ export default function JoinModal() {
         <div className="mb-4">
           <label className="block text-sm font-medium text-text-primary mb-1.5">LinkedIn <span className="text-text-hint font-normal">(optional)</span></label>
           <input
-            type="url"
+            type="text"
             value={linkedin}
             onChange={e => setLinkedin(e.target.value)}
             placeholder="https://linkedin.com/in/..."
@@ -346,7 +347,7 @@ export default function JoinModal() {
         <div className="mb-6">
           <label className="block text-sm font-medium text-text-primary mb-1.5">GitHub <span className="text-text-hint font-normal">(optional)</span></label>
           <input
-            type="url"
+            type="text"
             value={github}
             onChange={e => setGithub(e.target.value)}
             placeholder="https://github.com/..."
