@@ -39,7 +39,7 @@ export async function POST(request) {
     await transporter.sendMail({
       from: `"${safeName} via codeXperts" <${process.env.CONTACT_EMAIL_USER}>`,
       to: 'codeXperts2024@gmail.com',
-      replyTo: email,
+      replyTo: sanitizeHeader(email),
       subject: `Contact Form: ${safeName} (${safeSchool})`,
       text: `From: ${safeName} <${email}>\nSchool: ${safeSchool}\n\n${message}`,
       html: `

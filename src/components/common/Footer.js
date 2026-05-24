@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { socialLinks } from '@/config/socialLinks'
-import { CAMPUSES } from '@/utils/constants'
+import { SCHOOLS } from '@/utils/constants'
 import { useAuth } from '@/hooks/useAuth'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
@@ -98,8 +98,8 @@ export default function Footer() {
               Official Club Sign Up
             </h3>
             <ul className="space-y-2">
-              {socialLinks.clubSignup.map(({ campus, url }) => (
-                <li key={campus}>
+              {socialLinks.clubSignup.map(({ school, url }) => (
+                <li key={school}>
                   {url ? (
                     <a
                       href={url}
@@ -107,11 +107,11 @@ export default function Footer() {
                       rel="noopener noreferrer"
                       className="text-sm text-accent hover:underline transition-colors"
                     >
-                      {campus}
+                      {school}
                     </a>
                   ) : (
                     <span className="text-sm text-text-hint">
-                      {campus} <span className="text-xs">(Coming Soon)</span>
+                      {school} <span className="text-xs">(Coming Soon)</span>
                     </span>
                   )}
                 </li>
@@ -161,7 +161,7 @@ export default function Footer() {
                     onChange={update('school')}
                   >
                     <option value="" disabled>School</option>
-                    {CAMPUSES.map((c) => (
+                    {SCHOOLS.map((c) => (
                       <option key={c} value={c}>{c}</option>
                     ))}
                   </select>
