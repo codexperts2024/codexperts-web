@@ -7,8 +7,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { createProfile } from '@/services/authService'
 import Button from '@/components/ui/Button'
 import { cohortLabel } from '@/utils/cohort'
-
-const SCHOOLS = ['Seneca College', 'York University']
+import { SCHOOLS } from '@/utils/constants'
 
 const FIRST_COHORT = { season: 'Fall', year: 2024 }
 const SKIPPED_TERMS = new Set(['Summer 2025'])

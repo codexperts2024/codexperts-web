@@ -155,10 +155,10 @@ function SocialDropdown({ icon, items }) {
       <button className="p-1.5 text-text-secondary hover:text-text-primary transition-colors">{icon}</button>
       <div className="absolute right-0 top-full pt-2 z-50 hidden group-hover:block">
         <div className="bg-white rounded-lg shadow-lg border border-border min-w-[130px] py-1.5">
-          {items.map(({ campus, url }) => (
-            <a key={campus} href={url} target="_blank" rel="noopener noreferrer"
+          {items.map(({ school, url }) => (
+            <a key={school} href={url} target="_blank" rel="noopener noreferrer"
               className="block px-4 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-surface transition-colors">
-              {campus}
+              {school}
             </a>
           ))}
         </div>
@@ -311,10 +311,10 @@ export default function Navbar() {
 
           {/* Social links */}
           <div className="flex items-center gap-4 px-2 py-1">
-            {socialLinks.instagram.map(({ campus, url }) => (
-              <a key={campus} href={url} target="_blank" rel="noopener noreferrer"
+            {socialLinks.instagram.map(({ school, url }) => (
+              <a key={school} href={url} target="_blank" rel="noopener noreferrer"
                 className="text-sm text-text-secondary hover:text-text-primary transition-colors">
-                IG &middot; {campus}
+                IG &middot; {school}
               </a>
             ))}
           </div>
@@ -322,10 +322,10 @@ export default function Navbar() {
             className="px-2 py-1 text-sm text-text-secondary hover:text-text-primary transition-colors">
             LinkedIn
           </a>
-          {isMember && socialLinks.discord.map(({ campus, url }) => (
-            <a key={campus} href={url} target="_blank" rel="noopener noreferrer"
+          {isMember && socialLinks.discord.map(({ school, url }) => (
+            <a key={school} href={url} target="_blank" rel="noopener noreferrer"
               className="px-2 py-1 text-sm text-text-secondary hover:text-text-primary transition-colors">
-              Discord &middot; {campus}
+              Discord &middot; {school}
             </a>
           ))}
           <button
