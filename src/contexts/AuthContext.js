@@ -48,15 +48,16 @@ export function AuthProvider({ children }) {
         window.location.reload()
         return
       }
-      getSession()
-        .then(session => {
+      ;(async () => {
+        try {
+          const session = await getSession()
           setUser(session?.user ?? null)
           if (!session?.user) setProfile(null)
-        })
-        .catch(() => {
+        } catch {
           setUser(null)
           setProfile(null)
-        })
+        }
+      })()
     }
     window.addEventListener('pageshow', handlePageShow)
 
