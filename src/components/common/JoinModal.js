@@ -76,6 +76,7 @@ export default function JoinModal() {
   const [cohort, setCohort] = useState('')
   const [phone, setPhone] = useState('')
   const [status, setStatus] = useState('')
+  const [company, setCompany] = useState('')
   const [occupation, setOccupation] = useState('')
   const [linkedin, setLinkedin] = useState('')
   const [github, setGithub] = useState('')
@@ -120,6 +121,7 @@ export default function JoinModal() {
       setCohort('')
       setPhone('')
       setStatus('')
+      setCompany('')
       setOccupation('')
       setLinkedin('')
       setGithub('')
@@ -161,6 +163,7 @@ export default function JoinModal() {
         cohort,
         phone,
         status,
+        company,
         occupation,
         linkedin: linkedin ? `https://www.linkedin.com/in/${linkedin}` : null,
         github: github ? `https://github.com/${github}` : null,
@@ -317,6 +320,18 @@ export default function JoinModal() {
             <option value="graduated">Graduated</option>
           </select>
           {errors.status && <p className="mt-1 text-xs text-red-500">{errors.status}</p>}
+        </div>
+
+        {/* Company */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-text-primary mb-1.5">Company <span className="text-text-hint font-normal">(optional)</span></label>
+          <input
+            type="text"
+            value={company}
+            onChange={e => setCompany(e.target.value)}
+            placeholder="e.g. Google, Shopify"
+            className={`${inputBase} ${inputFocus} ${inputNormal}`}
+          />
         </div>
 
         {/* Occupation */}
