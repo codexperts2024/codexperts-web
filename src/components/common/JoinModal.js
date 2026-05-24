@@ -6,22 +6,13 @@ import { useJoinModal } from '@/contexts/JoinModalContext'
 import { useAuth } from '@/hooks/useAuth'
 import { createProfile } from '@/services/authService'
 import Button from '@/components/ui/Button'
+import { cohortLabel } from '@/utils/cohort'
 
 const SCHOOLS = ['Seneca College', 'York University']
 
 const FIRST_COHORT = { season: 'Fall', year: 2024 }
 const SKIPPED_TERMS = new Set(['Summer 2025'])
 const SEASON_ORDER = ['Winter', 'Summer', 'Fall']
-
-function ordinal(n) {
-  if (n % 100 >= 11 && n % 100 <= 13) return `${n}th`
-  switch (n % 10) {
-    case 1: return `${n}st`
-    case 2: return `${n}nd`
-    case 3: return `${n}rd`
-    default: return `${n}th`
-  }
-}
 
 function getCurrentTerm() {
   const month = new Date().getMonth() + 1
@@ -44,7 +35,7 @@ function generateCohorts() {
       const num = cohorts.length + 1
       cohorts.push({
         value: String(num),
-        label: `${ordinal(num)} Cohort (Joined ${term}${isCurrent ? ' ← now' : ''})`,
+        label: `${cohortLabel(num)} (Joined ${term}${isCurrent ? ' ← now' : ''})`,
       })
     }
 

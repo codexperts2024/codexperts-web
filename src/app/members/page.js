@@ -1,8 +1,9 @@
 'use client'
 import RoleGuard from '@/components/auth/RoleGuard'
 import MemberCard from '@/components/members/MemberCard'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { fetchMembers } from '@/services/membersService'
+import { cohortLabel } from '@/utils/cohort'
 
 
 export default function MembersPage() {
@@ -29,6 +30,11 @@ export default function MembersPage() {
     load()
     return () => { cancelled = true }
   }, [])
+
+  const cohortOptions = useMemo(() => {
+    const nums = [...new Set(members.map(m => m.cohort).filter(Boolean))]
+    return nums.sort((a, b) => Number(a) - Number(b))
+  }, [members])
 
   const filteredMembers = members.filter((m) => {
     if (cohort && m.cohort !== cohort) return false
@@ -63,11 +69,9 @@ export default function MembersPage() {
             <select className="border border-border-strong rounded-md px-3 py-2 text-sm text-text-primary bg-bg-base focus:outline-none focus:ring-2 focus:ring-border"
             value={cohort} onChange={(e) => setCohort(e.target.value)}>
               <option value="">All Cohorts</option>
-              <option value="Fall 2024">1st Cohort</option>
-              <option value="Winter 2025">2nd Cohort</option>
-              <option value="Fall 2025">3rd Cohort</option>
-              <option value="Winter 2026">4th Cohort</option>
-              <option value="Summer 2026">5th Cohort</option>
+              {cohortOptions.map(n => (
+                <option key={n} value={n}>{cohortLabel(n)}</option>
+              ))}
             </select>
 
             <select className="border border-border-strong rounded-md px-3 py-2 text-sm text-text-primary bg-bg-base focus:outline-none focus:ring-2 focus:ring-border"
