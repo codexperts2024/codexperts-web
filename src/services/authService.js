@@ -32,7 +32,7 @@ export async function fetchProfile(userId) {
   return data ?? null
 }
 
-export async function createProfile({ id, first_name, last_name, nickname, email, avatarUrl, school, cohort, phone, status, occupation, linkedin, github }) {
+export async function createProfile({ id, first_name, last_name, nickname, email, avatarUrl, school, cohort, phone, status, company, occupation, linkedin, github }) {
   const { data, error } = await supabase
     .from('profiles')
     .update({
@@ -45,7 +45,8 @@ export async function createProfile({ id, first_name, last_name, nickname, email
       cohort,
       phone,
       status,
-      occupation,
+      company: company || null,
+      occupation: occupation || null,
       linkedin: linkedin || null,
       github: github || null,
     })

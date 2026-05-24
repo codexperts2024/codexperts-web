@@ -76,6 +76,7 @@ export default function JoinModal() {
   const [cohort, setCohort] = useState('')
   const [phone, setPhone] = useState('')
   const [status, setStatus] = useState('')
+  const [company, setCompany] = useState('')
   const [occupation, setOccupation] = useState('')
   const [linkedin, setLinkedin] = useState('')
   const [github, setGithub] = useState('')
@@ -120,6 +121,7 @@ export default function JoinModal() {
       setCohort('')
       setPhone('')
       setStatus('')
+      setCompany('')
       setOccupation('')
       setLinkedin('')
       setGithub('')
@@ -161,6 +163,7 @@ export default function JoinModal() {
         cohort,
         phone,
         status,
+        company,
         occupation,
         linkedin: linkedin ? `https://www.linkedin.com/in/${linkedin}` : null,
         github: github ? `https://github.com/${github}` : null,
@@ -193,37 +196,43 @@ export default function JoinModal() {
       className="fixed inset-0 z-50 flex items-center justify-center px-4"
       style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
     >
-      <div className="relative w-full max-w-[420px] bg-white rounded-lg p-8 shadow-xl animate-fade-up">
+      <div className="relative w-full max-w-[420px] bg-white rounded-lg shadow-xl animate-fade-up flex flex-col max-h-[90vh]">
 
-        <button
-          onClick={handleDismiss}
-          className="absolute top-4 right-4 text-text-hint hover:text-text-secondary transition-colors"
-          aria-label="Close"
-        >
-          <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+        {/* Fixed header */}
+        <div className="px-8 pt-8 pb-4 shrink-0">
+          <button
+            onClick={handleDismiss}
+            className="absolute top-4 right-4 text-text-hint hover:text-text-secondary transition-colors"
+            aria-label="Close"
+          >
+            <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
 
-        <h2 className="font-inter font-semibold text-lg text-text-primary mb-2">Complete your profile</h2>
+          <h2 className="font-inter font-semibold text-lg text-text-primary mb-2">Complete your profile</h2>
 
-        {user && (
-          <div className="flex items-center gap-2.5 mb-6 pb-4 border-b border-border">
-            {user.user_metadata?.avatar_url ? (
-              <img
-                src={user.user_metadata.avatar_url}
-                alt=""
-                className="w-8 h-8 rounded-full"
-                referrerPolicy="no-referrer"
-              />
-            ) : (
-              <div className="w-8 h-8 rounded-full bg-bg-elevated flex items-center justify-center text-xs font-medium text-text-secondary">
-                {(user.email?.[0] ?? '?').toUpperCase()}
-              </div>
-            )}
-            <span className="text-sm text-text-secondary truncate">{user.email}</span>
-          </div>
-        )}
+          {user && (
+            <div className="flex items-center gap-2.5 pb-4 border-b border-border">
+              {user.user_metadata?.avatar_url ? (
+                <img
+                  src={user.user_metadata.avatar_url}
+                  alt=""
+                  className="w-8 h-8 rounded-full"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-bg-elevated flex items-center justify-center text-xs font-medium text-text-secondary">
+                  {(user.email?.[0] ?? '?').toUpperCase()}
+                </div>
+              )}
+              <span className="text-sm text-text-secondary truncate">{user.email}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Scrollable form area */}
+        <div className="overflow-y-auto px-8 pb-8 pt-4">
 
         {/* First Name / Last Name */}
         <div className="flex gap-3 mb-4">
@@ -319,6 +328,18 @@ export default function JoinModal() {
           {errors.status && <p className="mt-1 text-xs text-red-500">{errors.status}</p>}
         </div>
 
+        {/* Company */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-text-primary mb-1.5">Company <span className="text-text-hint font-normal">(optional)</span></label>
+          <input
+            type="text"
+            value={company}
+            onChange={e => setCompany(e.target.value)}
+            placeholder="e.g. Google, Shopify"
+            className={`${inputBase} ${inputFocus} ${inputNormal}`}
+          />
+        </div>
+
         {/* Occupation */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-text-primary mb-1.5">Occupation <span className="text-text-hint font-normal">(optional)</span></label>
@@ -378,6 +399,7 @@ export default function JoinModal() {
         </Button>
 
         {errors.submit && <p className="mt-2 text-xs text-center text-red-500">{errors.submit}</p>}
+        </div>
       </div>
     </div>
   )
