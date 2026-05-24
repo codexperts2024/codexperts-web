@@ -57,7 +57,7 @@ export default function MemberCard({ member }) {
 
       {/* Cohort */}
       {cohort && (
-        <p className="mt-0.5 font-inter text-xs text-text-hint">{cohortLabel(cohort)}</p>
+        <p className="mt-0.5 font-inter text-xs text-text-secondary">{cohortLabel(cohort)}</p>
       )}
 
       {/* Company */}
