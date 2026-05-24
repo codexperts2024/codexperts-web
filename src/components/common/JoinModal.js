@@ -162,7 +162,7 @@ export default function JoinModal() {
         phone,
         status,
         occupation,
-        linkedin: linkedin ? `https://linkedin.com/in/${linkedin}` : null,
+        linkedin: linkedin ? `https://www.linkedin.com/in/${linkedin}` : null,
         github: github ? `https://github.com/${github}` : null,
       })
 
@@ -334,16 +334,16 @@ export default function JoinModal() {
         {/* LinkedIn */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-text-primary mb-1.5">LinkedIn <span className="text-text-hint font-normal">(optional)</span></label>
-          <div className="flex items-center">
-            <span className={`px-3 py-2 text-sm font-inter text-text-hint bg-bg-elevated border border-border-strong border-r-0 rounded-l-md whitespace-nowrap`}>
-              linkedin.com/in/
+          <div className={`flex items-center rounded-md border bg-bg-input transition-colors ${inputNormal} focus-within:border-accent focus-within:ring-1 focus-within:ring-accent/20`}>
+            <span className="pl-3 py-2 text-sm font-inter text-text-primary whitespace-nowrap select-none pointer-events-none shrink-0">
+              https://www.linkedin.com/in/
             </span>
             <input
               type="text"
               value={linkedin}
               onChange={e => setLinkedin(e.target.value.trim())}
               placeholder="username"
-              className={`${inputBase} ${inputFocus} ${inputNormal} rounded-l-none`}
+              className="flex-1 min-w-0 py-2 pr-3 bg-transparent outline-none text-sm font-inter text-text-primary placeholder:text-text-hint"
             />
           </div>
         </div>
@@ -351,16 +351,16 @@ export default function JoinModal() {
         {/* GitHub */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-text-primary mb-1.5">GitHub <span className="text-text-hint font-normal">(optional)</span></label>
-          <div className="flex items-center">
-            <span className={`px-3 py-2 text-sm font-inter text-text-hint bg-bg-elevated border border-border-strong border-r-0 rounded-l-md whitespace-nowrap`}>
-              github.com/
+          <div className={`flex items-center rounded-md border bg-bg-input transition-colors ${inputNormal} focus-within:border-accent focus-within:ring-1 focus-within:ring-accent/20`}>
+            <span className="pl-3 py-2 text-sm font-inter text-text-primary whitespace-nowrap select-none pointer-events-none shrink-0">
+              https://github.com/
             </span>
             <input
               type="text"
               value={github}
               onChange={e => setGithub(e.target.value.trim())}
               placeholder="username"
-              className={`${inputBase} ${inputFocus} ${inputNormal} rounded-l-none`}
+              className="flex-1 min-w-0 py-2 pr-3 bg-transparent outline-none text-sm font-inter text-text-primary placeholder:text-text-hint"
             />
           </div>
         </div>
