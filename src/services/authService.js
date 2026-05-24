@@ -46,8 +46,8 @@ export async function createProfile({ id, first_name, last_name, nickname, email
       phone,
       status,
       occupation,
-      linkedin,
-      github,
+      linkedin: linkedin || null,
+      github: github || null,
     })
     .eq('id', id)
     .select()

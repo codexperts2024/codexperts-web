@@ -162,8 +162,8 @@ export default function JoinModal() {
         phone,
         status,
         occupation,
-        linkedin,
-        github,
+        linkedin: linkedin ? `https://linkedin.com/in/${linkedin}` : null,
+        github: github ? `https://github.com/${github}` : null,
       })
 
       sessionStorage.removeItem('join_modal_dismissed')
@@ -334,25 +334,35 @@ export default function JoinModal() {
         {/* LinkedIn */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-text-primary mb-1.5">LinkedIn <span className="text-text-hint font-normal">(optional)</span></label>
-          <input
-            type="text"
-            value={linkedin}
-            onChange={e => setLinkedin(e.target.value)}
-            placeholder="https://linkedin.com/in/..."
-            className={`${inputBase} ${inputFocus} ${inputNormal}`}
-          />
+          <div className="flex items-center">
+            <span className={`px-3 py-2 text-sm font-inter text-text-hint bg-bg-elevated border border-border-strong border-r-0 rounded-l-md whitespace-nowrap`}>
+              linkedin.com/in/
+            </span>
+            <input
+              type="text"
+              value={linkedin}
+              onChange={e => setLinkedin(e.target.value.trim())}
+              placeholder="username"
+              className={`${inputBase} ${inputFocus} ${inputNormal} rounded-l-none`}
+            />
+          </div>
         </div>
 
         {/* GitHub */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-text-primary mb-1.5">GitHub <span className="text-text-hint font-normal">(optional)</span></label>
-          <input
-            type="text"
-            value={github}
-            onChange={e => setGithub(e.target.value)}
-            placeholder="https://github.com/..."
-            className={`${inputBase} ${inputFocus} ${inputNormal}`}
-          />
+          <div className="flex items-center">
+            <span className={`px-3 py-2 text-sm font-inter text-text-hint bg-bg-elevated border border-border-strong border-r-0 rounded-l-md whitespace-nowrap`}>
+              github.com/
+            </span>
+            <input
+              type="text"
+              value={github}
+              onChange={e => setGithub(e.target.value.trim())}
+              placeholder="username"
+              className={`${inputBase} ${inputFocus} ${inputNormal} rounded-l-none`}
+            />
+          </div>
         </div>
 
         {/* Submit */}
