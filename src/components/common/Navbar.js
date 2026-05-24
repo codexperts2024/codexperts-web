@@ -256,18 +256,21 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Mobile — hamburger */}
-        <button
-          className="ml-auto lg:hidden p-2 text-text-secondary hover:text-text-primary transition-colors"
-          onClick={() => setMobileOpen((o) => !o)}
-          aria-label="Toggle menu"
-        >
+        {/* Mobile — avatar + hamburger */}
+        <div className="ml-auto lg:hidden flex items-center gap-2">
+          {user && <UserChip user={user} profile={profile} />}
+          <button
+            className="p-2 text-text-secondary hover:text-text-primary transition-colors"
+            onClick={() => setMobileOpen((o) => !o)}
+            aria-label="Toggle menu"
+          >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             {mobileOpen
               ? <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               : <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />}
           </svg>
-        </button>
+          </button>
+        </div>
       </div>
 
       {/* Mobile menu */}
