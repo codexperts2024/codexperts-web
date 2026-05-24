@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import { cohortLabel } from '@/utils/cohort'
 
 export default function MemberCard({ member }) {
   const {
@@ -9,6 +10,8 @@ export default function MemberCard({ member }) {
     nickname,
     avatarUrl,
     school,
+    cohort,
+    company,
     occupation,
     status,
     role,
@@ -52,7 +55,17 @@ export default function MemberCard({ member }) {
       {/* School */}
       <p className="mt-1 font-inter text-xs text-text-secondary">{school}</p>
 
-      {/* Work — only if set */}
+      {/* Cohort */}
+      {cohort && (
+        <p className="mt-0.5 font-inter text-xs text-text-secondary">{cohortLabel(cohort)}</p>
+      )}
+
+      {/* Company */}
+      {company && (
+        <p className="mt-0.5 font-inter text-xs text-text-secondary">{company}</p>
+      )}
+
+      {/* Occupation */}
       {occupation && (
         <p className="mt-0.5 font-inter text-xs text-text-secondary">{occupation}</p>
       )}

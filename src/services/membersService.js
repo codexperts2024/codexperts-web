@@ -12,7 +12,7 @@ import { supabase } from '@/lib/supabase'
 export async function fetchMembers() {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, first_name, last_name, nickname, avatar_url, school, occupation, status, role, linkedin, github, cohort')
+    .select('id, first_name, last_name, nickname, avatar_url, school, company, occupation, status, role, linkedin, github, cohort')
     .neq('role', 'pending')
     .order('first_name', { ascending: true })
 
@@ -25,6 +25,7 @@ export async function fetchMembers() {
     nickname: row.nickname,
     avatarUrl: row.avatar_url,
     school: row.school,
+    company: row.company,
     occupation: row.occupation,
     status: row.status,
     role: row.role,
