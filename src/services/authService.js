@@ -71,24 +71,19 @@ export async function updateProfile(userId, fields) {
 }
 
 export async function adminApproval(userID) {
-  const session = await getSession();
+  const session = await getSession()
+  if (!session) throw new Error('Unauthorized: No active session found.')
 
-  if (!session) {
-    throw new Error('Unauthorized: No active session found.');
-  }
+  const res = await fetch('/api/admin/approve', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify({ userId: userID }),
+  })
 
-  const profile = await fetchProfile(session.user.id);
-  if (profile?.role !== 'admin') {
-    throw new Error('Unauthorized: Only admins can approve users.');
-  }
-
-  const { data, error } = await supabase
-    .from('profiles')
-    .update({ role: 'member' })
-    .eq('id', userID)
-    .select()
-    .single();
-
-  if (error) throw error
-  return data;
+  const json = await res.json()
+  if (!res.ok) throw new Error(json.error ?? 'Failed to approve user.')
+  return json.profile
 }
