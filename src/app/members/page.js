@@ -85,7 +85,7 @@ export default function MembersPage() {
             value={status} onChange={(e) => setStatus(e.target.value)}>
               <option value="">All Status</option>
               <option value="student">Student</option>
-              <option value="graduate">Graduate</option>
+              <option value="graduated">Graduate</option>
             </select>
 
             <select className="border border-border-strong rounded-md px-3 py-2 text-sm text-text-primary bg-bg-base focus:outline-none focus:ring-2 focus:ring-border"
