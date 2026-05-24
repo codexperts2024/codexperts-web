@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import Script from 'next/script'
 import Button from '@/components/ui/Button'
+import JoinUsButton from '@/components/ui/JoinUsButton'
 
 export default function HomePage() {
   return (
@@ -35,13 +36,7 @@ export default function HomePage() {
           <p className="text-gray-700 text-center md:text-left">
             Our digital atelier serves as a launching pad for the next generation of architects, developers, and researchers. Whether you're committing your first line of code or optimizing distributed systems, you'll find a community that values technical rigor and creative expression.</p>
           <div className="flex flex-col sm:flex-row gap-4 pt-4 md:pt-6 justify-center md:justify-start">
-            <Link href="/join" className="w-full sm:w-auto">
-              <Button
-                className="w-full sm:w-auto bg-brand-primary hover:bg-brand-hover px-8 py-4 flex items-center justify-center gap-2 shadow-xl"
-              >
-                Join Us <span>→</span>
-              </Button>
-            </Link>
+            <JoinUsButton className="w-full sm:w-auto bg-brand-primary hover:bg-brand-hover px-8 py-4 flex items-center justify-center gap-2 shadow-xl" />
 
             <Link href="/about" className="w-full sm:w-auto">
               <Button

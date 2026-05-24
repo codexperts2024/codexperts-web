@@ -50,8 +50,11 @@
 │  [All Cohorts ▾]  [All Schools ▾]  [All Status ▾]  [All Roles ▾]
 │                                                     │
 │  Cohort dropdown:                                   │
-│    All Cohorts / Winter 2024 / Summer 2024 /        │
-│    Fall 2024 / Winter 2025 / ...                    │
+│    All Cohorts / 5th Cohort / 4th Cohort /          │
+│    3rd Cohort / 2nd Cohort / 1st Cohort             │
+│    (newest first; auto-generated from Fall 2024;    │
+│     Summer 2025 skipped; new cohort added each term)│
+│    Label: ordinal name, filter value: DB cohort string│
 │                                                     │
 │  School dropdown:                                   │
 │    All Schools / Seneca College / York University   │

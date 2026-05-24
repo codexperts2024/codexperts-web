@@ -1,4 +1,4 @@
-// Social media links config — add a new campus object to expand
+// Social media links config — add a new school object to expand
 export const socialLinks = {
   linkedin: {
     url: 'https://linkedin.com/company/codexperts2024',
@@ -6,16 +6,21 @@ export const socialLinks = {
   email: {
     url: 'mailto:codexperts2024@gmail.com',
   },
-  // Public — hover dropdown per campus
-  instagram: [
-    { campus: 'Seneca', url: 'https://instagram.com/codexperts_seneca' },
-    { campus: 'York', url: 'https://www.instagram.com/codexperts_yorku/' },
-    // { campus: 'TMU', url: 'https://instagram.com/codexperts_tmu' },
+  // Official club signup portals per school — set url to null until available
+  clubSignup: [
+    { school: 'Seneca College', url: 'https://clubs.ssfinc.ca/CXS/club_signup' },
+    { school: 'York University', url: null },
   ],
-  // Member only — hover dropdown per campus
+  // Public — hover dropdown per school
+  instagram: [
+    { school: 'Seneca', url: 'https://instagram.com/codexperts_seneca' },
+    { school: 'York', url: 'https://www.instagram.com/codexperts_yorku/' },
+    // { school: 'TMU', url: 'https://instagram.com/codexperts_tmu' },
+  ],
+  // Member only — hover dropdown per school
   discord: [
-    { campus: 'Seneca', url: 'https://discord.gg/SxXDZagWuH' },
-    { campus: 'York', url: 'https://discord.gg/york-placeholder' },
-    // { campus: 'TMU', url: 'https://discord.gg/tmu-placeholder' },
+    { school: 'Seneca', url: 'https://discord.gg/SxXDZagWuH' },
+    { school: 'York', url: 'https://discord.gg/york-placeholder' },
+    // { school: 'TMU', url: 'https://discord.gg/tmu-placeholder' },
   ],
 }

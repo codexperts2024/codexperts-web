@@ -1,6 +1,10 @@
 import { supabase } from '@/lib/supabase'
 
 export async function signInWithGoogle(redirectTo) {
+  // Flag that an OAuth redirect is about to happen so the pageshow handler
+  // can force a reload if the user presses back (bfcache restoration would
+  // leave Supabase's PKCE verifier in a stale state, blocking a second attempt).
+  sessionStorage.setItem('oauth_pending', '1')
   const options = redirectTo ? { redirectTo } : {}
   const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options })
   if (error) throw error
@@ -28,19 +32,25 @@ export async function fetchProfile(userId) {
   return data ?? null
 }
 
-export async function createProfile({ id, name, email, avatarUrl, campus, cohort, phone }) {
+export async function createProfile({ id, first_name, last_name, nickname, email, avatarUrl, school, cohort, phone, status, company, occupation, linkedin, github }) {
   const { data, error } = await supabase
     .from('profiles')
-    .upsert({
-      id,
-      name,
+    .update({
+      first_name,
+      last_name,
+      nickname: nickname || null,
       email,
       avatar_url: avatarUrl,
-      campus,
+      school,
       cohort,
       phone,
-      role: 'pending',
+      status,
+      company: company || null,
+      occupation: occupation || null,
+      linkedin: linkedin || null,
+      github: github || null,
     })
+    .eq('id', id)
     .select()
     .single()
 
@@ -58,4 +68,22 @@ export async function updateProfile(userId, fields) {
 
   if (error) throw error
   return data
+}
+
+export async function adminApproval(userID) {
+  const session = await getSession()
+  if (!session) throw new Error('Unauthorized: No active session found.')
+
+  const res = await fetch('/api/admin/approve', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify({ userId: userID }),
+  })
+
+  const json = await res.json()
+  if (!res.ok) throw new Error(json.error ?? 'Failed to approve user.')
+  return json.profile
 }
