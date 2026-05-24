@@ -17,19 +17,23 @@ export async function POST(request) {
     },
   })
 
-  await transporter.sendMail({
-    from: `"${name} via codeXperts" <${process.env.CONTACT_EMAIL_USER}>`,
-    to: 'codeXperts2024@gmail.com',
-    replyTo: email,
-    subject: `Contact Form: ${name} (${school})`,
-    text: `From: ${name} <${email}>\nSchool: ${school}\n\n${message}`,
-    html: `
+  try {
+    await transporter.sendMail({
+      from: `"${name} via codeXperts" <${process.env.CONTACT_EMAIL_USER}>`,
+      to: 'codeXperts2024@gmail.com',
+      replyTo: email,
+      subject: `Contact Form: ${name} (${school})`,
+      text: `From: ${name} <${email}>\nSchool: ${school}\n\n${message}`,
+      html: `
       <p><strong>From:</strong> ${name} &lt;${email}&gt;</p>
       <p><strong>School:</strong> ${school}</p>
       <hr />
       <p>${message.replace(/\n/g, '<br />')}</p>
     `,
-  })
+    })
+  } catch {
+    return Response.json({ error: 'Failed to send message. Please try again later.' }, { status: 500 })
+  }
 
   return Response.json({ ok: true })
 }
