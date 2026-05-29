@@ -1,12 +1,10 @@
-'use client';
-import { useRouter } from 'next/navigation';
-import { notFound } from 'next/navigation';
+
 import Link from 'next/link';
 import { upcomingEvents } from '@/components/eventsArr';
 
 // Generate static params for all event IDs
 export async function generateStaticParams() {
-  return clubEvents.map((event) => ({
+  return upcomingEvents.map((event) => ({
     id: event.id.toString(),
   }));
 }
@@ -129,11 +127,14 @@ export default async function UpcomingEventPage({params}) {
                 </h3>
               </div>
 
-              <button
-                onClick={() => console.log('Register for event:', upcomingEvent.id)}
-                className="bg-red-700 hover:bg-red-800 text-white font-semibold px-6 py-3 rounded-md transition font-inter text-sm">
+              <Link
+                href={upcomingEvent.registration || '#'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-red-700 hover:bg-red-800 text-white font-semibold px-6 py-3 rounded-md transition font-inter text-sm inline-block"
+              >
                 {upcomingEvent.cta}
-              </button>
+              </Link>
             </div>
           </div>
 
@@ -163,33 +164,33 @@ export default async function UpcomingEventPage({params}) {
         </div>
 
         <div className="flex items-center justify-between mt-10 pt-20 border-t border-gray-100">
-            <button
-              onClick={previous}
-              disabled={!hasPrevious}
-              className= {`border px-5 py-2.5 rounded-md flex items-center gap-2 transition font-inter text-sm ${
-              hasPrevious
-                ? 'border-gray-300 hover:bg-gray-100 text-gray-800'
-                : 'border-gray-200 text-gray-400 cursor-not-allowed bg-gray-50'
-            }`}>
-            <svg className="w-4 h-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 12h14M5 12l4-4m-4 4 4 4" />
-            </svg>
+          <Link
+                href={hasPrevious ? `/events/upcoming/${previousEvent.id}` : '#'}
+                className={`border px-5 py-2.5 rounded-md flex items-center gap-2 transition font-inter text-sm ${
+                  hasPrevious
+                    ? 'border-gray-300 hover:bg-gray-100 text-gray-800 cursor-pointer'
+                    : 'border-gray-200 text-gray-400 cursor-not-allowed bg-gray-50'
+                }`}
+              >
+                <svg className="w-4 h-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 12h14M5 12l4-4m-4 4 4 4" />
+                </svg>
                 Previous Event
-            </button>
+              </Link>
 
-            <button
-              onClick={next}
-              disabled={!hasNext}
-              className={`border px-5 py-2.5 rounded-md flex items-center gap-2 transition font-inter text-sm ${
-              hasNext
-                ? 'border-gray-300 hover:bg-gray-100 text-gray-800'
-                : 'border-gray-200 text-gray-400 cursor-not-allowed bg-gray-50'
-            }`}>
+              <Link
+                href={hasNext ? `/events/upcoming/${nextEvent.id}` : '#'}
+                className={`border px-5 py-2.5 rounded-md flex items-center gap-2 transition font-inter text-sm ${
+                  hasNext
+                    ? 'border-gray-300 hover:bg-gray-100 text-gray-800 cursor-pointer'
+                    : 'border-gray-200 text-gray-400 cursor-not-allowed bg-gray-50'
+                }`}
+              >
                 Next Event
-            <svg className="w-4 h-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 12H5M19 12l-4 4m4-4-4-4" />
-            </svg>
-            </button>
+                <svg className="w-4 h-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 12H5M19 12l-4 4m4-4-4-4" />
+                </svg>
+              </Link>
         </div>
 
       </div>
