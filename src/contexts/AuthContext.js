@@ -1,7 +1,6 @@
 'use client'
 
 import { createContext, useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { getSession, fetchProfile, signOut as authSignOut } from '@/services/authService'
 
@@ -11,7 +10,6 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
-  const router = useRouter()
 
   // getSession, fetchProfile, supabase are stable module-level references;
   // intentionally mount-only.
@@ -50,15 +48,16 @@ export function AuthProvider({ children }) {
         window.location.reload()
         return
       }
-      getSession()
-        .then(session => {
+      ;(async () => {
+        try {
+          const session = await getSession()
           setUser(session?.user ?? null)
           if (!session?.user) setProfile(null)
-        })
-        .catch(() => {
+        } catch {
           setUser(null)
           setProfile(null)
-        })
+        }
+      })()
     }
     window.addEventListener('pageshow', handlePageShow)
 
@@ -107,7 +106,7 @@ export function AuthProvider({ children }) {
     setUser(null)
     setProfile(null)
     sessionStorage.removeItem('join_modal_dismissed')
-    router.push('/')
+    window.location.href = '/'
   }
 
   return (

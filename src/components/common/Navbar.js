@@ -67,6 +67,41 @@ function IconEmail() {
   )
 }
 
+const ROLE_LABEL = { pending: 'P', member: 'M', executive: 'E', admin: 'A' }
+const ROLE_COLOR = {
+  pending:   'bg-gray-200 text-gray-600',
+  member:    'bg-blue-100 text-blue-700',
+  executive: 'bg-purple-100 text-purple-700',
+  admin:     'bg-red-100 text-red-700',
+}
+
+function UserChip({ user, profile }) {
+  const avatarUrl = user?.user_metadata?.avatar_url
+  const initial = profile?.nickname
+    ? profile.nickname[0].toUpperCase()
+    : profile?.first_name
+      ? profile.first_name[0].toUpperCase()
+      : '?'
+  const role = profile?.role
+
+  return (
+    <div className="flex items-center gap-1.5">
+      {avatarUrl ? (
+        <img src={avatarUrl} alt={initial} className="w-7 h-7 rounded-full object-cover" />
+      ) : (
+        <div className="w-7 h-7 rounded-full bg-accent text-white text-xs font-semibold flex items-center justify-center">
+          {initial}
+        </div>
+      )}
+      {role && ROLE_LABEL[role] && (
+        <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${ROLE_COLOR[role]}`}>
+          {ROLE_LABEL[role]}
+        </span>
+      )}
+    </div>
+  )
+}
+
 function IconChevron() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3 mt-0.5 transition-transform duration-200 group-hover:rotate-180">
@@ -120,10 +155,10 @@ function SocialDropdown({ icon, items }) {
       <button className="p-1.5 text-text-secondary hover:text-text-primary transition-colors">{icon}</button>
       <div className="absolute right-0 top-full pt-2 z-50 hidden group-hover:block">
         <div className="bg-white rounded-lg shadow-lg border border-border min-w-[130px] py-1.5">
-          {items.map(({ campus, url }) => (
-            <a key={campus} href={url} target="_blank" rel="noopener noreferrer"
+          {items.map(({ school, url }) => (
+            <a key={school} href={url} target="_blank" rel="noopener noreferrer"
               className="block px-4 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-surface transition-colors">
-              {campus}
+              {school}
             </a>
           ))}
         </div>
@@ -201,10 +236,13 @@ export default function Navbar() {
           <div className="w-px h-5 bg-border mx-1" />
 
           {user ? (
-            <button onClick={signOut}
-              className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors">
-              Log out
-            </button>
+            <div className="flex items-center gap-2">
+              <UserChip user={user} profile={profile} />
+              <button onClick={signOut}
+                className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors">
+                Log out
+              </button>
+            </div>
           ) : (
             <button onClick={handleLogIn} disabled={loggingIn}
               className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
@@ -218,18 +256,21 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Mobile — hamburger */}
-        <button
-          className="ml-auto lg:hidden p-2 text-text-secondary hover:text-text-primary transition-colors"
-          onClick={() => setMobileOpen((o) => !o)}
-          aria-label="Toggle menu"
-        >
+        {/* Mobile — avatar + hamburger */}
+        <div className="ml-auto lg:hidden flex items-center gap-2">
+          {user && <UserChip user={user} profile={profile} />}
+          <button
+            className="p-2 text-text-secondary hover:text-text-primary transition-colors"
+            onClick={() => setMobileOpen((o) => !o)}
+            aria-label="Toggle menu"
+          >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             {mobileOpen
               ? <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               : <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />}
           </svg>
-        </button>
+          </button>
+        </div>
       </div>
 
       {/* Mobile menu */}
@@ -270,10 +311,10 @@ export default function Navbar() {
 
           {/* Social links */}
           <div className="flex items-center gap-4 px-2 py-1">
-            {socialLinks.instagram.map(({ campus, url }) => (
-              <a key={campus} href={url} target="_blank" rel="noopener noreferrer"
+            {socialLinks.instagram.map(({ school, url }) => (
+              <a key={school} href={url} target="_blank" rel="noopener noreferrer"
                 className="text-sm text-text-secondary hover:text-text-primary transition-colors">
-                IG &middot; {campus}
+                IG &middot; {school}
               </a>
             ))}
           </div>
@@ -281,10 +322,10 @@ export default function Navbar() {
             className="px-2 py-1 text-sm text-text-secondary hover:text-text-primary transition-colors">
             LinkedIn
           </a>
-          {isMember && socialLinks.discord.map(({ campus, url }) => (
-            <a key={campus} href={url} target="_blank" rel="noopener noreferrer"
+          {isMember && socialLinks.discord.map(({ school, url }) => (
+            <a key={school} href={url} target="_blank" rel="noopener noreferrer"
               className="px-2 py-1 text-sm text-text-secondary hover:text-text-primary transition-colors">
-              Discord &middot; {campus}
+              Discord &middot; {school}
             </a>
           ))}
           <button

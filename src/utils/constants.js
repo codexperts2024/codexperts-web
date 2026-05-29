@@ -1,4 +1,4 @@
-export const CAMPUSES = ['Seneca College', 'York University']
+export const SCHOOLS = ['Seneca College', 'York University']
 
 export const ROLES = {
   PENDING: 'pending',

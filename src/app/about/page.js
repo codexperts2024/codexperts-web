@@ -1,4 +1,4 @@
-import JoinButton from '@/components/common/JoinButton'
+import JoinUsButton from '@/components/ui/JoinUsButton'
 
 const senecaMembers = [
   { key: 'seneca_president', name: 'TBD', role: 'TBD' },
@@ -143,7 +143,7 @@ const AboutPage = () => {
             Join our community or meet the minds behind the code.</p>
         </div>
         <div className="flex-[0.5] w-full md:w-auto flex justify-center md:justify-end">
-          <JoinButton className="w-full sm:w-auto justify-center bg-brand-primary hover:bg-brand-hover px-8 py-4 flex items-center gap-2 shadow-xl" />
+          <JoinUsButton className="w-full sm:w-auto justify-center bg-brand-primary hover:bg-brand-hover px-8 py-4 flex items-center gap-2 shadow-xl" />
         </div>
       </section>
 
