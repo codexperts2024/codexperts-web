@@ -116,6 +116,11 @@ export default async function PastEventInfo({ params }) {
               </div>
             </div>
           </div>
+
+          {event.gallery && event.gallery.length > 0 && (
+          <Gallery images={event.gallery} eventTitle={event.title} />
+        )}
+        
       </div>
 
     <div className="max-w-4xl mx-auto px-4 md:px-6 pb-16">

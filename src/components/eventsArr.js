@@ -2,16 +2,31 @@ import event1 from '@/app/events/images/event1.png';
 import yearEnd1 from '@/app/events/images/yearEnd1.png';
 import codingComp1 from '@/app/events/images/codingComp1.png';
 
+import networking1 from '@/app/events/images/codingComp1.png';
+import networking2 from '@/app/events/images/codingComp1.png';
+import networking3 from '@/app/events/images/codingComp1.png';
+import networking4 from '@/app/events/images/codingComp1.png';
+import networking5 from '@/app/events/images/codingComp1.png';
+import networking6 from '@/app/events/images/codingComp1.png';
+import networking7 from '@/app/events/images/codingComp1.png';
+import networking8 from '@/app/events/images/codingComp1.png';
+import networking9 from '@/app/events/images/codingComp1.png';
+
+
 export const clubEvents = [
     {id: 1, category: 'Coding Competition', title: 'CodeXperts Coding Competition', date: '2026-03-21', description: 'Programmers of all levels joined to solve algorithms for grand prizes.', eDescription:
         'This intensive laboratory session was a deep-dive into the architectural nuances of systems programming using Rust. Participants explored the intricacies of memory safety without a garbage collector, focusing on ownership, borrowing, and lifetimes.\n\nThe workshop moved beyond basic syntax, challenging students to implement low-level optimizations and safe concurrency patterns. It was designed for those looking to bridge the gap between high-level logic and metal-level performance, providing a rigorous technical framework for building reliable software systems.',
          cta: 'Learn More', 
          image: codingComp1, 
+         gallery: null,
          location:'Room 402', school:'Seneca College'},
     {id: 2, category: 'Social', title: 'CodeXperts Chicken & Networking Event ', date: '2026-03-09', description: 'Networking events filled with delicious fried chicken, Krispy Kreme donuts, and great conversations.', eDescription: '', cta: 'Gallery', 
-        image: event1, location:'Room S1077', school:'Seneca & York'},
+        image: event1, 
+        gallery: [networking1, networking2, networking3, networking4, networking5, networking6, networking7, networking8, networking9],
+        location:'Room S1077', school:'Seneca & York'},
     {id: 3, category: 'Social', title: 'CodeXperts Year-End Event ', date: '2025-12-30', description: 'Celebrating the end of the year with an amazing lunch of pizza, wings, and salad.', eDescription: '', cta: 'Gallery', 
         image: yearEnd1, 
+        gallery: null,
         location:"Professor's House", school:''}
 ];
 
