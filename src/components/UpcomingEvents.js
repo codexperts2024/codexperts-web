@@ -2,17 +2,6 @@
 import { useRouter } from 'next/navigation';
 import { upcomingEvents } from './eventsArr';
 
-// export const upcomingEvents = [
-//     {id: 1, category: 'Featured Competition', title: 'Spring Coding Competition 2026', date: '2026-03-14',
-//     endDate: '2026-03-16', description: 'Join 200+ developers for a 48-hour sprint. Solve algorithmic puzzles, build innovative tools, and win exclusive prizes from the Digital Atelier.',
-//          infoDescription: 'Dive into a 48-hour intensive sprint designed to push your technical boundaries. The Spring Coding Competition 2026 brings together the brightest minds to solve complex algorithmic puzzles and build innovative software tools from the ground up.\n\nWhether you are a backend specialist or a creative frontend developer, this is your laboratory to experiment, iterate, and compete for exclusive prizes and industry recognition.',
-//          cta: 'Register Now', location:'Techinal Lab', school:'Seneca College', tracks: [
-//       { name: 'Algorithmic Mastery', sub: 'Optimization & Logic' },
-//       { name: 'Tool Innovation', sub: 'Utility & Design' }
-//     ]},
-
-// ];
-
 export function getUpcomingEvent(id) {
   return upcomingEvents.find(event => event.id === id);
 }

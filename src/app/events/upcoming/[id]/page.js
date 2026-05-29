@@ -1,33 +1,33 @@
 'use client';
 import { useRouter } from 'next/navigation';
-import { getUpcomingEvent, getNextUpcomingEvents } from '@/components/UpcomingEvents';
+import { notFound } from 'next/navigation';
+import Link from 'next/link';
 import { upcomingEvents } from '@/components/eventsArr';
 
-// const upcomingEvents = [
-//     {id: 1, category: 'Featured Competition', title: 'Spring Coding Competition 2026', date: '2026-03-14',
-//     endDate: '2026-03-16', description: 'Join 200+ developers for a 48-hour sprint. Solve algorithmic puzzles, build innovative tools, and win exclusive prizes from the Digital Atelier.',
-//          infoDescription: 'Dive into a 48-hour intensive sprint designed to push your technical boundaries. The Spring Coding Competition 2026 brings together the brightest minds to solve complex algorithmic puzzles and build innovative software tools from the ground up.\n\nWhether you are a backend specialist or a creative frontend developer, this is your laboratory to experiment, iterate, and compete for exclusive prizes and industry recognition.',
-//          cta: 'Register Now', location:'Techinal Lab', school:'Seneca College', tracks: [
-//       { name: 'Algorithmic Mastery', sub: 'Optimization & Logic' },
-//       { name: 'Tool Innovation', sub: 'Utility & Design' }
-//     ]},
-
-// ];
+// Generate static params for all event IDs
+export async function generateStaticParams() {
+  return clubEvents.map((event) => ({
+    id: event.id.toString(),
+  }));
+}
 
 
 export default async function UpcomingEventPage({params}) {
 
-  const router = useRouter();
-  const {id} = await params;
-  const eventId = parseInt(id);
-
-  const upcomingEvent = upcomingEvents.find(event => event.id === eventId);
-
-  const currentIndex = upcomingEvents.findIndex(event => event.id === eventId);
-  const previousEvent = currentIndex > 0 ? upcomingEvents[currentIndex - 1] : null;
-  const nextEvent = currentIndex < upcomingEvents.length - 1 ? upcomingEvents[currentIndex + 1] : null;
-  const hasPrevious = currentIndex > 0;
-  const hasNext = currentIndex < upcomingEvents.length - 1;
+    const { id } = await params;
+    const eventId = parseInt(id);
+  
+    const upcomingEvent = upcomingEvents.find(event => event.id === eventId);
+  
+    const currentIndex = upcomingEvents.findIndex(event => event.id === eventId);
+    const previousEvent = currentIndex > 0 ? upcomingEvents[currentIndex - 1] : null;
+    const nextEvent = currentIndex < upcomingEvents.length - 1 ? upcomingEvents[currentIndex + 1] : null;
+    const hasPrevious = currentIndex > 0;
+    const hasNext = currentIndex < upcomingEvents.length - 1;
+    
+    const description = upcomingEvent.infoDescription && upcomingEvent.infoDescription.trim() !== ''
+      ? upcomingEvent.infoDescription.split('\n\n')
+      : ['No detailed description available for this event.'];
 
   if (!upcomingEvent) {
     return (
@@ -42,20 +42,6 @@ export default async function UpcomingEventPage({params}) {
       </div>
     )
   }
-
-    const previous = () => {
-    if (hasPrevious && previousEvent) {
-      router.push(`/events/upcoming/${previousEvent.id}`);
-    }
-  };
-
-  const next = () => {
-    if (hasNext && nextEvent) {
-      router.push(`/events/upcoming/${nextEvent.id}`);
-    }
-  };
-
-  const description = upcomingEvent.infoDescription.split('\n\n');
 
     return (
 
