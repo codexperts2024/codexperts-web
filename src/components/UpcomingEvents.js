@@ -1,5 +1,5 @@
 'use client';
-import { useRouter } from 'next/navigation';
+
 import { clubEvents } from './eventsArr';
 import Link from 'next/link';
 
@@ -15,6 +15,16 @@ function isUpcomingEvent(event) {
 //   return upcomingEvents.find(event => event.id === id);
 // }
 
+function getUpcomingEvents() {
+  return clubEvents
+    .filter(event => isEventUpcoming(event))
+    .sort((a, b) => {
+      const dateA = a.endDate ? new Date(a.endDate) : new Date(a.date);
+      const dateB = b.endDate ? new Date(b.endDate) : new Date(b.date);
+      return dateA - dateB;
+    });
+}
+
 
 export default function UpcomingEvent() {
 
@@ -23,7 +33,29 @@ export default function UpcomingEvent() {
     const featuredEvent = upcomingEvents[0];
 
     if (!featuredEvent) {
-      return null; 
+      return (
+        <section className="w-full bg-[#efefef] pt-8 pb-20 md:pt-2 md:pb-24">
+          <div className="px-6 md:px-8">
+            <div className="max-w-7xl mx-auto">
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-4xl font-bold font-montserrat">Upcoming</h2>
+                <div className="w-20 h-px bg-gray-300" />
+              </div>
+              
+              {/* When there are no upcoming events */}
+              <div className="bg-white rounded-lg shadow-lg p-8 md:p-12 text-center">
+                <div className="text-6xl mb-4">📅</div>
+                <h3 className="text-xl md:text-2xl font-bold font-montserrat text-gray-800 mb-2">
+                  No Upcoming Events
+                </h3>
+                <p className="text-gray-500 font-inter max-w-md mx-auto">
+                  Keep an eye out for more events! Check back for updates on future competitions, workshops, and fun events.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      );
     }
 
 

@@ -28,7 +28,7 @@ export default function Gallery({ gallery, eventTitle }) {
     setSelectedImage(gallery[newIndex]);
   };
 
-  // Keyboard navigation
+  // Buttons for the lightbox
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (!selectedImage) return;
@@ -52,7 +52,6 @@ export default function Gallery({ gallery, eventTitle }) {
 
   return (
     <>
-      {/* Gallery Grid */}
       <div className="mt-16">
         <h2 className="text-xl md:text-2xl font-bold text-gray-800 font-montserrat mb-6">
           Gallery
@@ -77,13 +76,12 @@ export default function Gallery({ gallery, eventTitle }) {
         </div>
       </div>
 
-      {/* Lightbox Modal */}
+      {/* Lightbox */}
       {selectedImage && (
         <div
           className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
           onClick={closeLightbox}
         >
-          {/* Close button */}
           <button
             onClick={closeLightbox}
             className="absolute top-4 right-4 text-white hover:text-gray-300 transition z-10"
@@ -94,7 +92,6 @@ export default function Gallery({ gallery, eventTitle }) {
             </svg>
           </button>
 
-          {/* Previous button */}
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -108,7 +105,6 @@ export default function Gallery({ gallery, eventTitle }) {
             </svg>
           </button>
 
-          {/* Next button */}
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -122,12 +118,10 @@ export default function Gallery({ gallery, eventTitle }) {
             </svg>
           </button>
 
-          {/* Image counter */}
           <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-sm bg-black/50 px-3 py-1 rounded-full font-inter">
             {currentIndex + 1} / {gallery.length}
           </div>
 
-          {/* Image */}
           <div
             className="flex items-center justify-center w-full max-w-2xl max-h-[70vh] mx-4"
             // exits the image when the dark background is clicked

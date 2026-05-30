@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import Image from 'next/image';
-import { clubEvents } from './eventsArr';
+// import { clubEvents } from './eventsArr';
 
 
 export default function PastEventsCards({event}) {

@@ -7,14 +7,6 @@ function getEventById(id) {
   return clubEvents.find(event => event.id === id);
 }
 
-// function getAllEvents() {
-//   return [...clubEvents].sort((a, b) => {
-//     const dateA = a.endDate ? new Date(a.endDate) : new Date(a.date);
-//     const dateB = b.endDate ? new Date(b.endDate) : new Date(b.date);
-//     return dateA - dateB;
-//   });
-// }
-
 function isEventUpcoming(event) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -138,11 +130,6 @@ export default async function EventPage({ params }) {
               
               {/* Larger Column */}
               <div className="lg:col-span-2">
-                {/* <div className="mb-4 md:mb-6">
-                  <span className="inline-flex items-center rounded-md bg-red-100 px-5 py-2 text-xs tracking-widest font-semibold text-red-700">
-                    UPCOMING EVENT
-                  </span>
-                </div> */}
                 
                 <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 leading-tight font-montserrat">
                   {event.title.split(' ').slice(0, 2).join(' ')}
@@ -198,14 +185,23 @@ export default async function EventPage({ params }) {
                     <p className="text-xs font-bold tracking-widest text-red-700 uppercase">Registration Open</p>
                     <h3 className="text-lg md:text-xl font-bold text-gray-900 mt-1">Secure your spot in the lab</h3>
                   </div>
-                  <Link
-                    href={event.registration || '#'}
+                  {event.registration ? (
+                <Link
+                    href={event.registration}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="bg-red-700 hover:bg-red-800 text-white font-semibold px-6 py-3 rounded-md transition font-inter text-sm inline-block"
-                  >
+                >
                     {event.cta}
-                  </Link>
+                </Link>
+                ) : (
+                    <button
+                        disabled
+                        className="bg-gray-400 cursor-not-allowed text-white font-semibold px-6 py-3 rounded-md font-inter text-sm inline-block"
+                    >
+                        Registration Coming Soon
+                    </button>
+                )}
                 </div>
               </div>
               
@@ -342,7 +338,6 @@ export default async function EventPage({ params }) {
             )}
           </div>
           
-          {/* Navigation - At the bottom for past events */}
           <div className="max-w-4xl mx-auto px-4 md:px-6 pb-16">
             <div className="flex items-center justify-between mt-10 pt-20 border-t border-gray-100">
               <Link
