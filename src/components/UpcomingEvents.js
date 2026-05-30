@@ -1,6 +1,7 @@
 'use client';
 import { useRouter } from 'next/navigation';
-import { upcomingEvents } from './eventsArr';
+import { clubEvents } from './eventsArr';
+import Link from 'next/link';
 
 function isUpcomingEvent(event) {
   const today = new Date();
@@ -17,7 +18,7 @@ function isUpcomingEvent(event) {
 
 export default function UpcomingEvent() {
 
-     const upcomingEvents = clubEvents.filter(event => isUpcomingEvent(event));
+    const upcomingEvents = clubEvents.filter(event => isUpcomingEvent(event));
   
     const featuredEvent = upcomingEvents[0];
 

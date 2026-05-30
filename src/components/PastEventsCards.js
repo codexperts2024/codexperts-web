@@ -7,7 +7,7 @@ import { clubEvents } from './eventsArr';
 export default function PastEventsCards({event}) {
     return (
         <Link href={`/events/${event.id}`} className="block group">
-            <div className="group rounded-t-lg overflow-hidden bg-white hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-out hover:shadow-[0_4px_12px_rgba(0,0,0,0.10) rounded-t-lg">
+            <div className="overflow-hidden bg-white rounded-t-lg transition-all duration-500 ease-out hover:shadow-xl hover:-translate-y-1">
                 <div className="relative h-[200px] overflow-hidden bg-black rounded-t-lg">
                   <Image
                     src={event.image} 
@@ -34,7 +34,7 @@ export default function PastEventsCards({event}) {
                     </p>
 
                     {event.school && (
-                      <span className="text-[11px] uppercase tracking-[0.1em] text-gray-400">
+                      <span className="text-[11px] uppercase tracking-[0.1em] text-gray-400 transition-colors duration-300 group-hover:text-gray-500">
                         {event.school}
                       </span>
                     )}

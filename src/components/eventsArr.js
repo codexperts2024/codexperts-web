@@ -1,6 +1,6 @@
 import event1 from '@/app/events/images/event1.png';
-import yearEnd1 from '@/app/events/images/yearEnd1.png';
-import codingComp1 from '@/app/events/images/codingComp1.png';
+import yearEnd from '@/app/events/images/yearEnd.png';
+import competitionCover from '@/app/events/images/competitionCover.png';
 
 import competition1 from '@/app/events/images/competition1.png';
 import competition2 from '@/app/events/images/competition2.png';
@@ -25,15 +25,16 @@ import networking9 from '@/app/events/images/networking9.png';
 
 export const clubEvents = [
     {id: 1, category: 'Featured Competition', 
-        title: 'Spring Coding Competition 2026', 
-        date: '2026-03-14',
-        endDate: '2026-03-16', 
+        title: 'LeetCode Session 2026', 
+        date: '2026-06-01',
+        endDate: null, 
         registration:'', 
-        description: 'Join 200+ developers for a 48-hour sprint. Solve algorithmic puzzles, build innovative tools, and win exclusive prizes from the Digital Atelier.',
-        infoDescription: 'Dive into a 48-hour intensive sprint designed to push your technical boundaries. The Spring Coding Competition 2026 brings together the brightest minds to solve complex algorithmic puzzles and build innovative software tools from the ground up.\n\nWhether you are a backend specialist or a creative frontend developer, this is your laboratory to experiment, iterate, and compete for exclusive prizes and industry recognition.',
+        description: 'Join CodeXperts @ Seneca for its first ever LeetCode session! Coders of all levels are welcomed to solve various algorithmic problems so feel free to drop by.',
+        infoDescription: 'Join us for our first ever LeetCode session! Whether you are a beginner or an experienced coder, this is your chance to tackle challenges, share insights, and grow as a developer.\n\nDo not miss the opportunity to connect with like-minded peers and sharpen your problem-solving skills. All experience levels welcome - see you there!',
         cta: 'Register Now', 
         location:'Techinal Lab', 
         school:'Seneca College', 
+        image: null,
         gallery: null,
         tracks: [
         { name: 'Algorithmic Mastery', sub: 'Optimization & Logic' },
@@ -47,7 +48,7 @@ export const clubEvents = [
         description: 'Programmers of all levels joined to solve algorithms for grand prizes.', 
         infoDescription:'This intensive laboratory session was a deep-dive into the architectural nuances of systems programming using Rust. Participants explored the intricacies of memory safety without a garbage collector, focusing on ownership, borrowing, and lifetimes.\n\nThe workshop moved beyond basic syntax, challenging students to implement low-level optimizations and safe concurrency patterns. It was designed for those looking to bridge the gap between high-level logic and metal-level performance, providing a rigorous technical framework for building reliable software systems.',
         cta: 'Learn More', 
-        image: codingComp1, 
+        image: competitionCover, 
         gallery: [competition1, competition2, competition3, competition4, competition5, competition6, competition7, competition8, competition9],
         location:'Room 402', school:'Seneca College',
         tracks: null},
@@ -72,7 +73,7 @@ export const clubEvents = [
         registration:'', 
         description: 'Celebrating the end of the year with an amazing lunch of pizza, wings, and salad.', 
         infoDescription: '', cta: 'Gallery', 
-        image: yearEnd1, 
+        image: yearEnd, 
         gallery: null,
         location:"Professor's House", 
         school:''},
