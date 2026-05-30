@@ -145,26 +145,62 @@ export default function ProfilePage({ params }) {
                                         )}
                                     </div>
                                 </div>
+                                {/* Edit button — own profile only */}
+                                {isOwn && (
+                                    <button className="flex-shrink-0 text-sm font-medium px-4 py-2 rounded border border-border-strong text-text-secondary bg-transparent hover:border-text-primary hover:text-text-primary transition-colors">
+                                        Edit Profile
+                                    </button>
+                                )}
                             </div>
                         )}
                     </div>
                 </section>
 
-                {/*BIO*/}
-                <section>
-                    About goes here
-                </section>
-
-                {/*ACTIVITY HEATMAP*/}
-                <section>
-                    <p>Coming soon</p>
-                </section>
-
-                {/*ACHIEVEMENT BADGES*/}
-                <section>
-                    Badges go here
-                </section>
-                
+                {!loading && !error && member && (
+                    <>
+                        {/* BIO */}
+                        {visibility.bio !== false && (
+                            <section className="border-b border-border py-8 px-6">
+                                <div className="max-w-[1200px] mx-auto">
+                                    <h2 className="font-montserrat font-semibold text-xl text-text-primary mb-3">About</h2>
+                                    {member.bio ? (
+                                        <p className="text-base leading-relaxed text-text-secondary">{member.bio}</p>
+                                    ) : (
+                                        <p className="text-base italic text-text-hint">This member hasn't added a bio yet.</p>
+                                    )}
+                                </div>
+                            </section>
+                        )}
+            
+                        {/* ACTIVITY HEATMAP — placeholder */}
+                        <section className="border-b border-border py-8 px-6">
+                            <div className="max-w-[1200px] mx-auto">
+                                <h2 className="font-montserrat font-semibold text-xl text-text-primary mb-3">Activity</h2>
+                                <div className="w-full rounded-lg bg-bg-elevated flex items-center justify-center py-10">
+                                <p className="text-sm text-text-hint">Coming soon</p>
+                                </div>
+                            </div>
+                        </section>
+            
+                        {/* BADGES */}
+                        <section className="py-8 px-6">
+                            <div className="max-w-[1200px] mx-auto">
+                                <h2 className="font-montserrat font-semibold text-xl text-text-primary mb-4">Achievements</h2>
+                                <p className="text-sm text-text-hint">Coming soon</p>
+                                {/* TODO: uncomment badge render when available */}
+                                {/* {badges.length === 0 ? (
+                                    <p className="text-sm italic text-text-hint">No achievements yet. Keep going!</p>
+                                    ) : (
+                                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                                        {badges.map((badge) => (
+                                            <BadgeCard key={badge.id} badge={badge} />
+                                        ))}
+                                    </div>
+                                )} */}
+                            </div>
+                        </section>
+                    </>
+                )}   
             </main>
         </RoleGuard>
     )
