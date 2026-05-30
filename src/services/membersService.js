@@ -34,3 +34,38 @@ export async function fetchMembers() {
     cohort: row.cohort,
   }))
 }
+
+export async function fetchMemberById(id) {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, first_name, last_name, nickname, avatar_url, school, company, occupation, status, role, linkedin, github, cohort')
+    .eq('id', id)
+    .single()
+  if (error) throw error
+
+  return {
+    id: data.id,
+    firstName: data.first_name,
+    lastName: data.last_name,
+    nickname: data.nickname,
+    avatarUrl: data.avatar_url,
+    school: data.school,
+    company: data.company,
+    occupation: data.occupation,
+    status: data.status,
+    role: data.role,
+    linkedinUrl: data.linkedin,
+    githubUrl: data.github,
+    cohort: data.cohort
+  }
+}
+
+// export async function fetchMemberBadges(id) {
+//   const { data, error } = await supabase
+//     .from('user_badges')
+//     .select('*, badges(*)')
+//     .eq('user_id', id)
+//   if (error) throw error
+
+//   return data ?? []
+// }
