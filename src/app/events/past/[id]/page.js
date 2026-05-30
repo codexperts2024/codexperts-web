@@ -1,7 +1,7 @@
-
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { clubEvents } from '@/components/eventsArr';
+import Gallery from '@/components/gallery';
 
 
 
@@ -28,8 +28,8 @@ export default async function PastEventInfo({ params }) {
   const hasPrevious = currentIndex > 0;
   const hasNext = currentIndex < clubEvents.length - 1;
   
-  const descriptions = event.eDescription && event.eDescription.trim() !== ''
-    ? event.eDescription.split('\n\n')
+  const descriptions = event.infoDescription && event.infoDescription.trim() !== ''
+    ? event.infoDescription.split('\n\n')
     : ['No detailed description available for this event.'];
 
   return (
@@ -118,9 +118,9 @@ export default async function PastEventInfo({ params }) {
           </div>
 
           {event.gallery && event.gallery.length > 0 && (
-          <Gallery images={event.gallery} eventTitle={event.title} />
+          <Gallery gallery={event.gallery} eventTitle={event.title} />
         )}
-        
+
       </div>
 
     <div className="max-w-4xl mx-auto px-4 md:px-6 pb-16">

@@ -2,39 +2,28 @@
 import { useRouter } from 'next/navigation';
 import { upcomingEvents } from './eventsArr';
 
-export function getUpcomingEvent(id) {
-  return upcomingEvents.find(event => event.id === id);
+function isUpcomingEvent(event) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const eventEndDate = event.endDate ? new Date(event.endDate) : new Date(event.date);
+  eventEndDate.setHours(0, 0, 0, 0);
+  return eventEndDate >= today;
 }
 
-export function getNextUpcomingEvents(currentId) {
-  const currentIndex = upcomingEvents.findIndex(e => e.id === currentId);
+// export function getUpcomingEvent(id) {
+//   return upcomingEvents.find(event => event.id === id);
+// }
 
-  const previousEvent = currentIndex > 0 ? upcomingEvents[currentIndex - 1] : null;
-  const nextEvent = currentIndex < upcomingEvents.length - 1 ? upcomingEvents[currentIndex + 1] : null;
-
-  return {
-    previousEvent,
-    nextEvent,
-    hasPrevious: currentIndex > 0,
-    hasNext: currentIndex < upcomingEvents.length - 1
-  };
-}
 
 export default function UpcomingEvent() {
 
-   const router = useRouter();
-  // Get the first event from the array to display as the featured event
-  const featuredEvent = upcomingEvents[0];
+     const upcomingEvents = clubEvents.filter(event => isUpcomingEvent(event));
+  
+    const featuredEvent = upcomingEvents[0];
 
-  const learnMore = (eventId) => {
-    router.push(`/events/upcoming/${eventId}`);
-  };
-
-  const register = (eventId) => {
-    console.log('Register for event:', eventId);
-  };
-
-  if (!featuredEvent) return null;
+    if (!featuredEvent) {
+      return null; 
+    }
 
 
     return (
@@ -84,16 +73,20 @@ export default function UpcomingEvent() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <button
-                  onClick={() => register(featuredEvent.id)}
-                    className="bg-red-600 hover:bg-red-700 transition text-white px-6 py-3 text-sm font-medium rounded">
+                  <Link
+                    href={featuredEvent.registration || '#'}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-red-600 hover:bg-red-700 transition text-white px-6 py-3 text-sm font-medium rounded inline-block text-center"
+                  >
                     {featuredEvent.cta}
-                  </button>
-                  <button
-                    onClick={() => learnMore(featuredEvent.id)}
-                    className="border border-white/20 hover:bg-white hover:text-black transition text-white px-6 py-3 text-sm font-medium rounded hover:text-[#C0392B]">
+                  </Link>
+                  <Link
+                    href={`/events/${featuredEvent.id}`}
+                    className="border border-white/20 hover:bg-white hover:text-black transition text-white px-6 py-3 text-sm font-medium rounded inline-block text-center"
+                  >
                     Learn More
-                  </button>
+                  </Link>
                 </div>
               </div>
             </div>

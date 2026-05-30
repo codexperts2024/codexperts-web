@@ -6,7 +6,7 @@ import { clubEvents } from './eventsArr';
 
 export default function PastEventsCards({event}) {
     return (
-        <Link href={`/events/past/${event.id}`} className="block group">
+        <Link href={`/events/${event.id}`} className="block group">
             <div className="group rounded-t-lg overflow-hidden bg-white hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-out hover:shadow-[0_4px_12px_rgba(0,0,0,0.10) rounded-t-lg">
                 <div className="relative h-[200px] overflow-hidden bg-black rounded-t-lg">
                   <Image

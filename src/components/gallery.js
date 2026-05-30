@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 
-export default function eventsGallery({ gallery, eventTitle }) {
+export default function Gallery({ gallery, eventTitle }) {
   const [selectedImage, setSelectedImage] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -55,9 +55,9 @@ export default function eventsGallery({ gallery, eventTitle }) {
       {/* Gallery Grid */}
       <div className="mt-16">
         <h2 className="text-xl md:text-2xl font-bold text-gray-800 font-montserrat mb-6">
-          Event Gallery
+          Gallery
         </h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-4">
           {gallery.map((image, index) => (
             <div
               key={index}
@@ -68,6 +68,7 @@ export default function eventsGallery({ gallery, eventTitle }) {
                 src={image}
                 alt={`${eventTitle} - ${index + 1}`}
                 fill
+                sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                 className="object-cover transition duration-300 group-hover:scale-110"
               />
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
@@ -122,22 +123,22 @@ export default function eventsGallery({ gallery, eventTitle }) {
           </button>
 
           {/* Image counter */}
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-sm bg-black/50 px-3 py-1 rounded-full">
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-sm bg-black/50 px-3 py-1 rounded-full font-inter">
             {currentIndex + 1} / {gallery.length}
           </div>
 
           {/* Image */}
           <div
-            className="relative w-full max-w-5xl max-h-[90vh] mx-4"
+            className="flex items-center justify-center w-full max-w-2xl max-h-[70vh] mx-4"
             // exits the image when the dark background is clicked
             onClick={(e) => e.stopPropagation()}
           >
             <Image
               src={selectedImage}
               alt={`${eventTitle} - ${currentIndex + 1}`}
-              width={1200}
-              height={800}
-              className="object-contain w-full h-full max-h-[90vh]"
+              width={800}
+              height={600}
+              className="relative w-full max-w-2xl max-h-[70vh] mx-4"
             />
           </div>
         </div>
