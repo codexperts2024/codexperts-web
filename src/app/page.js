@@ -19,10 +19,10 @@ export default function HomePage() {
       </section>
 
       <section className="flex justify-evenly items-center m-4 md:m-10 my-8 md:my-16 py-5 bg-white">
-          <div 
-          className="elfsight-app-6ad46684-1265-4d5d-bcce-41c3310eff1e w-full overflow-hidden" 
-          data-elfsight-app-lazy 
-        />        
+          <div
+          className="elfsight-app-6ad46684-1265-4d5d-bcce-41c3310eff1e w-full overflow-hidden"
+          data-elfsight-app-lazy
+        />
 
       </section>
       <section className="flex flex-col md:flex-row my-8 md:my-16 justify-center items-center md:items-start container mx-auto p-5 gap-8 md:gap-0">
