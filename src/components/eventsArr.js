@@ -24,6 +24,12 @@ import networking7 from '@/app/events/images/networking7.png';
 import networking8 from '@/app/events/images/networking8.png';
 import networking9 from '@/app/events/images/networking9.png';
 
+import yearEndPic1 from '@/app/events/images/yearEndPic1.png';
+import yearEndPic2 from '@/app/events/images/yearEndPic2.png';
+import yearEndPic3 from '@/app/events/images/yearEndPic3.png';
+import yearEndPic4 from '@/app/events/images/yearEndPic4.png';
+import yearEndPic5 from '@/app/events/images/yearEndPic5.png';
+
 
 export const clubEvents = [
     {id: 1, category: 'Featured Competition', 
@@ -48,7 +54,7 @@ export const clubEvents = [
         endDate: null,
         registration:'', 
         description: 'Programmers of all levels joined to solve algorithms for grand prizes.', 
-        infoDescription:'This intensive laboratory session was a deep-dive into the architectural nuances of systems programming using Rust. Participants explored the intricacies of memory safety without a garbage collector, focusing on ownership, borrowing, and lifetimes.\n\nThe workshop moved beyond basic syntax, challenging students to implement low-level optimizations and safe concurrency patterns. It was designed for those looking to bridge the gap between high-level logic and metal-level performance, providing a rigorous technical framework for building reliable software systems.',
+        infoDescription:'History was made today — CodeXperts just held its first-ever coding competition and every single participant brought the energy that made it unforgettable. Huge congratulations to all the winners and participants of the coding competition!\n\nFrom beginners to advanced coders, everyone found opportunities to shine and push their boundaries. The competition challenged participants with various problems and creative solutions.',
         cta: 'Learn More', 
         image: competitionCover, 
         gallery: [competition1, competition2, competition3, competition4, competition5, competition6, competition7, competition8, competition9],
@@ -74,9 +80,10 @@ export const clubEvents = [
         endDate: null,
         registration:'', 
         description: 'Celebrating the end of the year with an amazing lunch of pizza, wings, and salad.', 
-        infoDescription: '', cta: 'Gallery', 
+        infoDescription: "This year-end gathering represented a milestone for CodeXperts being the first collaborative event where both university chapters met. Members gathered at the Professor's home, featuring pizza and wings and casual games. \n\nBeyond the activities, the event served as a great networking opportunity, welcoming new CodeXperts York members into the club community. It fostered connections and closed the year on a note of collaboration and camaraderie.", 
+        cta: 'Gallery', 
         image: yearEnd, 
-        gallery: null,
+        gallery: [yearEnd, yearEndPic1, yearEndPic2, yearEndPic3, yearEndPic4, yearEndPic5],
         location:"Professor's House", 
         school:''},
     
