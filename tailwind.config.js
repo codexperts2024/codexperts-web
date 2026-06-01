@@ -41,6 +41,7 @@ module.exports = {
           bg: '#EAF4F0',
         },
         warning: '#B45309',
+        gold: '#B8860B',
         link: {
           DEFAULT: '#1A6FBF',
           bg: '#F0F4FF',

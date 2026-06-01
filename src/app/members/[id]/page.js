@@ -35,7 +35,7 @@ function ExecutiveBadge() {
 function StatusBadge({ status }) {
   const isStudent = status === 'student'
   return (
-    <span className={`text-xs font-medium px-2 py-0.5 rounded ${isStudent ? 'bg-link-bg text-link' : 'bg-bg-elevated text-text-secondary'}`}>
+    <span className={`text-xs font-medium px-2 py-0.5 rounded ${isStudent ? 'bg-link-bg text-link' : 'bg-link-bg text-gold'}`}>
       {isStudent ? 'Student' : 'Graduate'}
     </span>
   )
