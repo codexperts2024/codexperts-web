@@ -20,8 +20,8 @@ export default function HomePage() {
         />
       </section>
 
-      {/* Social Feed — full width bg-bg-surface, inner container matches footer */}
-      <section className="w-full bg-bg-surface py-8 md:py-12">
+      {/* Social Feed — full width bg-bg-base, inner container matches footer */}
+      <section className="w-full bg-bg-base py-8 md:py-12">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div
             className="elfsight-app-6ad46684-1265-4d5d-bcce-41c3310eff1e w-full overflow-hidden"
@@ -30,8 +30,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Who We Are — full width bg-bg-surface, inner container matches footer */}
-      <section className="w-full bg-bg-surface py-12 md:py-20">
+      {/* Who We Are — full width bg-bg-base, inner container matches footer */}
+      <section className="w-full bg-bg-base py-12 md:py-20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row gap-10 md:gap-16 items-start">
           <div className="w-full md:w-64 shrink-0 text-center md:text-left">
             <h2 className="font-montserrat font-bold text-4xl md:text-5xl mb-4 text-text-primary">Who We Are</h2>
@@ -39,10 +39,9 @@ export default function HomePage() {
           </div>
           <div className="flex flex-col gap-5 flex-1">
             <p className="text-text-secondary leading-relaxed text-center md:text-left">
-              codeXperts is a premier student-led technical collective dedicated to bridging the gap between theoretical computer science and professional software engineering. We believe that mastery comes from doing from the messy reality of version control, system design, and collaborative debugging.
-            </p>
+              codeXperts is a premier student-led technical collective built on a simple truth: academic coursework alone is not enough to survive the modern production environment. We bridge this gap by cultivating the essential skills that industry demands.            </p>
             <p className="text-text-secondary leading-relaxed text-center md:text-left">
-              Our digital atelier serves as a launching pad for the next generation of architects, developers, and researchers. Whether you&apos;re committing your first line of code or optimizing distributed systems, you&apos;ll find a community that values technical rigor and creative expression.
+              Through algorithm training and continuous presentation cycles, our members sharpen both their computational logic and their technical communication. Beyond the code, codeXperts serves as a vibrant networking hub and incubator, where developers connect, collaborate, and build production-ready team projects.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 pt-2 justify-center md:justify-start">
               <JoinUsButton className="w-full sm:w-auto px-8 py-3 flex items-center justify-center gap-2" />

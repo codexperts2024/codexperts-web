@@ -36,7 +36,7 @@ const AboutPage = () => {
       </div>
 
       {/* Why We Exist */}
-      <section className="w-full bg-bg-surface py-12 md:py-16">
+      <section className="w-full bg-bg-base py-12 md:py-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row gap-8 md:gap-16 items-start">
           <h2 className="font-montserrat font-semibold text-2xl md:text-3xl text-accent shrink-0 md:w-56 text-center md:text-left">Why We Exist</h2>
           <div className="flex flex-col gap-5">
@@ -53,17 +53,17 @@ const AboutPage = () => {
       {/* Pillars */}
       <section className="w-full py-12 md:py-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row flex-wrap justify-center gap-6">
-          <div className="bg-bg-surface border border-border rounded-lg p-5 flex flex-col gap-4 w-full sm:w-72 md:w-80">
+          <div className="bg-bg-base border border-border rounded-lg p-5 flex flex-col gap-4 w-full sm:w-72 md:w-80">
             <span className="text-3xl -ml-1.5 -mb-1">💡</span>
             <p className="font-montserrat font-semibold text-xl text-text-primary">Algorithmic Thinking</p>
             <p className="text-text-secondary">Mastering the logic behind the code. We tackle complex problem sets that challenge conventional solutions.</p>
           </div>
-          <div className="bg-bg-surface border border-border rounded-lg p-5 flex flex-col gap-4 w-full sm:w-72 md:w-80">
+          <div className="bg-bg-base border border-border rounded-lg p-5 flex flex-col gap-4 w-full sm:w-72 md:w-80">
             <span className="text-3xl -ml-1.5 -mb-1">🤝</span>
             <p className="font-montserrat font-semibold text-xl text-text-primary">Student Networking</p>
             <p className="text-text-secondary">Building a lifetime network of peers. We facilitate connections between ambitious developers and future leaders.</p>
           </div>
-          <div className="bg-bg-surface border border-border rounded-lg p-5 flex flex-col gap-4 w-full sm:w-72 md:w-80">
+          <div className="bg-bg-base border border-border rounded-lg p-5 flex flex-col gap-4 w-full sm:w-72 md:w-80">
             <span className="text-3xl -ml-1.5 -mb-1">🏫</span>
             <p className="font-montserrat font-semibold text-xl text-text-primary">Inter-School Exchange</p>
             <p className="text-text-secondary">Broadening horizons through competition and collaboration with technical clubs from other universities.</p>
@@ -72,7 +72,7 @@ const AboutPage = () => {
       </section>
 
       {/* Our Story */}
-      <section className="w-full bg-bg-surface py-12 md:py-16">
+      <section className="w-full bg-bg-base py-12 md:py-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <h2 className="font-montserrat font-semibold text-2xl md:text-3xl text-text-primary mb-10 md:mb-14 text-center md:text-left">Our Story</h2>
 
@@ -122,7 +122,7 @@ const AboutPage = () => {
       </div>
 
       {/* Seneca */}
-      <section className="w-full bg-bg-surface py-10 md:py-12">
+      <section className="w-full bg-bg-base py-10 md:py-12">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <p className="font-montserrat font-semibold text-xl text-text-primary text-center md:text-left mb-6 md:mb-0">Seneca Polytechnic</p>
           <div className="flex flex-wrap justify-center gap-6 md:justify-evenly items-center">

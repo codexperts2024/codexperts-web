@@ -13,7 +13,7 @@ export default function AboutCTA() {
     : 'Join our community or meet the minds behind the code.'
 
   return (
-    <section className="w-full bg-bg-surface py-12 md:py-16">
+    <section className="w-full bg-bg-base py-12 md:py-16">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center gap-6 md:gap-0">
         <div className="flex-[2] text-center md:text-left">
           <p className="font-montserrat font-semibold text-2xl md:text-3xl text-text-primary mb-2">{heading}</p>
