@@ -4,9 +4,12 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
+import { socialLinks } from '@/config/socialLinks'
 
 export default function PendingPage() {
-  const { user, loading, signOut } = useAuth()
+  const { user, profile, loading, signOut } = useAuth()
+  const clubEntry = socialLinks.clubSignup.find(({ school }) => school === profile?.school)
+  const clubUrl = clubEntry?.url ?? null
   const router = useRouter()
 
   useEffect(() => {
@@ -60,7 +63,34 @@ export default function PendingPage() {
           </Link>
         </div>
 
-        <p className="mt-8 text-xs text-text-hint">
+        {profile?.school && (
+          <div className="mt-8 flex items-center justify-between gap-4 px-4 py-3 rounded-xl border border-border text-left">
+            <p className="text-sm text-text-secondary leading-snug">
+              Did you sign up for the official club at{' '}
+              <span className="text-text-primary font-medium">{profile.school}</span>?
+            </p>
+            {clubUrl ? (
+              <a
+                href={clubUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="shrink-0 px-4 py-2 rounded-lg text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors"
+              >
+                Sign Up
+              </a>
+            ) : (
+              <button
+                disabled
+                title="Link coming soon"
+                className="shrink-0 px-4 py-2 rounded-lg text-sm font-medium bg-bg-layer1 text-text-hint cursor-not-allowed"
+              >
+                Coming Soon
+              </button>
+            )}
+          </div>
+        )}
+
+        <p className="mt-6 text-xs text-text-hint">
           Questions? Reach us at{' '}
           <a href="mailto:codexperts2024@gmail.com" className="text-accent hover:underline">
             codexperts2024@gmail.com
