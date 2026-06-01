@@ -92,6 +92,24 @@ function UserChip({ user, profile }) {
   )
 }
 
+function SocialDropdown({ icon, items }) {
+  return (
+    <div className="relative group">
+      <button className="p-1.5 text-text-secondary hover:text-text-primary transition-colors">{icon}</button>
+      <div className="absolute right-0 top-full pt-2 z-50 hidden group-hover:block">
+        <div className="bg-bg-surface rounded-lg shadow-lg border border-border min-w-[130px] py-1.5">
+          {items.map(({ school, url }) => (
+            <a key={school} href={url} target="_blank" rel="noopener noreferrer"
+              className="block px-4 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-layer1 transition-colors">
+              {school}
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function NavLink({ href, label, pathname }) {
   const active = pathname === href
   return (
@@ -143,20 +161,12 @@ export default function Navbar() {
 
   const socialIconsRow = (
     <div className="flex items-center gap-0.5">
-      <a href={socialLinks.instagram[0].url} target="_blank" rel="noopener noreferrer"
-        className="p-1.5 text-text-secondary hover:text-text-primary transition-colors">
-        <IconInstagram />
-      </a>
+      <SocialDropdown icon={<IconInstagram />} items={socialLinks.instagram} />
       <a href={socialLinks.linkedin.url} target="_blank" rel="noopener noreferrer"
         className="p-1.5 text-text-secondary hover:text-text-primary transition-colors">
         <IconLinkedIn />
       </a>
-      {isMember && (
-        <a href={socialLinks.discord[0].url} target="_blank" rel="noopener noreferrer"
-          className="p-1.5 text-text-secondary hover:text-text-primary transition-colors">
-          <IconDiscord />
-        </a>
-      )}
+      {isMember && <SocialDropdown icon={<IconDiscord />} items={socialLinks.discord} />}
       <button onClick={scrollToContact}
         className="p-1.5 text-text-secondary hover:text-text-primary transition-colors">
         <IconEmail />

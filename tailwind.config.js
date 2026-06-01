@@ -19,7 +19,7 @@ module.exports = {
         },
         bg: {
           base: '#FAFAF8',
-          surface: '#F8F9F6',
+          surface: '#FCFCF0',
           elevated: '#232323',
           input: '#F5F5F5',
           // 3-Layer Depth System — each step is -15 RGB from the previous layer
