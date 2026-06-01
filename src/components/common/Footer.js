@@ -8,7 +8,7 @@ import { useAuth } from '@/hooks/useAuth'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 
-const sitemapLinks = [
+const publicSitemapLinks = [
   { label: 'Home', href: '/', scrollTop: true },
   { label: 'About Us', href: '/about' },
   { label: 'Announcements', href: '/announcements' },
@@ -16,11 +16,20 @@ const sitemapLinks = [
   { label: 'Events', href: '/events' },
 ]
 
+const memberSitemapLinks = [
+  { label: 'Problems', href: '/problems' },
+  { label: 'Solutions', href: '/solutions' },
+  { label: 'Members', href: '/members' },
+]
+
 const selectClass =
-  'w-full bg-bg-input border border-border-strong rounded-md px-3 py-2 text-sm text-text-primary font-inter focus:outline-none focus:border-accent transition-colors'
+  'w-full h-9 bg-bg-input border border-border-strong rounded-md px-3 py-2 text-sm text-text-primary font-inter focus:outline-none focus:border-accent transition-colors'
 
 export default function Footer() {
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
+  const role = profile?.role
+  const isMember = role === 'member' || role === 'executive' || role === 'admin'
+  const sitemapLinks = isMember ? [...publicSitemapLinks, ...memberSitemapLinks] : publicSitemapLinks
   const [form, setForm] = useState({ email: '', name: '', school: '', message: '' })
   const [status, setStatus] = useState(null) // null | 'sending' | 'sent' | 'error'
   const [errors, setErrors] = useState({})
@@ -151,6 +160,7 @@ export default function Footer() {
                     placeholder="Name"
                     value={form.name}
                     onChange={update('name')}
+                    className="h-9"
                   />
                   {errors.name && <p className="text-xs text-red-400 mt-1">{errors.name}</p>}
                 </div>
