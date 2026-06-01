@@ -75,7 +75,7 @@ export default function MemberCard({ member }) {
         className={`mt-2 text-[11px] px-2 py-0.5 rounded ${
           status === 'student'
             ? 'bg-link-bg text-link'
-            : 'bg-bg-elevated text-text-secondary'
+            : 'bg-link-bg text-gold'
         }`}
       >
         {status === 'student' ? 'Student' : 'Graduate'}
