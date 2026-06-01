@@ -28,23 +28,29 @@ export default function Gallery({ gallery, eventTitle }) {
     setSelectedImage(gallery[newIndex]);
   };
 
-  // Buttons for the lightbox
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (!selectedImage) return;
-      
       if (e.key === 'ArrowLeft') {
-        goToPrevious();
+        setCurrentIndex((prev) => {
+          const newIndex = prev === 0 ? gallery.length - 1 : prev - 1;
+          setSelectedImage(gallery[newIndex]);
+          return newIndex;
+        });
       } else if (e.key === 'ArrowRight') {
-        goToNext();
+        setCurrentIndex((prev) => {
+          const newIndex = prev === gallery.length - 1 ? 0 : prev + 1;
+          setSelectedImage(gallery[newIndex]);
+          return newIndex;
+        });
       } else if (e.key === 'Escape') {
-        closeLightbox();
+        setSelectedImage(null);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedImage, currentIndex]);
+  }, [selectedImage, gallery]);
 
   if (!gallery || gallery.length === 0) {
     return null;
@@ -56,7 +62,7 @@ export default function Gallery({ gallery, eventTitle }) {
         <h2 className="text-xl md:text-2xl font-bold text-gray-800 font-montserrat mb-6">
           Gallery
         </h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {gallery.map((image, index) => (
             <div
               key={index}
@@ -67,7 +73,7 @@ export default function Gallery({ gallery, eventTitle }) {
                 src={image}
                 alt={`${eventTitle} - ${index + 1}`}
                 fill
-                sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                sizes="(max-width: 768px) 50vw, 33vw"
                 className="object-cover transition duration-300 group-hover:scale-110"
               />
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
@@ -76,7 +82,6 @@ export default function Gallery({ gallery, eventTitle }) {
         </div>
       </div>
 
-      {/* Lightbox */}
       {selectedImage && (
         <div
           className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
@@ -93,10 +98,7 @@ export default function Gallery({ gallery, eventTitle }) {
           </button>
 
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              goToPrevious();
-            }}
+            onClick={(e) => { e.stopPropagation(); goToPrevious(); }}
             className="absolute left-4 text-white hover:text-gray-300 transition z-10 bg-black/50 rounded-full p-2"
             aria-label="Previous"
           >
@@ -106,10 +108,7 @@ export default function Gallery({ gallery, eventTitle }) {
           </button>
 
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              goToNext();
-            }}
+            onClick={(e) => { e.stopPropagation(); goToNext(); }}
             className="absolute right-4 text-white hover:text-gray-300 transition z-10 bg-black/50 rounded-full p-2"
             aria-label="Next"
           >
@@ -118,13 +117,12 @@ export default function Gallery({ gallery, eventTitle }) {
             </svg>
           </button>
 
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-sm bg-black/50 px-3 py-1 rounded-full font-inter">
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white text-sm bg-black/50 px-3 py-1 rounded-full font-inter">
             {currentIndex + 1} / {gallery.length}
           </div>
 
           <div
             className="flex items-center justify-center w-full max-w-2xl max-h-[70vh] mx-4"
-            // exits the image when the dark background is clicked
             onClick={(e) => e.stopPropagation()}
           >
             <Image
@@ -132,7 +130,7 @@ export default function Gallery({ gallery, eventTitle }) {
               alt={`${eventTitle} - ${currentIndex + 1}`}
               width={800}
               height={600}
-              className="relative w-full max-w-2xl max-h-[70vh] mx-4"
+              className="w-full max-w-2xl max-h-[70vh] object-contain"
             />
           </div>
         </div>

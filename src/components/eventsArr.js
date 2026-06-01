@@ -40,7 +40,7 @@ export const clubEvents = [
         description: 'Join CodeXperts @ Seneca for its first ever LeetCode session! Coders of all levels are welcomed to solve various algorithmic problems so feel free to drop by.',
         infoDescription: 'Join us for our first ever LeetCode session! Whether you are a beginner or an experienced coder, this is your chance to tackle challenges, share insights, and grow as a developer.\n\nDo not miss the opportunity to connect with like-minded peers and sharpen your problem-solving skills. All experience levels welcome - see you there!',
         cta: 'Register Now', 
-        location:'Techinal Lab', 
+        location:'Technical Lab',
         school:'Seneca College', 
         image: codingPic,
         gallery: null,
@@ -84,8 +84,9 @@ export const clubEvents = [
         cta: 'Gallery', 
         image: yearEnd, 
         gallery: [yearEnd, yearEndPic1, yearEndPic2, yearEndPic3, yearEndPic4, yearEndPic5],
-        location:"Professor's House", 
-        school:''},
+        location:"Professor's House",
+        school:'',
+        tracks: null},
     
     
 ];

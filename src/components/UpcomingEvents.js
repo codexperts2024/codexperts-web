@@ -1,68 +1,42 @@
 'use client';
 
 import { clubEvents } from './eventsArr';
+import { isEventUpcoming } from '@/lib/events';
 import Link from 'next/link';
 
-function isUpcomingEvent(event) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const eventEndDate = event.endDate ? new Date(event.endDate) : new Date(event.date);
-  eventEndDate.setHours(0, 0, 0, 0);
-  return eventEndDate >= today;
-}
-
-// export function getUpcomingEvent(id) {
-//   return upcomingEvents.find(event => event.id === id);
-// }
-
-function getUpcomingEvents() {
-  return clubEvents
-    .filter(event => isEventUpcoming(event))
-    .sort((a, b) => {
-      const dateA = a.endDate ? new Date(a.endDate) : new Date(a.date);
-      const dateB = b.endDate ? new Date(b.endDate) : new Date(b.date);
-      return dateA - dateB;
-    });
-}
-
-
 export default function UpcomingEvent() {
+  const upcomingEvents = clubEvents.filter(isEventUpcoming);
+  const featuredEvent = upcomingEvents[0];
 
-    const upcomingEvents = clubEvents.filter(event => isUpcomingEvent(event));
-  
-    const featuredEvent = upcomingEvents[0];
+  if (!featuredEvent) {
+    return (
+      <section className="w-full bg-bg-layer1 pt-8 pb-20 md:pt-2 md:pb-24">
+        <div className="px-6 md:px-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-4xl font-bold font-montserrat">Upcoming</h2>
+              <div className="w-20 h-px bg-gray-300" />
+            </div>
 
-    if (!featuredEvent) {
-      return (
-        <section className="w-full bg-[#efefef] pt-8 pb-20 md:pt-2 md:pb-24">
-          <div className="px-6 md:px-8">
-            <div className="max-w-7xl mx-auto">
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-4xl font-bold font-montserrat">Upcoming</h2>
-                <div className="w-20 h-px bg-gray-300" />
-              </div>
-              
-              {/* When there are no upcoming events */}
-              <div className="bg-white rounded-lg shadow-lg p-8 md:p-12 text-center">
-                <div className="text-6xl mb-4">📅</div>
-                <h3 className="text-xl md:text-2xl font-bold font-montserrat text-gray-800 mb-2">
-                  No Upcoming Events
-                </h3>
-                <p className="text-gray-500 font-inter max-w-md mx-auto">
-                  Keep an eye out for more events! Check back for updates on future competitions, workshops, and fun events.
-                </p>
-              </div>
+            <div className="bg-white rounded-lg shadow-lg p-8 md:p-12 text-center">
+              <div className="text-6xl mb-4">📅</div>
+              <h3 className="text-xl md:text-2xl font-bold font-montserrat text-gray-800 mb-2">
+                No Upcoming Events
+              </h3>
+              <p className="text-gray-500 font-inter max-w-md mx-auto">
+                Keep an eye out for more events! Check back for updates on future competitions, workshops, and fun events.
+              </p>
             </div>
           </div>
-        </section>
-      );
-    }
+        </div>
+      </section>
+    );
+  }
 
-
-    return (
-      <section className="w-full bg-[#efefef] pt-8 pb-20 md:pt-2 md:pb-24">
-        <div className="px-6 md:px-8">
-        <div className=" max-w-7xl mx-auto">
+  return (
+    <section className="w-full bg-bg-layer1 pt-8 pb-20 md:pt-2 md:pb-24">
+      <div className="px-6 md:px-8">
+        <div className="max-w-7xl mx-auto">
           <section className="mt-24">
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-4xl font-bold font-montserrat">Upcoming</h2>
@@ -70,17 +44,9 @@ export default function UpcomingEvent() {
             </div>
 
             <div className="relative overflow-hidden rounded-lg bg-black min-h-[420px]">
-              {/* Image Placeholder */}
-              <div className="absolute inset-0 bg-gradient-to-br from-red-600 to-red-800">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  {/* <svg className="w-24 h-24 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg> */}
-                </div>
-              </div>
+              <div className="absolute inset-0 bg-gradient-to-br from-red-600 to-red-800" />
 
               <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent" />
-
 
               <div className="relative z-10 p-10 md:p-16 max-w-2xl">
                 <div className="flex items-center gap-4 mb-6">
@@ -96,9 +62,7 @@ export default function UpcomingEvent() {
                 </div>
 
                 <h3 className="text-5xl md:text-6xl font-bold text-white font-montserrat leading-none mb-6">
-                  {featuredEvent.title.split(' ').slice(0, 2).join(' ')}
-                  <br />
-                  {featuredEvent.title.split(' ').slice(2).join(' ')}
+                  {featuredEvent.title}
                 </h3>
 
                 <p className="text-gray-300 leading-7 text-sm md:text-base max-w-lg mb-10">
@@ -126,7 +90,6 @@ export default function UpcomingEvent() {
           </section>
         </div>
       </div>
-      </section>
-
-    )
+    </section>
+  );
 }
