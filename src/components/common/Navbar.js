@@ -59,10 +59,10 @@ function IconEmail() {
 
 const ROLE_LABEL = { pending: 'P', member: 'M', executive: 'E', admin: 'A' }
 const ROLE_COLOR = {
-  pending:   'bg-gray-200 text-gray-600',
-  member:    'bg-blue-100 text-blue-700',
+  pending:   'bg-bg-layer1 text-text-secondary',
+  member:    'bg-link-bg text-link',
   executive: 'bg-purple-100 text-purple-700',
-  admin:     'bg-red-100 text-red-700',
+  admin:     'bg-accent-bg text-accent',
 }
 
 function UserChip({ user, profile }) {

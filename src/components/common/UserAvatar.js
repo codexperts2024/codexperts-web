@@ -1,10 +1,10 @@
 import { useState } from 'react'
 
 const ROLE_BADGE = {
-  pending:   { label: 'P', className: 'bg-gray-100 text-gray-500' },
-  member:    { label: 'M', className: 'bg-blue-100 text-blue-600' },
+  pending:   { label: 'P', className: 'bg-bg-layer1 text-text-hint' },
+  member:    { label: 'M', className: 'bg-link-bg text-link' },
   executive: { label: 'E', className: 'bg-purple-100 text-purple-600' },
-  admin:     { label: 'A', className: 'bg-red-100 text-red-600' },
+  admin:     { label: 'A', className: 'bg-accent-bg text-accent' },
 }
 
 export default function UserAvatar({ avatarUrl, firstName, role }) {

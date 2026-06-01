@@ -52,8 +52,8 @@ export default function MembersPage() {
     <RoleGuard>
       <main className="min-h-screen">
         {/*HEADER SECTION*/}
-        <section className="bg-bg-surface py-8 px-6">
-          <div className="max-w-[1200px] mx-auto">
+        <section className="bg-bg-base py-8 px-6">
+          <div className="max-w-6xl mx-auto">
             <h1 className="font-montserrat text-4xl font-bold text-text-primary">
               Members
             </h1>
@@ -64,8 +64,8 @@ export default function MembersPage() {
         </section>
 
         {/*FILTER ROW*/}
-        <section className="bg-white py-4 px-6">
-          <div className="max-w-[1200px] mx-auto flex flex-row gap-3 flex-wrap">
+        <section className="bg-bg-base border-b border-border py-4 px-6">
+          <div className="max-w-6xl mx-auto flex flex-row gap-3 flex-wrap">
             <select className="border border-border-strong rounded-md px-3 py-2 text-sm text-text-primary bg-bg-base focus:outline-none focus:ring-2 focus:ring-border"
             value={cohort} onChange={(e) => setCohort(e.target.value)}>
               <option value="">All Cohorts</option>
@@ -99,7 +99,7 @@ export default function MembersPage() {
 
         {/*MEMBER GRID*/}
         <section className="bg-bg-base py-8 px-6">
-          <div className="max-w-[1200px] mx-auto">
+          <div className="max-w-6xl mx-auto">
             {loading && <p className="text-text-secondary">Loading members…</p>}
             {error && <p className="text-accent">Couldn't load members. Try refreshing.</p>}
 
