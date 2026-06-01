@@ -9,25 +9,15 @@ import { signInWithGoogle } from '@/services/authService'
 
 const publicLinks = [
   { label: 'Home', href: '/' },
-  { label: 'About Us', href: '/about' },
-  {
-    label: 'Updates',
-    dropdown: [
-      { label: 'Announcements', href: '/announcements' },
-      { label: 'Schedule', href: '/schedule' },
-    ],
-  },
+  { label: 'About', href: '/about' },
+  { label: 'Announcements', href: '/announcements' },
+  { label: 'Schedule', href: '/schedule' },
   { label: 'Events', href: '/events' },
 ]
 
 const memberOnlyLinks = [
-  {
-    label: 'Practice',
-    dropdown: [
-      { label: 'Problems', href: '/problems' },
-      { label: 'Solutions', href: '/solutions' },
-    ],
-  },
+  { label: 'Problems', href: '/problems' },
+  { label: 'Solutions', href: '/solutions' },
   { label: 'Members', href: '/members' },
 ]
 
@@ -102,14 +92,6 @@ function UserChip({ user, profile }) {
   )
 }
 
-function IconChevron() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3 mt-0.5 transition-transform duration-200 group-hover:rotate-180">
-      <path d="M19 9l-7 7-7-7" />
-    </svg>
-  )
-}
-
 function NavLink({ href, label, pathname }) {
   const active = pathname === href
   return (
@@ -125,56 +107,12 @@ function NavLink({ href, label, pathname }) {
   )
 }
 
-function NavDropdown({ label, items, pathname }) {
-  const isActive = items.some(({ href }) => pathname === href)
-  return (
-    <div className="relative group">
-      <button className={`flex items-center gap-0.5 px-1 py-1 text-sm transition-colors ${
-        isActive ? 'text-text-primary font-medium' : 'text-text-secondary hover:text-text-primary'
-      }`}>
-        {label}
-        <IconChevron />
-      </button>
-      <div className="absolute left-0 top-full pt-2 z-50 hidden group-hover:block">
-        <div className="bg-white rounded-lg shadow-lg border border-border min-w-[160px] py-1.5">
-          {items.map(({ label: l, href }) => (
-            <Link key={href} href={href}
-              className="block px-4 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-surface transition-colors">
-              {l}
-            </Link>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function SocialDropdown({ icon, items }) {
-  return (
-    <div className="relative group">
-      <button className="p-1.5 text-text-secondary hover:text-text-primary transition-colors">{icon}</button>
-      <div className="absolute right-0 top-full pt-2 z-50 hidden group-hover:block">
-        <div className="bg-white rounded-lg shadow-lg border border-border min-w-[130px] py-1.5">
-          {items.map(({ school, url }) => (
-            <a key={school} href={url} target="_blank" rel="noopener noreferrer"
-              className="block px-4 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-surface transition-colors">
-              {school}
-            </a>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
 export default function Navbar() {
   const pathname = usePathname()
   const { user, profile, loading, signOut } = useAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [loggingIn, setLoggingIn] = useState(false)
 
-  // bfcache restores frozen React state — loggingIn would be stuck at true.
-  // Reset it so the Log In button works again after pressing back from Google.
   useEffect(() => {
     function handlePageShow(e) {
       if (e.persisted) setLoggingIn(false)
@@ -187,12 +125,7 @@ export default function Navbar() {
   const isMember = role === 'member' || role === 'executive' || role === 'admin'
   const isAdmin = role === 'admin'
 
-  const centerLinks = isMember ? [...publicLinks, ...memberOnlyLinks] : publicLinks
-
-  function renderDesktopLink(item) {
-    if (item.dropdown) return <NavDropdown key={item.label} label={item.label} items={item.dropdown} pathname={pathname} />
-    return <NavLink key={item.href} href={item.href} label={item.label} pathname={pathname} />
-  }
+  const allLinks = isMember ? [...publicLinks, ...memberOnlyLinks] : publicLinks
 
   async function handleLogIn() {
     if (loggingIn) return
@@ -204,37 +137,54 @@ export default function Navbar() {
     }
   }
 
-  return (
-    <nav className="fixed top-0 left-0 right-0 z-40 bg-white border-b border-border shadow-sm">
+  function scrollToContact() {
+    document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })
+  }
 
-      <div className="relative w-full px-6 h-14 flex items-center">
+  const socialIconsRow = (
+    <div className="flex items-center gap-0.5">
+      <a href={socialLinks.instagram[0].url} target="_blank" rel="noopener noreferrer"
+        className="p-1.5 text-text-secondary hover:text-text-primary transition-colors">
+        <IconInstagram />
+      </a>
+      <a href={socialLinks.linkedin.url} target="_blank" rel="noopener noreferrer"
+        className="p-1.5 text-text-secondary hover:text-text-primary transition-colors">
+        <IconLinkedIn />
+      </a>
+      {isMember && (
+        <a href={socialLinks.discord[0].url} target="_blank" rel="noopener noreferrer"
+          className="p-1.5 text-text-secondary hover:text-text-primary transition-colors">
+          <IconDiscord />
+        </a>
+      )}
+      <button onClick={scrollToContact}
+        className="p-1.5 text-text-secondary hover:text-text-primary transition-colors">
+        <IconEmail />
+      </button>
+    </div>
+  )
+
+  return (
+    <nav className="fixed top-0 left-0 right-0 z-40 bg-bg-surface border-b border-border shadow-sm">
+
+      <div className="relative w-full px-4 sm:px-6 h-14 flex items-center">
 
         {/* Logo */}
         <Link href="/" className="shrink-0">
           <img src="/codeXpertsLogo.svg" alt="codeXperts" className="h-8 w-auto" />
         </Link>
 
-        {/* Desktop center links */}
-        <div className="absolute left-1/2 -translate-x-1/2 hidden lg:flex items-center gap-5">
-          {centerLinks.map(renderDesktopLink)}
+        {/* Desktop: center nav links */}
+        <div className="absolute left-1/2 -translate-x-1/2 hidden lg:flex items-center gap-4">
+          {allLinks.map(({ href, label }) => (
+            <NavLink key={href} href={href} label={label} pathname={pathname} />
+          ))}
         </div>
 
-        {/* Desktop right — social + auth */}
+        {/* Desktop: right side — social icons + auth */}
         <div className="ml-auto hidden lg:flex items-center gap-1 shrink-0">
-          <SocialDropdown icon={<IconInstagram />} items={socialLinks.instagram} />
-          <a href={socialLinks.linkedin.url} target="_blank" rel="noopener noreferrer"
-            className="p-1.5 text-text-secondary hover:text-text-primary transition-colors">
-            <IconLinkedIn />
-          </a>
-          {isMember && <SocialDropdown icon={<IconDiscord />} items={socialLinks.discord} />}
-          <button
-            onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
-            className="p-1.5 text-text-secondary hover:text-text-primary transition-colors">
-            <IconEmail />
-          </button>
-
+          {socialIconsRow}
           <div className="w-px h-5 bg-border mx-1" />
-
           {user ? (
             <div className="flex items-center gap-2">
               <UserChip user={user} profile={profile} />
@@ -249,94 +199,50 @@ export default function Navbar() {
               {loggingIn ? 'Redirecting…' : 'Log In'}
             </button>
           )}
-
           {isAdmin && (
             <Link href="/admin" title="Admin"
               className="ml-1 p-1.5 text-text-secondary hover:text-text-primary transition-colors">⚙</Link>
           )}
         </div>
 
-        {/* Mobile — avatar + hamburger */}
-        <div className="ml-auto lg:hidden flex items-center gap-2">
-          {user && <UserChip user={user} profile={profile} />}
+        {/* Mobile: social icons + UserChip + hamburger */}
+        <div className="ml-auto lg:hidden flex items-center gap-1">
+          {socialIconsRow}
+          {user && (
+            <div className="ml-1">
+              <UserChip user={user} profile={profile} />
+            </div>
+          )}
           <button
             className="p-2 text-text-secondary hover:text-text-primary transition-colors"
             onClick={() => setMobileOpen((o) => !o)}
             aria-label="Toggle menu"
           >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            {mobileOpen
-              ? <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              : <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />}
-          </svg>
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              {mobileOpen
+                ? <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                : <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />}
+            </svg>
           </button>
         </div>
       </div>
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="lg:hidden border-t border-border bg-white px-6 py-4 flex flex-col gap-1">
-
-          {centerLinks.map((item) => {
-            if (item.dropdown) {
-              return (
-                <div key={item.label} className="py-1">
-                  <p className="px-2 py-1 text-xs font-semibold text-text-hint uppercase tracking-wider">{item.label}</p>
-                  {item.dropdown.map(({ label, href }) => (
-                    <Link key={href} href={href} onClick={() => setMobileOpen(false)}
-                      className={`block px-4 py-2 text-sm rounded-md transition-colors ${
-                        pathname === href
-                          ? 'text-text-primary font-medium'
-                          : 'text-text-secondary hover:text-text-primary hover:bg-bg-surface'
-                      }`}>
-                      {label}
-                    </Link>
-                  ))}
-                </div>
-              )
-            }
-            return (
-              <Link key={item.href} href={item.href} onClick={() => setMobileOpen(false)}
-                className={`block px-2 py-2 text-sm rounded-md transition-colors ${
-                  pathname === item.href
-                    ? 'text-text-primary font-medium'
-                    : 'text-text-secondary hover:text-text-primary hover:bg-bg-surface'
-                }`}>
-                {item.label}
-              </Link>
-            )
-          })}
-
-          <div className="my-2 h-px bg-border" />
-
-          {/* Social links */}
-          <div className="flex items-center gap-4 px-2 py-1">
-            {socialLinks.instagram.map(({ school, url }) => (
-              <a key={school} href={url} target="_blank" rel="noopener noreferrer"
-                className="text-sm text-text-secondary hover:text-text-primary transition-colors">
-                IG &middot; {school}
-              </a>
-            ))}
-          </div>
-          <a href={socialLinks.linkedin.url} target="_blank" rel="noopener noreferrer"
-            className="px-2 py-1 text-sm text-text-secondary hover:text-text-primary transition-colors">
-            LinkedIn
-          </a>
-          {isMember && socialLinks.discord.map(({ school, url }) => (
-            <a key={school} href={url} target="_blank" rel="noopener noreferrer"
-              className="px-2 py-1 text-sm text-text-secondary hover:text-text-primary transition-colors">
-              Discord &middot; {school}
-            </a>
+        <div className="lg:hidden border-t border-border bg-bg-surface px-6 py-4 flex flex-col gap-1">
+          {allLinks.map(({ href, label }) => (
+            <Link key={href} href={href} onClick={() => setMobileOpen(false)}
+              className={`block px-2 py-2 text-sm rounded-md transition-colors ${
+                pathname === href
+                  ? 'text-text-primary font-medium'
+                  : 'text-text-secondary hover:text-text-primary hover:bg-bg-layer1'
+              }`}>
+              {label}
+            </Link>
           ))}
-          <button
-            onClick={() => { setMobileOpen(false); document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' }) }}
-            className="px-2 py-1 text-sm text-text-secondary hover:text-text-primary transition-colors text-left">
-            Email us
-          </button>
 
           <div className="my-2 h-px bg-border" />
 
-          {/* Auth */}
           {user ? (
             <button onClick={() => { signOut(); setMobileOpen(false) }}
               className="w-full px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center">
