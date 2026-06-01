@@ -9,17 +9,17 @@
 - **Light mode only** — No dark mode toggle. Clean, minimal, professional.
 - **Minimal** — Vercel / Linear style. Whitespace over information density.
 - **Coding club identity** — Editor and code culture reflected naturally in UI.
-- **One accent** — `#C0392B` red for CTA/emphasis only. Do not overuse.
+- **One accent** — `#B80F0A` red for CTA/emphasis only. Do not overuse.
 
 ---
 
 ## 2. Color Tokens
 
-### Red Accent — `#C0392B`
+### Red Accent — `#B80F0A`
 
 ```
---color-accent:        #C0392B   ← buttons, logo X, active tab, emphasis text, border highlight
---color-accent-light:  #E87A6E   ← hover state
+--color-accent:        #B80F0A   ← buttons, logo X, active tab, emphasis text, border highlight
+--color-accent-light:  #E84540   ← hover state
 --color-accent-bg:     #FDECEA   ← tag/badge background (light red tint)
 ```
 
@@ -31,16 +31,17 @@
 ### Background Layers
 
 ```
---color-bg-base:       #FFFFFF   ← full page background
---color-bg-surface:    #F9F9F9   ← cards, sidebar, navigation
---color-bg-elevated:   #F3F3F3   ← tab bar, header, dropdown, modal
+--color-bg-base:       #FAFAF8   ← full page background
+--color-bg-surface:    #F8F9F6   ← cards, sidebar, navigation
+--color-bg-elevated:   #232323   ← cards, modals, elevated surfaces (one level up)
+                                   text on this surface: #FAFAF8
 --color-bg-input:      #F5F5F5   ← input fields, textarea
 ```
 
 ### Text
 
 ```
---color-text-primary:  #1A1A1A   ← body text, labels
+--color-text-primary:  #0A0A0A   ← body text, labels
 --color-text-secondary:#555555   ← subtitles, meta info, placeholder
 --color-text-hint:     #999999   ← inactive menu, helper text
 ```
@@ -58,7 +59,7 @@
 --color-success:       #2E7D5E   ← attendance complete, submission success
 --color-link:          #1A6FBF   ← links, interactive elements
 --color-warning:       #B45309   ← warnings, due soon
---color-error:         #C0392B   ← errors (same as accent)
+--color-error:         #B80F0A   ← errors (same as accent)
 ```
 
 ---
@@ -87,7 +88,7 @@ Used on surfaces that need visual hierarchy without color or border overload. Ap
 
 | Layer | Hex | RGB | Use |
 |-------|-----|-----|-----|
-| Layer 0 | `#F9F9F9` | 249 | Section background (bg-surface token) |
+| Layer 0 | `#F8F9F6` | ~248 | Section background (bg-surface token) |
 | Layer 1 | `#EAEAEA` | 234 | Container card (wraps a grouped set of rows) |
 | Layer 2 | `#DBDBDB` | 219 | Individual row / pill (interactive element) |
 | Layer 2 hover | `#CFCFCF` | 207 | Row / pill hover state |
@@ -117,7 +118,7 @@ Layer 2 row (hover):
 
 ### Usage Rules
 
-- Layer 0 is always the section background (`#F9F9F9`). Do not apply shadow here.
+- Layer 0 is always the section background (`#F8F9F6`). Do not apply shadow here.
 - Layer 1 wraps a logical group (e.g., the entire event list card, a modal card).
 - Layer 2 is each individual interactive item within Layer 1 (pill, row, detail block).
 - Use `border-radius: 1rem` (Tailwind `rounded-2xl`) on Layer 1 containers and modal cards.
@@ -145,12 +146,12 @@ Do NOT apply to standard content cards, input fields, or navigation — use the 
 
 ```
 Primary (CTA)
-  background: #C0392B
-  color: #FFFFFF
+  background: #B80F0A
+  color: #FAFAF8
   border-radius: 6px
   padding: 8px 20px
   font: Inter 500 14px
-  hover: background #A93226
+  hover: background #9E0B07
 
 Secondary (Outline)
   background: transparent
@@ -158,13 +159,13 @@ Secondary (Outline)
   border: 1px solid #CCCCCC
   border-radius: 6px
   padding: 8px 20px
-  hover: border-color #1A1A1A, color #1A1A1A
+  hover: border-color #0A0A0A, color #0A0A0A
 ```
 
 ### Cards
 
 ```
-background: #FFFFFF
+background: #FAFAF8
 border: 1px solid #E5E5E5
 border-radius: 8px
 padding: 16px 20px
@@ -178,9 +179,9 @@ background: #F5F5F5
 border: 1px solid #CCCCCC
 border-radius: 6px
 padding: 8px 12px
-color: #1A1A1A
+color: #0A0A0A
 font: Inter 14px
-focus → border-color: #C0392B
+focus → border-color: #B80F0A
 ```
 
 ### Tags / Badges
@@ -188,7 +189,7 @@ focus → border-color: #C0392B
 ```
 Language tag (Python, Java, etc.)
   background: #FDECEA
-  color: #C0392B
+  color: #B80F0A
   font-size: 11px
   padding: 2px 8px
   border-radius: 4px
@@ -202,11 +203,11 @@ Role badge (admin, executive)
 ### Navigation
 
 ```
-background: #FFFFFF
+background: #FAFAF8
 border-bottom: 1px solid #E5E5E5
-active tab: color #C0392B, border-bottom 2px solid #C0392B
+active tab: color #B80F0A, border-bottom 2px solid #B80F0A
 inactive: color #555555
-hover: color #1A1A1A
+hover: color #0A0A0A
 ```
 
 ### Social Icon Buttons (Navbar)
@@ -220,7 +221,7 @@ Discord icon button   → hover dropdown, member only (Seneca / York / TMU)
 Style:
   icon size: 18px
   color: #555555
-  hover: color #1A1A1A
+  hover: color #0A0A0A
   spacing: 8px between icons
 ```
 
@@ -398,9 +399,9 @@ Events                    [Instagram icon ▾]
 ```
 
 **Notes:**
-- Timeline dot color: `#C0392B`
+- Timeline dot color: `#B80F0A`
 - Pillar icons: simple outlined icons (Lucide or similar)
-- Page background: `#FFFFFF`, section alternates with `#F9F9F9`
+- Page background: `#FAFAF8`, section alternates with `#F8F9F6`
 
 ---
 
@@ -437,14 +438,14 @@ Events                    [Instagram icon ▾]
 
 **Team Card Spec:**
 ```
-background: #FFFFFF
+background: #FAFAF8
 border: 1px solid #E5E5E5
 border-radius: 8px
 padding: 20px
 text-align: center
 
   avatar: 72px circle, object-fit cover
-  name: Inter 500 15px, #1A1A1A
+  name: Inter 500 15px, #0A0A0A
   role badge: green badge (Executive style)
   campus tag: small gray label
   LinkedIn icon: 16px, links to personal LinkedIn
@@ -547,14 +548,14 @@ Use Tailwind custom tokens instead of hardcoded hex values.
 
 | Token | Tailwind Class | Use case |
 |-------|---------------|----------|
-| `#C0392B` | `bg-accent` / `text-accent` | CTA buttons, logo X, emphasis |
-| `#A93226` | `bg-accent-hover` | Button hover state |
+| `#B80F0A` | `bg-accent` / `text-accent` | CTA buttons, logo X, emphasis |
+| `#9E0B07` | `bg-accent-hover` | Button hover state |
 | `#FDECEA` | `bg-accent-bg` | Tag/badge background |
-| `#FFFFFF` | `bg-bg-base` | Page background |
-| `#F9F9F9` | `bg-bg-surface` | Cards, sidebar |
-| `#F3F3F3` | `bg-bg-elevated` | Header, dropdowns |
+| `#FAFAF8` | `bg-bg-base` | Page background |
+| `#F8F9F6` | `bg-bg-surface` | Cards, sidebar |
+| `#232323` | `bg-bg-elevated` | Cards, modals, elevated surfaces |
 | `#F5F5F5` | `bg-bg-input` | Input fields |
-| `#1A1A1A` | `text-text-primary` | Body text, labels |
+| `#0A0A0A` | `text-text-primary` | Body text, labels |
 | `#555555` | `text-text-secondary` | Subtitles, meta info |
 | `#999999` | `text-text-hint` | Placeholder, inactive |
 | `#E5E5E5` | `border-border` | Default divider |

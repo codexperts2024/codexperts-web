@@ -54,7 +54,7 @@ const RoleGuard = ({ children }) => {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900" />
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-text-primary" />
       </div>
     )
   }
@@ -67,11 +67,11 @@ const RoleGuard = ({ children }) => {
     return (
       <main className="min-h-screen flex items-center justify-center">
         <div className="text-center max-w-lg px-4">
-          <h1 className="text-5xl font-bold text-gray-900">Account pending</h1>
-          <p className="mt-3 text-gray-400 text-lg">
+          <h1 className="font-montserrat font-bold text-5xl text-text-primary">Account pending</h1>
+          <p className="mt-3 text-text-hint text-lg">
             Your account is waiting for admin approval.
           </p>
-          <p className="mt-4 text-gray-500 text-base">
+          <p className="mt-4 text-text-secondary text-base">
             After you sign up, an admin reviews your request. Once approved, you
             can use member areas like Problems and Members.
           </p>

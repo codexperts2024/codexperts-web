@@ -60,8 +60,7 @@ function PostView({ problems, currentIdx, navigateTo, setView, profile, onDelete
             <button
               disabled
               title="Coming soon"
-              className="flex items-center gap-1.5 px-5 py-2 rounded-md text-sm font-medium font-inter text-white transition-colors opacity-40 cursor-not-allowed"
-              style={{ background: '#C0392B' }}
+              className="flex items-center gap-1.5 px-5 py-2 rounded-md text-sm font-medium font-inter bg-accent text-white transition-colors opacity-40 cursor-not-allowed"
             >
               <Plus size={14} />
               New
@@ -105,10 +104,7 @@ function PostView({ problems, currentIdx, navigateTo, setView, profile, onDelete
           {/* Solution button */}
           <button
             onClick={() => router.push(`/solutions?problem=${problem.id}`)}
-            className="w-full py-3 rounded-md text-white font-inter font-medium text-sm flex items-center justify-center gap-2 transition-colors"
-            style={{ background: '#C0392B' }}
-            onMouseEnter={e => e.currentTarget.style.background = '#A93226'}
-            onMouseLeave={e => e.currentTarget.style.background = '#C0392B'}
+            className="w-full py-3 rounded-md bg-accent hover:bg-accent-hover text-white font-inter font-medium text-sm flex items-center justify-center gap-2 transition-colors"
           >
             <PenLine size={14} />
             Go to My Solution →
@@ -187,8 +183,7 @@ function ListView({ problems, navigateTo, setView, profile, schoolFilter, setSch
             <button
               disabled
               title="Coming soon"
-              className="flex items-center gap-1.5 px-5 py-2 rounded-md text-sm font-medium font-inter text-white transition-colors opacity-40 cursor-not-allowed"
-              style={{ background: '#C0392B' }}
+              className="flex items-center gap-1.5 px-5 py-2 rounded-md text-sm font-medium font-inter bg-accent text-white transition-colors opacity-40 cursor-not-allowed"
             >
               <Plus size={14} />
               New
@@ -232,7 +227,7 @@ function ListView({ problems, navigateTo, setView, profile, schoolFilter, setSch
                       </td>
                       <td className="text-center py-3.5">
                         {solved
-                          ? <Check size={15} style={{ color: '#2E7D5E', margin: '0 auto' }} />
+                          ? <Check size={15} className="text-success mx-auto" />
                           : <Minus size={15} className="text-text-hint mx-auto" />
                         }
                       </td>
