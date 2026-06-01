@@ -8,19 +8,19 @@ module.exports = {
     extend: {
       colors: {
         brand: {
-          primary: '#C0392B',
-          hover: '#E87A6E',
+          primary: '#B80F0A',
+          hover: '#E84540',
         },
         accent: {
-          DEFAULT: '#C0392B',
-          light: '#E87A6E',
+          DEFAULT: '#B80F0A',
+          light: '#E84540',
           bg: '#FDECEA',
-          hover: '#A93226',
+          hover: '#9E0B07',
         },
         bg: {
-          base: '#FFFFFF',
-          surface: '#F9F9F9',
-          elevated: '#F3F3F3',
+          base: '#F8F9F6',
+          surface: '#FAFAF8',
+          elevated: '#232323',
           input: '#F5F5F5',
           // 3-Layer Depth System — each step is -15 RGB from the previous layer
           layer1: '#EAEAEA',      // #EAEAEA (234) — container card
@@ -28,7 +28,7 @@ module.exports = {
           layer2Hover: '#CFCFCF', // #CFCFCF (207) — row / pill hover
         },
         text: {
-          primary: '#1A1A1A',
+          primary: '#0A0A0A',
           secondary: '#555555',
           hint: '#999999',
         },
@@ -36,9 +36,16 @@ module.exports = {
           DEFAULT: '#E5E5E5',
           strong: '#CCCCCC',
         },
-        success: '#2E7D5E',
+        success: {
+          DEFAULT: '#2E7D5E',
+          bg: '#EAF4F0',
+        },
         warning: '#B45309',
-        link: '#1A6FBF',
+        link: {
+          DEFAULT: '#1A6FBF',
+          bg: '#F0F4FF',
+        },
+        error: '#B80F0A',
       },
       animation: {
         'fade-up': 'fadeUp 0.4s ease-out both',
