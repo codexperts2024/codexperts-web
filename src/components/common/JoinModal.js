@@ -138,7 +138,7 @@ export default function JoinModal() {
   }
 
   async function handleSubmit() {
-    if (!validate() || !user) return
+    if (submitting || !validate() || !user) return
     setSubmitting(true)
 
     try {
@@ -388,7 +388,11 @@ export default function JoinModal() {
           {submitting ? 'Submitting…' : 'Submit'}
         </Button>
 
-        {errors.submit && <p className="mt-2 text-xs text-center text-error">{errors.submit}</p>}
+        {errors.submit && (
+          <div className="mt-2 px-3 py-2 rounded-md bg-accent-bg border border-error/30 text-xs text-error text-center">
+            {errors.submit}
+          </div>
+        )}
         </div>
       </div>
     </div>
