@@ -26,7 +26,7 @@ function Avatar({ member }) {
 
 function ExecutiveBadge() {
   return (
-    <span className="text-xs font-medium px-2 py-0.5 rounded bg-[#EAF4F0] text-success">
+    <span className="text-xs font-medium px-2 py-0.5 rounded bg-success-bg text-success">
       Executive
     </span>
   )
@@ -35,7 +35,7 @@ function ExecutiveBadge() {
 function StatusBadge({ status }) {
   const isStudent = status === 'student'
   return (
-    <span className={`text-xs font-medium px-2 py-0.5 rounded ${isStudent ? 'bg-[#F0F4FF] text-link' : 'bg-bg-elevated text-text-secondary'}`}>
+    <span className={`text-xs font-medium px-2 py-0.5 rounded ${isStudent ? 'bg-link-bg text-link' : 'bg-bg-elevated text-text-secondary'}`}>
       {isStudent ? 'Student' : 'Graduate'}
     </span>
   )
@@ -93,7 +93,7 @@ export default function ProfilePage({ params }) {
         <RoleGuard>
             <main className="min-h-screen bg-bg-base">
                 {/*HEADER SECTION*/}
-                <section className="bg-bg-surface border-b border-border py-8 px-6">
+                <section className="bg-bg-base border-b border-border py-8 px-6">
                     <div className="max-w-[1200px] mx-auto">
                         {loading && <p className="text-text-secondary">Loading profile…</p>}
                         {error && <p className="text-accent">Couldn't load profile. Try refreshing.</p>}
