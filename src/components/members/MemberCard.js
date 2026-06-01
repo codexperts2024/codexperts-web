@@ -38,7 +38,7 @@ export default function MemberCard({ member }) {
             className="rounded-full object-cover group-hover:ring-2 group-hover:ring-accent"
           />
         ) : (
-          <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-medium text-sm group-hover:ring-2 group-hover:ring-accent">
+          <div className="w-16 h-16 rounded-full bg-bg-layer1 flex items-center justify-center text-text-secondary font-medium text-sm group-hover:ring-2 group-hover:ring-accent">
             {initial}
           </div>
         )}
@@ -74,8 +74,8 @@ export default function MemberCard({ member }) {
       <span
         className={`mt-2 text-[11px] px-2 py-0.5 rounded ${
           status === 'student'
-            ? 'bg-[#F0F4FF] text-link'
-            : 'bg-bg-elevated text-text-secondary'
+            ? 'bg-link-bg text-link'
+            : 'bg-link-bg text-gold'
         }`}
       >
         {status === 'student' ? 'Student' : 'Graduate'}
@@ -83,7 +83,7 @@ export default function MemberCard({ member }) {
 
       {/* Role badge — only if Executive */}
       {(role?.toLowerCase() === 'executive' || role?.toLowerCase() === 'admin') && (
-        <span className="mt-1 text-[11px] px-2 py-0.5 rounded bg-[#EAF4F0] text-success">
+        <span className="mt-1 text-[11px] px-2 py-0.5 rounded bg-success-bg text-success">
           Executive
         </span>
       )}

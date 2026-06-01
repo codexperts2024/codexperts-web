@@ -138,7 +138,7 @@ export default function JoinModal() {
   }
 
   async function handleSubmit() {
-    if (!validate() || !user) return
+    if (submitting || !validate() || !user) return
     setSubmitting(true)
 
     try {
@@ -186,7 +186,7 @@ export default function JoinModal() {
       className="fixed inset-0 z-50 flex items-center justify-center px-4"
       style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
     >
-      <div className="relative w-full max-w-[420px] bg-white rounded-lg shadow-xl animate-fade-up flex flex-col max-h-[90vh]">
+      <div className="relative w-full max-w-[420px] bg-bg-base rounded-lg shadow-xl animate-fade-up flex flex-col max-h-[90vh]">
 
         {/* Fixed header */}
         <div className="px-8 pt-8 pb-4 shrink-0">
@@ -227,26 +227,26 @@ export default function JoinModal() {
         {/* First Name / Last Name */}
         <div className="flex gap-3 mb-4">
           <div className="flex-1">
-            <label className="block text-sm font-medium text-text-primary mb-1.5">First Name <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium text-text-primary mb-1.5">First Name <span className="text-error">*</span></label>
             <input
               type="text"
               value={firstName}
               onChange={e => setFirstName(e.target.value)}
               placeholder="John"
-              className={`${inputBase} ${inputFocus} ${errors.firstName ? 'border-red-400' : inputNormal}`}
+              className={`${inputBase} ${inputFocus} ${errors.firstName ? 'border-error' : inputNormal}`}
             />
-            {errors.firstName && <p className="mt-1 text-xs text-red-500">{errors.firstName}</p>}
+            {errors.firstName && <p className="mt-1 text-xs text-error">{errors.firstName}</p>}
           </div>
           <div className="flex-1">
-            <label className="block text-sm font-medium text-text-primary mb-1.5">Last Name <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium text-text-primary mb-1.5">Last Name <span className="text-error">*</span></label>
             <input
               type="text"
               value={lastName}
               onChange={e => setLastName(e.target.value)}
               placeholder="Doe"
-              className={`${inputBase} ${inputFocus} ${errors.lastName ? 'border-red-400' : inputNormal}`}
+              className={`${inputBase} ${inputFocus} ${errors.lastName ? 'border-error' : inputNormal}`}
             />
-            {errors.lastName && <p className="mt-1 text-xs text-red-500">{errors.lastName}</p>}
+            {errors.lastName && <p className="mt-1 text-xs text-error">{errors.lastName}</p>}
           </div>
         </div>
 
@@ -264,58 +264,58 @@ export default function JoinModal() {
 
         {/* School */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-text-primary mb-1.5">School <span className="text-red-500">*</span></label>
+          <label className="block text-sm font-medium text-text-primary mb-1.5">School <span className="text-error">*</span></label>
           <select
             value={school}
             onChange={e => setSchool(e.target.value)}
-            className={`${inputBase} ${inputFocus} ${errors.school ? 'border-red-400' : inputNormal}`}
+            className={`${inputBase} ${inputFocus} ${errors.school ? 'border-error' : inputNormal}`}
           >
             <option value="">Select your school</option>
             {SCHOOLS.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
-          {errors.school && <p className="mt-1 text-xs text-red-500">{errors.school}</p>}
+          {errors.school && <p className="mt-1 text-xs text-error">{errors.school}</p>}
         </div>
 
         {/* Cohort */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-text-primary mb-1.5">Cohort <span className="text-text-hint font-normal">(when did you join?)</span> <span className="text-red-500">*</span></label>
+          <label className="block text-sm font-medium text-text-primary mb-1.5">Cohort <span className="text-text-hint font-normal">(when did you join?)</span> <span className="text-error">*</span></label>
           <select
             value={cohort}
             onChange={e => setCohort(e.target.value)}
-            className={`${inputBase} ${inputFocus} ${errors.cohort ? 'border-red-400' : inputNormal}`}
+            className={`${inputBase} ${inputFocus} ${errors.cohort ? 'border-error' : inputNormal}`}
           >
             <option value="">Select cohort</option>
             {cohorts.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
           </select>
-          {errors.cohort && <p className="mt-1 text-xs text-red-500">{errors.cohort}</p>}
+          {errors.cohort && <p className="mt-1 text-xs text-error">{errors.cohort}</p>}
         </div>
 
         {/* Phone */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-text-primary mb-1.5">Phone Number <span className="text-red-500">*</span></label>
+          <label className="block text-sm font-medium text-text-primary mb-1.5">Phone Number <span className="text-error">*</span></label>
           <input
             type="tel"
             value={phone}
             onChange={e => setPhone(formatPhone(e.target.value))}
             placeholder="(416) 000-0000"
-            className={`${inputBase} ${inputFocus} ${errors.phone ? 'border-red-400' : inputNormal}`}
+            className={`${inputBase} ${inputFocus} ${errors.phone ? 'border-error' : inputNormal}`}
           />
-          {errors.phone && <p className="mt-1 text-xs text-red-500">{errors.phone}</p>}
+          {errors.phone && <p className="mt-1 text-xs text-error">{errors.phone}</p>}
         </div>
 
         {/* Status */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-text-primary mb-1.5">Status <span className="text-red-500">*</span></label>
+          <label className="block text-sm font-medium text-text-primary mb-1.5">Status <span className="text-error">*</span></label>
           <select
             value={status}
             onChange={e => setStatus(e.target.value)}
-            className={`${inputBase} ${inputFocus} ${errors.status ? 'border-red-400' : inputNormal}`}
+            className={`${inputBase} ${inputFocus} ${errors.status ? 'border-error' : inputNormal}`}
           >
             <option value="">Select your status</option>
             <option value="student">Student</option>
             <option value="graduated">Graduated</option>
           </select>
-          {errors.status && <p className="mt-1 text-xs text-red-500">{errors.status}</p>}
+          {errors.status && <p className="mt-1 text-xs text-error">{errors.status}</p>}
         </div>
 
         {/* Company */}
@@ -388,7 +388,11 @@ export default function JoinModal() {
           {submitting ? 'Submitting…' : 'Submit'}
         </Button>
 
-        {errors.submit && <p className="mt-2 text-xs text-center text-red-500">{errors.submit}</p>}
+        {errors.submit && (
+          <div className="mt-2 px-3 py-2 rounded-md bg-accent-bg border border-error/30 text-xs text-error text-center">
+            {errors.submit}
+          </div>
+        )}
         </div>
       </div>
     </div>
