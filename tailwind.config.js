@@ -18,8 +18,8 @@ module.exports = {
           hover: '#9E0B07',
         },
         bg: {
-          base: '#FAFAF8',
-          surface: '#FCFCF0',
+          base: '#F8F9F6',
+          surface: '#FAFAF8',
           elevated: '#232323',
           input: '#F5F5F5',
           // 3-Layer Depth System — each step is -15 RGB from the previous layer
