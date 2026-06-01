@@ -130,7 +130,7 @@ export default function Footer() {
         </div>
 
         {/* ── Right: Contact Form ── */}
-        <div id="contact">
+        <div id="contact" className="flex flex-col">
           <h3 className="font-montserrat font-semibold text-text-primary text-sm uppercase tracking-widest mb-4">
             Get in Touch (codeXperts2024@gmail.com)
           </h3>
@@ -138,7 +138,7 @@ export default function Footer() {
           {status === 'sent' ? (
             <p className="text-sm text-accent">Message sent! We&apos;ll get back to you soon.</p>
           ) : (
-            <form onSubmit={handleSubmit} noValidate className="space-y-3">
+            <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-3 flex-1">
               {/* Email */}
               <div>
                 <Input
@@ -179,14 +179,13 @@ export default function Footer() {
                 </div>
               </div>
 
-              {/* Message */}
-              <div>
+              {/* Message — grows to fill remaining height */}
+              <div className="flex flex-col flex-1">
                 <textarea
                   placeholder="Message"
-                  rows={5}
                   value={form.message}
                   onChange={update('message')}
-                  className={`${selectClass} resize-y`}
+                  className={`${selectClass} flex-1 resize-none min-h-[80px]`}
                 />
                 {errors.message && <p className="text-xs text-red-400 mt-1">{errors.message}</p>}
               </div>
