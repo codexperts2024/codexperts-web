@@ -52,18 +52,18 @@ const AboutPage = () => {
 
       {/* Pillars */}
       <section className="w-full py-12 md:py-16">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row flex-wrap justify-center gap-6">
-          <div className="bg-bg-base border border-border rounded-lg p-5 flex flex-col gap-4 w-full sm:w-72 md:w-80">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row gap-6">
+          <div className="bg-bg-surface border border-border rounded-lg p-5 flex flex-col gap-4 flex-1">
             <span className="text-3xl -ml-1.5 -mb-1">💡</span>
             <p className="font-montserrat font-semibold text-xl text-text-primary">Algorithmic Thinking</p>
             <p className="text-text-secondary">Mastering the logic behind the code. We tackle complex problem sets that challenge conventional solutions.</p>
           </div>
-          <div className="bg-bg-base border border-border rounded-lg p-5 flex flex-col gap-4 w-full sm:w-72 md:w-80">
+          <div className="bg-bg-surface border border-border rounded-lg p-5 flex flex-col gap-4 flex-1">
             <span className="text-3xl -ml-1.5 -mb-1">🤝</span>
             <p className="font-montserrat font-semibold text-xl text-text-primary">Student Networking</p>
             <p className="text-text-secondary">Building a lifetime network of peers. We facilitate connections between ambitious developers and future leaders.</p>
           </div>
-          <div className="bg-bg-base border border-border rounded-lg p-5 flex flex-col gap-4 w-full sm:w-72 md:w-80">
+          <div className="bg-bg-surface border border-border rounded-lg p-5 flex flex-col gap-4 flex-1">
             <span className="text-3xl -ml-1.5 -mb-1">🏫</span>
             <p className="font-montserrat font-semibold text-xl text-text-primary">Inter-School Exchange</p>
             <p className="text-text-secondary">Broadening horizons through competition and collaboration with technical clubs from other universities.</p>
