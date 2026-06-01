@@ -17,9 +17,10 @@
 </div>
 
 ---
-### [codeXperts Preview](codexperts-web-psi.vercel.app)
+### [codeXperts Preview](https://codexperts-web-psi.vercel.app)
 
-### [codeXperts Production](codexperts.ca)
+### [codeXperts Production](https://codexperts.ca)
+
 <div align="center">
 
 ![Demo](public/demos/demo_w3.gif)
