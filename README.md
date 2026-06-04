@@ -23,7 +23,7 @@
 
 <div align="center">
 
-![Demo](public/demos/demo_w3.gif)
+![Demo](public/demos/demo_w5.gif)
 
 </div>
 
@@ -41,7 +41,8 @@ The **codeXperts Club** official website — a members-only platform for a codin
 | **Schedule Page** | Google Calendar API integration — synced events with subscribe/download for members |
 | **Member Directory** | Filterable profile cards with cohort, school, role badges, and per-field visibility controls |
 | **Activity Heatmap** | GitHub-style contribution graph per member, combining submissions and attendance |
-| **Events Page** | Past and upcoming events with dark mode support |
+| **Events Page** | Past and upcoming events; individual event detail pages with tracks, gallery, and prev/next nav |
+| **Member Profiles** | Per-member profile page with bio, social links, and self-edit mode |
 | **Announcements** | Role-gated announcement board |
 
 ---
@@ -288,24 +289,26 @@ Andra   0
 </details>
 
 <details>
-<summary><strong>Week 4</strong> — Problem List, Events & Members</summary>
+<summary><strong>Week 4</strong> — Auth Hardening, JoinModal Overhaul & DB Schema</summary>
 
 **Planning**
-- Problem List page permissions scoped (PR #74, #77 executive role fix) · Members page filter and profile detail defined as next milestone · Instagram feed Vercel deployment issue flagged · Railway trial expiry noted; fallback confirmed as non-blocking
+- Sprint 4 scope locked: complete JoinModal signup flow, fix auth/navbar regressions, extend DB schema for members and problems · UserChip (avatar + role badge in navbar) scoped as auth UX milestone · Executive role admin access gap flagged
 
 **Design**
-- Events card height uniformity and newest-left sort order confirmed per team feedback · Members cohort display finalized as numeric badge (1, 2, 3...) per Figma spec · Mobile layout adjustments scoped for Home and About Us pages
+- Signup flow redesigned: scrollable modal with fixed header, prefix-input pattern for GitHub/LinkedIn, cohort stored as ordinal · Navbar UserChip layout finalized: `[Avatar] [Role badge] [Log out]` for desktop; avatar + hamburger on mobile top bar
 
 **Development**
-- Navbar modal fixed and Google Auth login wired (Dave) · Problem List page implemented with React Markdown library — PR #74, #77 executive permission fix · Schedule page: Google Calendar API integrated with member subscribe/download (Paul) · Events page: dark mode and component split underway; 404 and image path bugs identified (Andra) · Members page: design and markup complete, mock data populated, filter and profile detail pages next (Judy) · Mobile layout position adjustments for Home and About Us (Kai) · Announcement page in progress (Kai)
+- **JoinModal overhaul** (#88): added `first_name`, `last_name`, `nickname`, `school`, `cohort`, `phone`, `status`, `company`, `occupation`, `linkedin`, `github` fields; GitHub/LinkedIn as prefix + username; auto-fills from Google OAuth metadata; cohort stored as ordinal
+- **DB schema** (#87): added `cohort`, `phone`, `status`, `occupation` to profiles; `difficulty`, `category`, `created_by` to problems; `updated_at` to submissions — migrations run in Supabase
+- **UserChip** (#95): `UserChip` component added to navbar — Google profile photo with initials fallback, role badge (`P`/`M`/`E`/`A`), applied to desktop and mobile top bar
+- **Navbar bug fixes** (#97, #98): navbar buttons no longer disappear on interaction; user role now displays correctly after login; bfcache PKCE fix (back button after OAuth no longer breaks login state); duplicate click guard on Login button
+- **signOut reliability** (#96): replaced `router.push('/')` with `window.location.href` for full page reload — prevents Supabase token refresh timer surviving sign-out
 
 **Testing**
-- Instagram feed confirmed working locally but failing on Vercel; CORS/env investigation pending · Events page 404 and image path errors surfaced after component refactor · Problem List executive permission fix validated (PR #74, #77)
+- Google OAuth → pending → approval → member role flow re-validated after JoinModal changes · UserChip rendering tested across desktop and mobile breakpoints · DB migration applied and column presence verified in Supabase
 
 **Review & Release**
-- All team PRs merged to main by Paul · Railway infrastructure fallback plan confirmed (no production impact) · Andra's Events bug fix and Dave's Auth login wiring targeted for completion before next standup
-
-<!-- demo_w4.gif: add when Week 4 recording is ready -->
+- 5 issues closed (Paul: 4, Gary: 1) · Sprint 4 feature branch growing toward main merge · DB migrations committed to `supabase/migrations/`
 
 <!-- SPRINT_REPORT_W4_START -->
 ```
@@ -330,6 +333,58 @@ Judy    0
 ──────────────────────────────────────
 ```
 <!-- SPRINT_REPORT_W4_END -->
+
+</details>
+
+<details open>
+<summary><strong>Week 5</strong> — Sprint 4 Merge, Events, Profile Page & Design Overhaul</summary>
+
+**Planning**
+- Sprint 4 merged to `main` (PR #122) — 5 feature areas, 4 DB migrations, 0 build errors · Post-merge: Copilot security review triaged; 3 issues addressed in follow-up PRs · Events full implementation and Profile page scoped as W5 deliverables · Design token audit kicked off to unify all pages before launch · Custom domain `codexperts.ca` purchased via Cloudflare (#130) and configured on Vercel (apex + www)
+
+**Design**
+- Design system token cleanup: all hardcoded hex and default Tailwind colors replaced with semantic tokens across 22 files · Responsive container pattern (`max-w-6xl mx-auto px-4 sm:px-6`) standardized across every page · Navbar flattened to direct links; social icons always visible on mobile · Badge system finalized: Graduate → `bg-link-bg text-gold`, Executive → `bg-success-bg text-success`; unified across Navbar, UserAvatar, MemberCard
+
+**Development**
+- **Sprint 4 release** (PR #122): Members Page (live Supabase data, combinable filters), Problems Page (Post + List view, Markdown, exec delete/download), Footer + Contact Form (Gmail SMTP via nodemailer), About Us page, Announcements layout
+- **Events Section**: main events page redesigned (upcoming + past split); individual event detail page at `/events/[id]` with description, date, location, tracks, gallery, prev/next nav; `PastEventsCards` component
+- **Profile Page** (`/members/[id]`): live Supabase fetch via `fetchMemberById()`; avatar with initials fallback, name, nickname, status badge, conditional LinkedIn/GitHub icons; bio section; edit button visible only to profile owner
+- **Pending page**: school-specific club signup prompt — Seneca live link, York Coming Soon; managed via `socialLinks.js` config (#133)
+- **Executive role fix** (#77): `canAccessAdminRoutes` updated to include Executive — admin routes no longer 403 for execs
+- **Problems table columns** (#107): `week`, `due_date`, `school` columns added to problems table via migration
+- **Security hardening**: contact form HTML + SMTP header injection sanitized (`escapeHtml`, `sanitizeHeader`); `adminApproval` moved to server-side `/api/admin/approve` using service role key — client can no longer trigger RLS-bypassed updates directly
+
+**Testing**
+- Copilot review on PR #122: 3 security issues triaged → resolved in #123 (contact form injection), #124 (admin approval RLS), #125 (replyTo header sanitization) · Graduate badge dark-bg regression caught and fixed · JoinModal double-submit race condition guarded · Members cohort filter value mismatch (`"Fall 2024"` vs DB `"1"`) fixed · Status filter `'graduate'` → `'graduated'` DB value corrected
+
+**Review & Release**
+- Sprint 4 merged to `main` · 17 follow-up PRs merged (security patches, Events, Profile, design overhaul, domain) · `codexperts.ca` and `www.codexperts.ca` live
+
+![Week 5 Demo](public/demos/demo_w5.gif)
+
+<!-- SPRINT_REPORT_W5_START -->
+```
+Sprint Contribution Report — Week 5
+──────────────────────────────────────
+Name    Done/All  Contribution
+──────────────────────────────────────
+Paul    2/2       ████
+
+Kai     1/1       ██
+
+Andra   0/1       ░░
+
+Sid     0         
+
+Gary    0         
+
+Dave    0         
+
+Judy    0         
+
+──────────────────────────────────────
+```
+<!-- SPRINT_REPORT_W5_END -->
 
 </details>
 
@@ -366,11 +421,11 @@ Judy    0
 
 | Layer | Platform | Domain |
 |-------|----------|--------|
-| Frontend | Vercel | codexperts.ca |
+| Frontend | Vercel | [codexperts.ca](https://codexperts.ca) · [www.codexperts.ca](https://www.codexperts.ca) |
 | Backend | Railway | auto-assigned Railway URL |
 | Database & Auth | Supabase | managed |
 
-> Starting with Vercel free subdomain. Will migrate to `codexperts.ca` upon MVP completion.
+> Custom domain `codexperts.ca` is live. Both apex (`codexperts.ca`) and `www.codexperts.ca` resolve correctly.
 
 ---
 
