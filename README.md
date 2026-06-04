@@ -54,8 +54,8 @@ The **codeXperts Club** official website — a members-only platform for a codin
 | **Frontend** | Next.js 16 (App Router) | SSR for schedule/calendar pages; app router for per-route auth guards |
 | **Styling** | Tailwind CSS | Rapid iteration across 7 contributors without CSS conflicts |
 | **Auth + DB** | Supabase | Google OAuth out of the box; RLS policies enforce RBAC at the DB level — no leaking data through API mistakes |
-| **Backend** | FastAPI (Railway) | Lightweight proxy for Piston code execution and QR token validation; decoupled from Vercel edge |
-| **Deployment** | Vercel + Railway | Zero-config preview deploys per PR on Vercel; Railway for persistent Python backend |
+| **Backend** | FastAPI (HEROKU) | Lightweight proxy for Piston code execution and QR token validation; decoupled from Vercel edge |
+| **Deployment** | Vercel + HEROKU | Zero-config preview deploys per PR on Vercel; HEROKU for persistent Python backend |
 
 ---
 
@@ -65,7 +65,7 @@ The **codeXperts Club** official website — a members-only platform for a codin
 |------|------|
 | **Paul** | PM / Full-Stack / UI/UX |
 | **Kai** | Frontend |
-| **Dave** | Backend (FastAPI / Railway / Deployment) / Frontend |
+| **Dave** | Backend (FastAPI / HEROKU / Deployment) / Frontend |
 | **Gary** | Backend (Supabase / DB & Auth) |
 | **Judy** | Frontend |
 | **Andra** | Frontend / Backend |
@@ -89,7 +89,7 @@ Frontend (Next.js — Vercel)
 │       ├── attendances    → profile_id, session_id, checked_at
 │       └── announcements  → author_id, title, content, created_at
 │
-└── FastAPI (Railway)
+└── FastAPI (HEROKU)
     ├── /health            → service health check
     ├── /execute           → proxy to Piston API (code execution)
     └── /attendance/verify → QR token validation
@@ -160,7 +160,7 @@ Judy    2      ████
 - Finalized sitemap and page visibility rules · Produced Figma wireframes for all 8 pages · Finalized DB schema (profiles, problems, submissions, sessions, attendances, announcements) · Defined navbar structure and social link config
 
 **Development**
-- Next.js + Tailwind project setup · Supabase project created + Google OAuth configured · RLS policies drafted · Vercel + Railway pipelines connected · Placeholder pages scaffolded for all routes
+- Next.js + Tailwind project setup · Supabase project created + Google OAuth configured · RLS policies drafted · Vercel + HEROKU pipelines connected · Placeholder pages scaffolded for all routes
 
 **Testing**
 - Google login → pending user flow tested end-to-end · Vercel preview deploy verified · Environment variable setup confirmed across team
@@ -422,7 +422,7 @@ Judy    0
 | Layer | Platform | Domain |
 |-------|----------|--------|
 | Frontend | Vercel | [codexperts.ca](https://codexperts.ca) · [www.codexperts.ca](https://www.codexperts.ca) |
-| Backend | Railway | auto-assigned Railway URL |
+| Backend | HEROKU | auto-assigned HEROKU URL |
 | Database & Auth | Supabase | managed |
 
 > Custom domain `codexperts.ca` is live. Both apex (`codexperts.ca`) and `www.codexperts.ca` resolve correctly.
@@ -502,7 +502,7 @@ App runs at `http://localhost:3000`.
 | `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Supabase anon key |
 | `SUPABASE_SERVICE_ROLE_KEY` | Backend only | Never expose to client |
-| `NEXT_PUBLIC_API_URL` | Yes | Railway FastAPI URL |
+| `NEXT_PUBLIC_API_URL` | Yes | HEROKU FastAPI URL |
 | `CONTACT_EMAIL_USER` | Yes | Gmail address for contact form SMTP |
 | `CONTACT_EMAIL_PASS` | Yes | Gmail App Password (not your account password) — generate at [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords) |
 
