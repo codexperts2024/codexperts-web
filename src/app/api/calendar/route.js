@@ -40,9 +40,13 @@ const parseIcsDate = (raw) => {
 const unfoldLines = (text) =>
   text.replace(/\r\n[ \t]/g, '').replace(/\n[ \t]/g, '');
 
-// Clean escaped characters from a summary string
+// Clean escaped characters from a summary/title string (plain text)
 const cleanText = (s) =>
   s.replace(/\\n/g, ' ').replace(/\\,/g, ',').replace(/\\/g, '');
+
+// Clean description strings — preserves HTML tags and converts \n to <br>
+const cleanDescription = (s) =>
+  s.replace(/\\n/g, '<br>').replace(/\\,/g, ',').replace(/\\/g, '');
 
 // Strip TZID/VALUE prefix and return the bare datetime string
 // e.g. "America/Toronto:20260525T180000" → "20260525T180000"
@@ -188,6 +192,26 @@ const parseEvents = (icsText, year, month) => {
   const rangeStart = new Date(year, month - 1, 1, 0, 0, 0);
   const rangeEnd = new Date(year, month, 0, 23, 59, 59);
 
+  // First pass: collect RECURRENCE-ID overrides per UID.
+  // When Google Calendar edits a single occurrence of a recurring series, it adds
+  // a new VEVENT with RECURRENCE-ID (the original date being replaced) rather than
+  // an EXDATE. We must suppress the original occurrence so it doesn't duplicate.
+  const overridesByUid = new Map(); // uid → Set<dateString>
+  for (const block of blocks) {
+    const getField = (key) => {
+      const re = new RegExp(`^${key}(?:;[^:]*)?:(.+)`, 'm');
+      const m = block.match(re);
+      return m ? m[1].trim() : null;
+    };
+    const uid = getField('UID');
+    const recurrenceId = getField('RECURRENCE-ID');
+    if (!uid || !recurrenceId) continue;
+    const d = parseIcsDate(recurrenceId);
+    if (!d || isNaN(d)) continue;
+    if (!overridesByUid.has(uid)) overridesByUid.set(uid, new Set());
+    overridesByUid.get(uid).add(d.toDateString());
+  }
+
   const events = [];
 
   for (const block of blocks) {
@@ -202,6 +226,7 @@ const parseEvents = (icsText, year, month) => {
     const rawEnd = get('DTEND');
     const summary = get('SUMMARY') || 'Untitled Event';
     const rrule = get('RRULE');
+    const recurrenceId = get('RECURRENCE-ID');
 
     if (!rawStart) continue;
 
@@ -212,7 +237,7 @@ const parseEvents = (icsText, year, month) => {
 
     // Extract additional event fields
     const location = get('LOCATION') ? cleanText(get('LOCATION')) : null;
-    const description = get('DESCRIPTION') ? cleanText(get('DESCRIPTION')) : null;
+    const description = get('DESCRIPTION') ? cleanDescription(get('DESCRIPTION')) : null;
 
     // Extract start/end times directly from raw iCal strings to avoid timezone conversion.
     // All occurrences of a recurring event share the same clock time, so we derive
@@ -222,6 +247,9 @@ const parseEvents = (icsText, year, month) => {
 
     if (rrule) {
       // --- Recurring event ---
+      const uid = get('UID');
+      const overrideDates = uid ? (overridesByUid.get(uid) ?? new Set()) : new Set();
+
       const exdates = [];
       const exdateRe = /^EXDATE(?:;[^:]*)?:(.+)/gm;
       let exMatch;
@@ -234,11 +262,19 @@ const parseEvents = (icsText, year, month) => {
 
       const occurrences = expandRRule(dtstart, rrule, exdates, rangeStart, rangeEnd);
       for (const occ of occurrences) {
+        // Skip occurrences that have a RECURRENCE-ID override VEVENT — the override
+        // will be added as a standalone event in the non-recurring branch below.
+        if (overrideDates.has(occ.toDateString())) continue;
         events.push({ date: occ.toISOString(), title, location, description, startTime, endTime });
       }
     } else {
-      // --- One-time event ---
+      // --- One-time event (including RECURRENCE-ID overrides) ---
       if (dtstart >= rangeStart && dtstart <= rangeEnd) {
+        // Skip cancelled overrides: a RECURRENCE-ID block with no SUMMARY update
+        // still represents the (modified) occurrence — include it unless it was
+        // explicitly deleted (STATUS:CANCELLED).
+        const status = get('STATUS');
+        if (status === 'CANCELLED') continue;
         events.push({ date: dtstart.toISOString(), title, location, description, startTime, endTime });
       }
     }

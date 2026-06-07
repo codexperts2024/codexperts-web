@@ -116,7 +116,10 @@ const EventModal = ({ event, onClose }) => {
               style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.19), 0 2px 4px rgba(0,0,0,0.08)' }}
             >
               <AlignLeft size={15} className="shrink-0 mt-0.5 text-text-secondary" />
-              <span className="font-inter text-sm text-text-secondary">{event.description}</span>
+              <span
+                className="font-inter text-sm text-text-secondary [&_a]:text-accent [&_a]:underline [&_a]:underline-offset-2 [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_li]:mt-1 [&_strong]:font-semibold [&_b]:font-semibold"
+                dangerouslySetInnerHTML={{ __html: event.description }}
+              />
             </div>
           )}
           {!event.location && !event.description && (
