@@ -40,9 +40,13 @@ const parseIcsDate = (raw) => {
 const unfoldLines = (text) =>
   text.replace(/\r\n[ \t]/g, '').replace(/\n[ \t]/g, '');
 
-// Clean escaped characters from a summary string
+// Clean escaped characters from a summary/title string (plain text)
 const cleanText = (s) =>
   s.replace(/\\n/g, ' ').replace(/\\,/g, ',').replace(/\\/g, '');
+
+// Clean description strings — preserves HTML tags and converts \n to <br>
+const cleanDescription = (s) =>
+  s.replace(/\\n/g, '<br>').replace(/\\,/g, ',').replace(/\\/g, '');
 
 // Strip TZID/VALUE prefix and return the bare datetime string
 // e.g. "America/Toronto:20260525T180000" → "20260525T180000"
@@ -233,7 +237,7 @@ const parseEvents = (icsText, year, month) => {
 
     // Extract additional event fields
     const location = get('LOCATION') ? cleanText(get('LOCATION')) : null;
-    const description = get('DESCRIPTION') ? cleanText(get('DESCRIPTION')) : null;
+    const description = get('DESCRIPTION') ? cleanDescription(get('DESCRIPTION')) : null;
 
     // Extract start/end times directly from raw iCal strings to avoid timezone conversion.
     // All occurrences of a recurring event share the same clock time, so we derive
