@@ -42,6 +42,22 @@ function ExecutiveBadge() {
   )
 }
 
+// Sliding segmented toggle for two named options (e.g. Student/Graduate)
+function SlidingSegmented({ value, options, onChange }) {
+  const idx = options.findIndex(o => o.value === value)
+  return (
+    <div className="relative inline-flex rounded-full border border-border overflow-hidden text-xs font-medium">
+      <span className={`absolute inset-y-0 w-1/2 transition-all duration-200 ${idx === 0 ? 'left-0' : 'left-1/2'} ${idx === 0 ? 'bg-[#1A6FBF]' : 'bg-orange-400'}`} />
+      {options.map((opt, i) => (
+        <button key={String(opt.value)} type="button" onClick={() => onChange(opt.value)}
+          className={`relative z-10 px-4 py-1.5 transition-colors ${i > 0 ? 'border-l border-border' : ''} ${opt.value === value ? 'text-white' : 'text-text-hint'}`}>
+          {opt.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 // iOS-style toggle switch
 function Toggle({ value, onChange, colorOn = 'bg-[#1A6FBF]', colorOff = 'bg-gray-300' }) {
   return (
@@ -67,7 +83,7 @@ function IconMonitor({ className = 'size-4' }) {
 }
 
 // Read view — shown to other members, or as "Preview" for own profile
-function ReadSidebar({ member, isOwn, isExec, onEdit }) {
+function ReadSidebar({ member, isOwn, isPreview, isExec, onEdit }) {
   const fullName = `${member.firstName ?? ''} ${member.lastName ?? ''}`.trim()
   const v = member.profileVisibility ?? {}
 
@@ -87,12 +103,13 @@ function ReadSidebar({ member, isOwn, isExec, onEdit }) {
         {isExec && <ExecutiveBadge />}
       </div>
 
-      {/* Bio always shown when visibility is on, even if empty */}
-      {v.bio !== false && (
+      {v.bio !== false ? (
         <p className="text-sm text-text-secondary leading-relaxed min-h-[1.25rem] whitespace-pre-wrap">
           {member.bio ?? ''}
         </p>
-      )}
+      ) : isPreview && member.bio ? (
+        <p className="text-xs text-text-hint italic">🔒 Bio is hidden from others</p>
+      ) : null}
 
       <div className="flex flex-col gap-1 text-sm text-text-secondary">
         {member.school && <span>{member.school}</span>}
@@ -167,19 +184,13 @@ function EditSidebar({ member, draft, onDraftChange, onPreview, onCancel, onSave
           className="w-full px-3 py-1.5 rounded border border-border bg-bg-base text-sm text-text-primary focus:outline-none focus:border-accent" />
       </div>
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-2">
         <label className="text-xs font-medium text-text-hint uppercase tracking-wide">Status</label>
-        <div className="flex items-center gap-2">
-          <Toggle
-            value={draft.status === 'student'}
-            onChange={(v) => onDraftChange({ ...draft, status: v ? 'student' : 'graduate' })}
-            colorOn="bg-[#1A6FBF]"
-            colorOff="bg-orange-400"
-          />
-          <span className={`text-xs font-medium w-14 ${draft.status === 'student' ? 'text-[#1A6FBF]' : 'text-orange-500'}`}>
-            {draft.status === 'student' ? 'Student' : 'Graduate'}
-          </span>
-        </div>
+        <SlidingSegmented
+          options={[{ value: 'student', label: 'Student' }, { value: 'graduate', label: 'Graduate' }]}
+          value={draft.status}
+          onChange={(v) => onDraftChange({ ...draft, status: v })}
+        />
       </div>
 
       <div className="flex flex-col gap-1">
@@ -403,6 +414,7 @@ export default function ProfilePage({ params }) {
                       <ReadSidebar
                         member={displayMember}
                         isOwn={isOwn && mode === 'read'}
+                        isPreview={isOwn && mode === 'preview'}
                         isExec={isExec}
                         onEdit={() => setMode('edit')}
                       />
