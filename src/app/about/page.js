@@ -44,17 +44,20 @@ const MemberCard = ({ executive }) => {
         {title}
       </span>
       <div className="flex items-center gap-2">
-        {linkedinUrl && (
+        {linkedinUrl ? (
           <a href={linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-text-secondary hover:text-text-primary transition-colors">
             <IconLinkedIn />
           </a>
+        ) : (
+          <span className="text-text-hint cursor-default"><IconLinkedIn /></span>
         )}
-        {githubUrl && (
+        {githubUrl ? (
           <a href={githubUrl} target="_blank" rel="noopener noreferrer" className="text-text-secondary hover:text-text-primary transition-colors">
             <IconGitHub />
           </a>
+        ) : (
+          <span className="text-text-hint cursor-default"><IconGitHub /></span>
         )}
-        {!linkedinUrl && !githubUrl && <div className="size-4" />}
       </div>
     </div>
   )
