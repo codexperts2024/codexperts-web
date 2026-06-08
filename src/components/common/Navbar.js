@@ -213,13 +213,8 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Mobile: UserChip + hamburger */}
-        <div className="ml-auto lg:hidden flex items-center gap-1">
-          {user && (
-            <div className="ml-1">
-              <Link href={`/members/${user.id}`}><UserChip user={user} profile={profile} /></Link>
-            </div>
-          )}
+        {/* Mobile: hamburger only */}
+        <div className="ml-auto lg:hidden">
           <button
             className="p-2 text-text-secondary hover:text-text-primary transition-colors"
             onClick={() => setMobileOpen((o) => !o)}
@@ -236,7 +231,7 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="lg:hidden border-t border-border bg-bg-surface px-6 py-4 flex flex-col gap-1">
+        <div className="lg:hidden border-t border-border bg-bg-surface px-6 py-4 flex flex-col gap-1 relative z-50">
           {allLinks.map(({ href, label }) => (
             <Link key={href} href={href} onClick={() => setMobileOpen(false)}
               className={`block px-2 py-2 text-sm rounded-md transition-colors ${
@@ -251,10 +246,22 @@ export default function Navbar() {
           <div className="my-2 h-px bg-border" />
 
           {user ? (
-            <button onClick={() => { signOut(); setMobileOpen(false) }}
-              className="w-full px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center">
-              Log out
-            </button>
+            <>
+              <Link href={`/members/${user.id}`} onClick={() => setMobileOpen(false)}
+                className="block px-2 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-layer1 rounded-md transition-colors">
+                My Profile
+              </Link>
+              {isAdmin && (
+                <Link href="/admin" onClick={() => setMobileOpen(false)}
+                  className="block px-2 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-layer1 rounded-md transition-colors">
+                  Admin
+                </Link>
+              )}
+              <button onClick={() => { signOut(); setMobileOpen(false) }}
+                className="w-full mt-1 px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center">
+                Log out
+              </button>
+            </>
           ) : (
             <button onClick={() => { setMobileOpen(false); handleLogIn() }} disabled={loggingIn}
               className="w-full px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center disabled:opacity-60 disabled:cursor-not-allowed">
