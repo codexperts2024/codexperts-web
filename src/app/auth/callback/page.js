@@ -25,7 +25,9 @@ export default function AuthCallbackPage() {
       }
 
       if (isApprovedRole(profile.role)) {
-        router.replace('/')
+        const redirect = localStorage.getItem('auth_redirect') || '/'
+        localStorage.removeItem('auth_redirect')
+        router.replace(redirect)
       } else {
         router.replace('/pending')
       }

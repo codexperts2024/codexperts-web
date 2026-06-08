@@ -142,6 +142,7 @@ export default function Navbar() {
   async function handleLogIn() {
     if (loggingIn) return
     setLoggingIn(true)
+    localStorage.setItem('auth_redirect', window.location.pathname)
     try {
       await signInWithGoogle(`${window.location.origin}/auth/callback`)
     } catch {
