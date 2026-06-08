@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import React from 'react'
 import Link from 'next/link'
 import RoleGuard from '@/components/auth/RoleGuard'
@@ -72,9 +72,10 @@ function StatusToggle({ value, onChange }) {
   )
 }
 
+// Read view — shown to other members, or as "Preview" for own profile
 function ReadSidebar({ member, isOwn, isExec, onEdit }) {
   const fullName = `${member.firstName ?? ''} ${member.lastName ?? ''}`.trim()
-  const v = member.profileVisibility
+  const v = member.profileVisibility ?? {}
 
   return (
     <aside className="flex flex-col gap-4">
@@ -101,7 +102,7 @@ function ReadSidebar({ member, isOwn, isExec, onEdit }) {
         {member.cohort && <span>{cohortLabel(member.cohort)}</span>}
       </div>
 
-      {(v.linkedin !== false && member.linkedinUrl) || (v.github !== false && member.githubUrl) ? (
+      {((v.linkedin !== false && member.linkedinUrl) || (v.github !== false && member.githubUrl)) && (
         <div className="flex flex-col gap-2 pt-1">
           {v.linkedin !== false && member.linkedinUrl && (
             <a href={member.linkedinUrl} target="_blank" rel="noopener noreferrer"
@@ -118,28 +119,30 @@ function ReadSidebar({ member, isOwn, isExec, onEdit }) {
             </a>
           )}
         </div>
-      ) : null}
-
-      {isOwn && (
-        <div className="flex flex-col gap-1 text-xs text-text-hint">
-          {v.bio === false && member.bio && <span>🔒 Bio hidden from others</span>}
-          {v.linkedin === false && member.linkedinUrl && <span>🔒 LinkedIn hidden from others</span>}
-          {v.github === false && member.githubUrl && <span>🔒 GitHub hidden from others</span>}
-        </div>
       )}
 
       {isOwn && (
-        <button onClick={onEdit}
-          className="w-full mt-1 px-4 py-1.5 rounded border border-border text-sm text-text-secondary hover:border-border-strong hover:text-text-primary transition-colors">
-          Edit Profile
-        </button>
+        <>
+          <div className="flex flex-col gap-1 text-xs text-text-hint">
+            {v.bio === false && member.bio && <span>🔒 Bio hidden from others</span>}
+            {v.linkedin === false && member.linkedinUrl && <span>🔒 LinkedIn hidden from others</span>}
+            {v.github === false && member.githubUrl && <span>🔒 GitHub hidden from others</span>}
+          </div>
+          <button type="button" onClick={onEdit}
+            className="w-full mt-1 px-4 py-1.5 rounded border border-border text-sm text-text-secondary hover:border-border-strong hover:text-text-primary transition-colors">
+            ← Edit Profile
+          </button>
+        </>
       )}
     </aside>
   )
 }
 
-function EditSidebar({ member, onCancel, onSave, saving }) {
+// Edit view — own profile only
+function EditSidebar({ member, onCancel, onPreview, onSave, saving }) {
   const fullName = `${member.firstName ?? ''} ${member.lastName ?? ''}`.trim()
+  const defaultVisibility = member.profileVisibility ?? { bio: true, linkedin: true, github: true }
+
   const [form, setForm] = useState({
     nickname: member.nickname ?? '',
     bio: member.bio ?? '',
@@ -148,9 +151,9 @@ function EditSidebar({ member, onCancel, onSave, saving }) {
     status: member.status ?? 'student',
   })
   const [visibility, setVisibility] = useState({
-    bio: member.profileVisibility.bio !== false,
-    linkedin: member.profileVisibility.linkedin !== false,
-    github: member.profileVisibility.github !== false,
+    bio: defaultVisibility.bio !== false,
+    linkedin: defaultVisibility.linkedin !== false,
+    github: defaultVisibility.github !== false,
   })
 
   const setField = (key) => (e) => setForm(f => ({ ...f, [key]: e.target.value }))
@@ -218,15 +221,22 @@ function EditSidebar({ member, onCancel, onSave, saving }) {
           className="w-full px-3 py-1.5 rounded border border-border bg-bg-base text-sm text-text-primary focus:outline-none focus:border-accent" />
       </div>
 
-      <div className="flex gap-2 pt-1">
-        <button type="button" onClick={onCancel}
-          className="flex-1 px-4 py-2 rounded border border-border text-sm text-text-secondary hover:border-border-strong transition-colors">
-          Cancel
-        </button>
+      {/* Action buttons */}
+      <div className="flex flex-col gap-2 pt-1">
         <button type="button" onClick={handleSave} disabled={saving}
-          className="flex-1 px-4 py-2 rounded bg-accent text-white text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50">
+          className="w-full px-4 py-2 rounded bg-accent text-white text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50">
           {saving ? 'Saving…' : 'Save Changes'}
         </button>
+        <div className="flex gap-2">
+          <button type="button" onClick={onPreview}
+            className="flex-1 px-4 py-2 rounded border border-border text-sm text-text-secondary hover:border-border-strong transition-colors">
+            Preview
+          </button>
+          <button type="button" onClick={onCancel}
+            className="flex-1 px-4 py-2 rounded border border-border text-sm text-text-secondary hover:border-border-strong transition-colors">
+            Cancel
+          </button>
+        </div>
       </div>
     </aside>
   )
@@ -238,8 +248,10 @@ export default function ProfilePage({ params }) {
   const [member, setMember] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [editing, setEditing] = useState(false)
+  // 'edit' | 'preview' | 'read'
+  const [mode, setMode] = useState('read')
   const [saving, setSaving] = useState(false)
+  const initializedRef = useRef(false)
 
   useEffect(() => {
     let cancelled = false
@@ -257,6 +269,14 @@ export default function ProfilePage({ params }) {
     return () => { cancelled = true }
   }, [id])
 
+  // Auto-enter edit mode once we confirm own profile
+  useEffect(() => {
+    if (!initializedRef.current && member && user && user.id === id) {
+      setMode('edit')
+      initializedRef.current = true
+    }
+  }, [member, user, id])
+
   const isOwn = user?.id === id
   const isExec = member?.role === 'executive' || member?.role === 'admin'
 
@@ -266,7 +286,7 @@ export default function ProfilePage({ params }) {
       await updateMyProfile(fields)
       const updated = await fetchMemberById(id)
       setMember(updated)
-      setEditing(false)
+      setMode('edit')
     } catch (err) {
       console.error('Failed to save profile:', err)
     } finally {
@@ -289,31 +309,36 @@ export default function ProfilePage({ params }) {
             {!loading && !error && member && (
               <div className="flex flex-col md:flex-row gap-8 md:gap-12 md:items-start">
                 <div className="w-full md:w-64 lg:w-72 md:flex-shrink-0">
-                  {editing ? (
+                  {isOwn && mode === 'edit' ? (
                     <EditSidebar
                       member={member}
-                      onCancel={() => setEditing(false)}
+                      onPreview={() => setMode('preview')}
+                      onCancel={() => setMode('edit')}
                       onSave={handleSave}
                       saving={saving}
                     />
                   ) : (
                     <ReadSidebar
                       member={member}
-                      isOwn={isOwn}
+                      isOwn={isOwn && mode === 'preview'}
                       isExec={isExec}
-                      onEdit={() => setEditing(true)}
+                      onEdit={() => setMode('edit')}
                     />
                   )}
                 </div>
 
                 <div className="flex-1 min-w-0 flex flex-col gap-8">
+                  {isOwn && mode === 'preview' && (
+                    <div className="px-3 py-2 rounded bg-bg-layer1 border border-border text-sm text-text-secondary">
+                      👁 This is how others see your profile
+                    </div>
+                  )}
                   <section>
                     <h2 className="font-montserrat font-semibold text-lg text-text-primary mb-4">Activity</h2>
                     <div className="w-full rounded-lg bg-bg-layer1 border border-border flex items-center justify-center py-12">
                       <p className="text-sm text-text-hint">Coming soon</p>
                     </div>
                   </section>
-
                   <section>
                     <h2 className="font-montserrat font-semibold text-lg text-text-primary mb-4">Achievements</h2>
                     <div className="w-full rounded-lg bg-bg-layer1 border border-border flex items-center justify-center py-12">
