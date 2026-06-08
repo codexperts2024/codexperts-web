@@ -8,6 +8,8 @@ import { fetchMemberById, updateMyProfile } from '@/services/membersService'
 import { cohortLabel } from '@/utils/cohort'
 import { IconLinkedIn, IconGitHub } from '@/components/ui/SocialIcons'
 
+const SCHOOLS = ['Seneca College', 'York University']
+
 function Avatar({ member }) {
   const initial = (member?.firstName?.[0] ?? '?').toUpperCase()
   const src = member.avatarUrl?.replace(/=s\d+-c$/, '=s400-c') ?? member.avatarUrl
@@ -42,15 +44,16 @@ function ExecutiveBadge() {
   )
 }
 
-// Sliding segmented toggle for two named options (e.g. Student/Graduate)
+// Sliding segmented toggle (equal-width buttons, colored sliding background)
 function SlidingSegmented({ value, options, onChange }) {
   const idx = options.findIndex(o => o.value === value)
+  const colors = ['bg-[#1A6FBF]', 'bg-orange-400']
   return (
-    <div className="relative inline-flex rounded-full border border-border overflow-hidden text-xs font-medium">
-      <span className={`absolute inset-y-0 w-1/2 transition-all duration-200 ${idx === 0 ? 'left-0' : 'left-1/2'} ${idx === 0 ? 'bg-[#1A6FBF]' : 'bg-orange-400'}`} />
+    <div className="relative flex w-full rounded-full border border-border overflow-hidden text-xs font-medium">
+      <span className={`absolute inset-y-0 w-1/2 transition-all duration-200 ${idx === 0 ? 'left-0' : 'left-1/2'} ${colors[idx] ?? 'bg-[#1A6FBF]'}`} />
       {options.map((opt, i) => (
         <button key={String(opt.value)} type="button" onClick={() => onChange(opt.value)}
-          className={`relative z-10 px-4 py-1.5 transition-colors ${i > 0 ? 'border-l border-border' : ''} ${opt.value === value ? 'text-white' : 'text-text-hint'}`}>
+          className={`relative z-10 flex-1 text-center py-1.5 transition-colors ${i > 0 ? 'border-l border-border' : ''} ${opt.value === value ? 'text-white' : 'text-text-hint'}`}>
           {opt.label}
         </button>
       ))}
@@ -83,7 +86,7 @@ function IconMonitor({ className = 'size-4' }) {
 }
 
 // Read view — shown to other members, or as "Preview" for own profile
-function ReadSidebar({ member, isOwn, isPreview, isExec, onEdit }) {
+function ReadSidebar({ member, isOwn, isExec, onEdit }) {
   const fullName = `${member.firstName ?? ''} ${member.lastName ?? ''}`.trim()
   const v = member.profileVisibility ?? {}
 
@@ -103,18 +106,22 @@ function ReadSidebar({ member, isOwn, isPreview, isExec, onEdit }) {
         {isExec && <ExecutiveBadge />}
       </div>
 
-      {v.bio !== false ? (
+      {v.bio !== false && (
         <p className="text-sm text-text-secondary leading-relaxed min-h-[1.25rem] whitespace-pre-wrap">
           {member.bio ?? ''}
         </p>
-      ) : isPreview && member.bio ? (
-        <p className="text-xs text-text-hint italic">🔒 Bio is hidden from others</p>
-      ) : null}
+      )}
 
       <div className="flex flex-col gap-1 text-sm text-text-secondary">
+        {v.occupation !== false && member.occupation && <span>{member.occupation}</span>}
+        {v.company !== false && member.company && <span>{member.company}</span>}
         {member.school && <span>{member.school}</span>}
         {member.cohort && <span>{cohortLabel(member.cohort)}</span>}
       </div>
+
+      {v.phone !== false && member.phone && (
+        <span className="text-sm text-text-secondary">{member.phone}</span>
+      )}
 
       {((v.linkedin !== false && member.linkedinUrl) || (v.github !== false && member.githubUrl)) && (
         <div className="flex flex-col gap-2 pt-1">
@@ -139,6 +146,9 @@ function ReadSidebar({ member, isOwn, isPreview, isExec, onEdit }) {
         <>
           <div className="flex flex-col gap-1 text-xs text-text-hint">
             {v.bio === false && member.bio && <span>🔒 Bio hidden from others</span>}
+            {v.occupation === false && member.occupation && <span>🔒 Occupation hidden from others</span>}
+            {v.company === false && member.company && <span>🔒 Company hidden from others</span>}
+            {v.phone === false && member.phone && <span>🔒 Phone hidden from others</span>}
             {v.linkedin === false && member.linkedinUrl && <span>🔒 LinkedIn hidden from others</span>}
             {v.github === false && member.githubUrl && <span>🔒 GitHub hidden from others</span>}
           </div>
@@ -166,16 +176,17 @@ function EditSidebar({ member, draft, onDraftChange, onPreview, onCancel, onSave
     github: draft.github || null,
     status: draft.status,
     profile_visibility: draft.vis,
+    company: draft.company || null,
+    occupation: draft.occupation || null,
+    phone: draft.phone || null,
+    school: draft.school || null,
   })
 
   return (
     <aside className="flex flex-col gap-5">
       <Avatar member={member} />
 
-      <div>
-        <p className="font-montserrat font-bold text-2xl text-text-primary leading-tight">{fullName}</p>
-        <p className="text-xs text-text-hint mt-0.5">Name is managed by admin</p>
-      </div>
+      <p className="font-montserrat font-bold text-2xl text-text-primary leading-tight">{fullName}</p>
 
       <div className="flex flex-col gap-1">
         <label className="text-xs font-medium text-text-hint uppercase tracking-wide">Nickname</label>
@@ -195,14 +206,48 @@ function EditSidebar({ member, draft, onDraftChange, onPreview, onCancel, onSave
 
       <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between">
+          <label className="text-xs font-medium text-text-hint uppercase tracking-wide">Occupation</label>
+          <div className="flex items-center gap-2">
+            <Toggle value={draft.vis.occupation} onChange={setVis('occupation')} colorOn="bg-[#1A6FBF]" colorOff="bg-gray-300" />
+            <span className={`text-xs font-medium w-10 ${draft.vis.occupation ? 'text-[#1A6FBF]' : 'text-text-hint'}`}>
+              {draft.vis.occupation ? 'Visible' : 'Hidden'}
+            </span>
+          </div>
+        </div>
+        <input type="text" value={draft.occupation} onChange={setField('occupation')}
+          placeholder="e.g. Software Developer"
+          className="w-full px-3 py-1.5 rounded border border-border bg-bg-base text-sm text-text-primary focus:outline-none focus:border-accent" />
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center justify-between">
+          <label className="text-xs font-medium text-text-hint uppercase tracking-wide">Company</label>
+          <div className="flex items-center gap-2">
+            <Toggle value={draft.vis.company} onChange={setVis('company')} colorOn="bg-[#1A6FBF]" colorOff="bg-gray-300" />
+            <span className={`text-xs font-medium w-10 ${draft.vis.company ? 'text-[#1A6FBF]' : 'text-text-hint'}`}>
+              {draft.vis.company ? 'Visible' : 'Hidden'}
+            </span>
+          </div>
+        </div>
+        <input type="text" value={draft.company} onChange={setField('company')}
+          placeholder="e.g. Google"
+          className="w-full px-3 py-1.5 rounded border border-border bg-bg-base text-sm text-text-primary focus:outline-none focus:border-accent" />
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <label className="text-xs font-medium text-text-hint uppercase tracking-wide">School</label>
+        <select value={draft.school} onChange={setField('school')}
+          className="w-full px-3 py-1.5 rounded border border-border bg-bg-base text-sm text-text-primary focus:outline-none focus:border-accent">
+          <option value="">Select school...</option>
+          {SCHOOLS.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center justify-between">
           <label className="text-xs font-medium text-text-hint uppercase tracking-wide">Bio</label>
           <div className="flex items-center gap-2">
-            <Toggle
-              value={draft.vis.bio}
-              onChange={setVis('bio')}
-              colorOn="bg-[#1A6FBF]"
-              colorOff="bg-gray-300"
-            />
+            <Toggle value={draft.vis.bio} onChange={setVis('bio')} colorOn="bg-[#1A6FBF]" colorOff="bg-gray-300" />
             <span className={`text-xs font-medium w-10 ${draft.vis.bio ? 'text-[#1A6FBF]' : 'text-text-hint'}`}>
               {draft.vis.bio ? 'Visible' : 'Hidden'}
             </span>
@@ -217,14 +262,24 @@ function EditSidebar({ member, draft, onDraftChange, onPreview, onCancel, onSave
 
       <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between">
+          <label className="text-xs font-medium text-text-hint uppercase tracking-wide">Phone</label>
+          <div className="flex items-center gap-2">
+            <Toggle value={draft.vis.phone} onChange={setVis('phone')} colorOn="bg-[#1A6FBF]" colorOff="bg-gray-300" />
+            <span className={`text-xs font-medium w-10 ${draft.vis.phone ? 'text-[#1A6FBF]' : 'text-text-hint'}`}>
+              {draft.vis.phone ? 'Visible' : 'Hidden'}
+            </span>
+          </div>
+        </div>
+        <input type="tel" value={draft.phone} onChange={setField('phone')}
+          placeholder="+1 (416) 000-0000"
+          className="w-full px-3 py-1.5 rounded border border-border bg-bg-base text-sm text-text-primary focus:outline-none focus:border-accent" />
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center justify-between">
           <label className="text-xs font-medium text-text-hint uppercase tracking-wide">LinkedIn</label>
           <div className="flex items-center gap-2">
-            <Toggle
-              value={draft.vis.linkedin}
-              onChange={setVis('linkedin')}
-              colorOn="bg-[#1A6FBF]"
-              colorOff="bg-gray-300"
-            />
+            <Toggle value={draft.vis.linkedin} onChange={setVis('linkedin')} colorOn="bg-[#1A6FBF]" colorOff="bg-gray-300" />
             <span className={`text-xs font-medium w-10 ${draft.vis.linkedin ? 'text-[#1A6FBF]' : 'text-text-hint'}`}>
               {draft.vis.linkedin ? 'Visible' : 'Hidden'}
             </span>
@@ -239,12 +294,7 @@ function EditSidebar({ member, draft, onDraftChange, onPreview, onCancel, onSave
         <div className="flex items-center justify-between">
           <label className="text-xs font-medium text-text-hint uppercase tracking-wide">GitHub</label>
           <div className="flex items-center gap-2">
-            <Toggle
-              value={draft.vis.github}
-              onChange={setVis('github')}
-              colorOn="bg-[#1A6FBF]"
-              colorOff="bg-gray-300"
-            />
+            <Toggle value={draft.vis.github} onChange={setVis('github')} colorOn="bg-[#1A6FBF]" colorOff="bg-gray-300" />
             <span className={`text-xs font-medium w-10 ${draft.vis.github ? 'text-[#1A6FBF]' : 'text-text-hint'}`}>
               {draft.vis.github ? 'Visible' : 'Hidden'}
             </span>
@@ -319,11 +369,17 @@ export default function ProfilePage({ params }) {
         linkedin: member.linkedinUrl ?? '',
         github: member.githubUrl ?? '',
         status: member.status ?? 'student',
+        company: member.company ?? '',
+        occupation: member.occupation ?? '',
+        phone: member.phone ?? '',
+        school: member.school ?? '',
         vis: {
           bio: pv.bio !== false,
-          // Default to hidden if no value has been saved yet for empty fields
           linkedin: member.linkedinUrl ? pv.linkedin !== false : false,
           github: member.githubUrl ? pv.github !== false : false,
+          company: member.company ? pv.company !== false : false,
+          occupation: member.occupation ? pv.occupation !== false : false,
+          phone: false, // phone always hidden by default
         },
       })
     }
@@ -349,6 +405,10 @@ export default function ProfilePage({ params }) {
         linkedinUrl: draft.linkedin || null,
         githubUrl: draft.github || null,
         status: draft.status,
+        company: draft.company || null,
+        occupation: draft.occupation || null,
+        phone: draft.phone || null,
+        school: draft.school || null,
         profileVisibility: draft.vis,
       }
     : member
@@ -414,7 +474,6 @@ export default function ProfilePage({ params }) {
                       <ReadSidebar
                         member={displayMember}
                         isOwn={isOwn && mode === 'read'}
-                        isPreview={isOwn && mode === 'preview'}
                         isExec={isExec}
                         onEdit={() => setMode('edit')}
                       />

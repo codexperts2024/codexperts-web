@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase'
 
-const MEMBER_FIELDS = 'id, first_name, last_name, nickname, avatar_url, school, company, occupation, status, role, linkedin, github, cohort, bio, profile_visibility'
+const MEMBER_FIELDS = 'id, first_name, last_name, nickname, avatar_url, school, company, occupation, phone, status, role, linkedin, github, cohort, bio, profile_visibility'
 
 function mapMember(row) {
   return {
@@ -12,6 +12,7 @@ function mapMember(row) {
     school: row.school,
     company: row.company,
     occupation: row.occupation,
+    phone: row.phone,
     status: row.status,
     role: row.role,
     linkedinUrl: row.linkedin,
@@ -43,11 +44,11 @@ export async function fetchMemberById(id) {
   return mapMember(data)
 }
 
-export async function updateMyProfile({ nickname, bio, linkedin, github, status, profile_visibility }) {
+export async function updateMyProfile({ nickname, bio, linkedin, github, status, profile_visibility, company, occupation, phone, school }) {
   const { data: { user } } = await supabase.auth.getUser()
   const { error } = await supabase
     .from('profiles')
-    .update({ nickname, bio, linkedin, github, status, profile_visibility })
+    .update({ nickname, bio, linkedin, github, status, profile_visibility, company, occupation, phone, school })
     .eq('id', user.id)
   if (error) throw error
 }
