@@ -10,6 +10,19 @@ const SCHOOLS = [
   { key: 'York University', label: 'York University' },
 ]
 
+const IconLinkedIn = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className="size-4">
+    <path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z" />
+    <circle cx="4" cy="4" r="2" />
+  </svg>
+)
+
+const IconGitHub = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className="size-4">
+    <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844a9.59 9.59 0 012.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+  </svg>
+)
+
 const MemberCard = ({ executive }) => {
   const name = executive
     ? `${executive.firstName} ${executive.lastName}${executive.nickname ? ` (${executive.nickname})` : ''}`
@@ -17,6 +30,7 @@ const MemberCard = ({ executive }) => {
   const title = executive?.title ?? 'TBD'
   const avatarUrl = executive?.avatarUrl
   const linkedinUrl = executive?.linkedinUrl
+  const githubUrl = executive?.githubUrl
 
   return (
     <div className="flex flex-col justify-center items-center my-4 md:my-10 w-[45%] sm:w-[30%] md:w-auto">
@@ -26,18 +40,22 @@ const MemberCard = ({ executive }) => {
         )}
       </div>
       <p className="mb-1 md:mb-2 text-center text-sm md:text-base text-text-primary">{name}</p>
-      <span className="inline-block px-2 md:px-2.5 py-0.5 rounded-full bg-success-bg text-success text-[10px] md:text-xs font-medium w-fit mb-1 md:mb-2">
+      <span className="inline-block px-2 md:px-2.5 py-0.5 rounded-full bg-success-bg text-success text-[10px] md:text-xs font-medium w-fit mb-2 md:mb-3">
         {title}
       </span>
-      {linkedinUrl ? (
-        <a href={linkedinUrl} target="_blank" rel="noopener noreferrer">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4 text-text-secondary rotate-45 hover:text-text-primary transition-colors">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
-          </svg>
-        </a>
-      ) : (
-        <div className="size-4" />
-      )}
+      <div className="flex items-center gap-2">
+        {linkedinUrl && (
+          <a href={linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-text-secondary hover:text-text-primary transition-colors">
+            <IconLinkedIn />
+          </a>
+        )}
+        {githubUrl && (
+          <a href={githubUrl} target="_blank" rel="noopener noreferrer" className="text-text-secondary hover:text-text-primary transition-colors">
+            <IconGitHub />
+          </a>
+        )}
+        {!linkedinUrl && !githubUrl && <div className="size-4" />}
+      </div>
     </div>
   )
 }
