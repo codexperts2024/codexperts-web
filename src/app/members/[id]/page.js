@@ -158,14 +158,14 @@ function ReadSidebar({ member, isOwn, isExec, onEdit }) {
           {v.github !== false && member.githubUrl && (
             <a href={member.githubUrl} target="_blank" rel="noopener noreferrer"
               className="flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary transition-colors">
-              <IconGitHub className="size-4 shrink-0" />
+              <IconGitHub className="size-4 shrink-0 text-text-primary" />
               <span className="truncate">GitHub</span>
             </a>
           )}
           {v.linkedin !== false && member.linkedinUrl && (
             <a href={member.linkedinUrl} target="_blank" rel="noopener noreferrer"
               className="flex items-center gap-2 text-sm text-text-secondary hover:text-[#0A66C2] transition-colors">
-              <IconLinkedIn className="size-4 shrink-0" />
+              <IconLinkedIn className="size-4 shrink-0 text-[#0A66C2]" />
               <span className="truncate">LinkedIn</span>
             </a>
           )}
@@ -380,7 +380,7 @@ export default function ProfilePage({ params }) {
           github: member.githubUrl ? pv.github !== false : false,
           company: member.company ? pv.company !== false : false,
           occupation: member.occupation ? pv.occupation !== false : false,
-          phone: false,
+          phone: member.phone ? pv.phone === true : false,
         },
       })
     }
