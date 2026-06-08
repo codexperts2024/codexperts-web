@@ -49,15 +49,21 @@ export default function PendingPage() {
         </div>
 
         <div className="mt-8 flex flex-col gap-3">
+          <Link
+            href={`/members/${user.id}`}
+            className="w-full px-4 py-2.5 rounded-xl text-sm font-medium bg-accent text-white hover:bg-accent-hover active:scale-[0.98] transition-all duration-150 text-center"
+          >
+            Edit My Profile
+          </Link>
           <button
             onClick={signOut}
-            className="w-full px-4 py-2.5 rounded-xl text-sm font-medium bg-accent text-white hover:bg-accent-hover active:scale-[0.98] transition-all duration-150"
+            className="w-full px-4 py-2.5 rounded-xl text-sm font-medium border border-border text-text-secondary hover:bg-bg-surface active:scale-[0.98] transition-all duration-150"
           >
             Sign out
           </button>
           <Link
             href="/"
-            className="w-full px-4 py-2.5 rounded-xl text-sm font-medium border border-border text-text-secondary hover:bg-bg-surface transition-colors"
+            className="w-full px-4 py-2.5 rounded-xl text-sm font-medium border border-border text-text-secondary hover:bg-bg-surface transition-colors text-center"
           >
             Back to home
           </Link>

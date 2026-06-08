@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect } from 'react'
-import Link from 'next/link'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter, usePathname } from 'next/navigation'
 import { ROLES, canAccessMemberRoutes, canAccessAdminRoutes } from '@/utils/constants'
@@ -36,6 +35,7 @@ const RoleGuard = ({ children }) => {
   const router = useRouter()
   const pathname = usePathname()
   const accessError = getAccessError(pathname, profile)
+  const isOwnProfilePath = pathname === `/members/${user?.id}`
 
   useEffect(() => {
     if (loading) return
@@ -45,12 +45,15 @@ const RoleGuard = ({ children }) => {
       return
     }
 
-    if (profile?.role === ROLES.PENDING) return
+    if (profile?.role === ROLES.PENDING) {
+      if (!isOwnProfilePath) router.replace('/pending')
+      return
+    }
 
     if (accessError) {
       router.replace('/')
     }
-  }, [loading, user, profile, accessError, router])
+  }, [loading, user, profile, accessError, router, isOwnProfilePath])
 
   if (loading) {
     return (
@@ -64,29 +67,8 @@ const RoleGuard = ({ children }) => {
     return null
   }
 
-  const isOwnProfilePath = pathname === `/members/${user?.id}`
-
   if (profile?.role === ROLES.PENDING && !isOwnProfilePath) {
-    return (
-      <main className="min-h-screen flex items-center justify-center">
-        <div className="text-center max-w-lg px-4">
-          <h1 className="font-montserrat font-bold text-5xl text-text-primary">Account pending</h1>
-          <p className="mt-3 text-text-hint text-lg">
-            Your account is waiting for admin approval.
-          </p>
-          <p className="mt-4 text-text-secondary text-base">
-            After you sign up, an admin reviews your request. Once approved, you
-            can use member areas like Problems and Members.
-          </p>
-          <Link
-            href={`/members/${user.id}`}
-            className="mt-6 inline-block px-5 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors"
-          >
-            Edit My Profile
-          </Link>
-        </div>
-      </main>
-    )
+    return null
   }
 
   if (accessError) {
