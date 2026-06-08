@@ -3,6 +3,9 @@ export const socialLinks = {
   linkedin: {
     url: 'https://linkedin.com/company/codexperts2024',
   },
+  github: {
+    url: 'https://github.com/codexperts2024',
+  },
   email: {
     url: 'mailto:codexperts2024@gmail.com',
   },
