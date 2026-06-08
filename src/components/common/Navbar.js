@@ -213,8 +213,14 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Mobile: hamburger only */}
-        <div className="ml-auto lg:hidden">
+        {/* Mobile: Login (if logged out) + hamburger */}
+        <div className="ml-auto lg:hidden flex items-center gap-1">
+          {!loading && !user && (
+            <button onClick={handleLogIn} disabled={loggingIn}
+              className="px-3 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors disabled:opacity-60">
+              {loggingIn ? '…' : 'Log In'}
+            </button>
+          )}
           <button
             className="p-2 text-text-secondary hover:text-text-primary transition-colors"
             onClick={() => setMobileOpen((o) => !o)}
@@ -245,8 +251,27 @@ export default function Navbar() {
 
           <div className="my-2 h-px bg-border" />
 
-          {user ? (
+          {/* Social icons row */}
+          <div className="flex items-center gap-1 px-2 py-1">
+            <SocialDropdown icon={<IconInstagram />} items={socialLinks.instagram} />
+            <a href={socialLinks.linkedin.url} target="_blank" rel="noopener noreferrer"
+              className="p-1.5 text-[#0A66C2] hover:opacity-80 transition-opacity">
+              <IconLinkedIn />
+            </a>
+            <a href={socialLinks.github.url} target="_blank" rel="noopener noreferrer"
+              className="p-1.5 text-text-primary hover:opacity-70 transition-opacity">
+              <IconGitHub />
+            </a>
+            {isMember && <SocialDropdown icon={<IconDiscord />} items={socialLinks.discord} />}
+            <button onClick={() => { scrollToContact(); setMobileOpen(false) }}
+              className="p-1.5 text-text-secondary hover:text-text-primary transition-colors">
+              <IconEmail />
+            </button>
+          </div>
+
+          {user && (
             <>
+              <div className="my-2 h-px bg-border" />
               <Link href={`/members/${user.id}`} onClick={() => setMobileOpen(false)}
                 className="block px-2 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-layer1 rounded-md transition-colors">
                 My Profile
@@ -262,11 +287,6 @@ export default function Navbar() {
                 Log out
               </button>
             </>
-          ) : (
-            <button onClick={() => { setMobileOpen(false); handleLogIn() }} disabled={loggingIn}
-              className="w-full px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center disabled:opacity-60 disabled:cursor-not-allowed">
-              {loggingIn ? 'Redirecting…' : 'Log In'}
-            </button>
           )}
         </div>
       )}
