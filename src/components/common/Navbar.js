@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { socialLinks } from '@/config/socialLinks'
 import { useAuth } from '@/hooks/useAuth'
 import { signInWithGoogle } from '@/services/authService'
+import { IconLinkedIn, IconGitHub } from '@/components/ui/SocialIcons'
 
 const publicLinks = [
   { label: 'Home', href: '/' },
@@ -31,14 +32,6 @@ function IconInstagram() {
   )
 }
 
-function IconLinkedIn() {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-      <path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z" />
-      <circle cx="4" cy="4" r="2" />
-    </svg>
-  )
-}
 
 function IconDiscord() {
   return (
@@ -47,6 +40,7 @@ function IconDiscord() {
     </svg>
   )
 }
+
 
 function IconEmail() {
   return (
@@ -148,6 +142,7 @@ export default function Navbar() {
   async function handleLogIn() {
     if (loggingIn) return
     setLoggingIn(true)
+    localStorage.setItem('auth_redirect', window.location.pathname)
     try {
       await signInWithGoogle(`${window.location.origin}/auth/callback`)
     } catch {
@@ -163,8 +158,12 @@ export default function Navbar() {
     <div className="flex items-center gap-0.5">
       <SocialDropdown icon={<IconInstagram />} items={socialLinks.instagram} />
       <a href={socialLinks.linkedin.url} target="_blank" rel="noopener noreferrer"
-        className="p-1.5 text-text-secondary hover:text-text-primary transition-colors">
+        className="p-1.5 text-[#0A66C2] hover:opacity-80 transition-opacity">
         <IconLinkedIn />
+      </a>
+      <a href={socialLinks.github.url} target="_blank" rel="noopener noreferrer"
+        className="p-1.5 text-text-primary hover:opacity-70 transition-opacity">
+        <IconGitHub />
       </a>
       {isMember && <SocialDropdown icon={<IconDiscord />} items={socialLinks.discord} />}
       <button onClick={scrollToContact}
@@ -197,7 +196,7 @@ export default function Navbar() {
           <div className="w-px h-5 bg-border mx-1" />
           {user ? (
             <div className="flex items-center gap-2">
-              <UserChip user={user} profile={profile} />
+              <Link href={`/members/${user.id}`}><UserChip user={user} profile={profile} /></Link>
               <button onClick={signOut}
                 className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors">
                 Log out
@@ -215,14 +214,16 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Mobile: social icons + UserChip + hamburger */}
-        <div className="ml-auto lg:hidden flex items-center gap-1">
-          {socialIconsRow}
-          {user && (
-            <div className="ml-1">
-              <UserChip user={user} profile={profile} />
-            </div>
-          )}
+        {/* Mobile: avatar (if logged in) or Login button + hamburger */}
+        <div className="ml-auto lg:hidden flex items-center gap-2">
+          {!loading && (user ? (
+            <Link href={`/members/${user.id}`}><UserChip user={user} profile={profile} /></Link>
+          ) : (
+            <button onClick={handleLogIn} disabled={loggingIn}
+              className="px-3 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors disabled:opacity-60">
+              {loggingIn ? '…' : 'Log In'}
+            </button>
+          ))}
           <button
             className="p-2 text-text-secondary hover:text-text-primary transition-colors"
             onClick={() => setMobileOpen((o) => !o)}
@@ -239,7 +240,7 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="lg:hidden border-t border-border bg-bg-surface px-6 py-4 flex flex-col gap-1">
+        <div className="lg:hidden border-t border-border bg-bg-surface px-6 py-4 flex flex-col gap-1 relative z-50">
           {allLinks.map(({ href, label }) => (
             <Link key={href} href={href} onClick={() => setMobileOpen(false)}
               className={`block px-2 py-2 text-sm rounded-md transition-colors ${
@@ -253,16 +254,42 @@ export default function Navbar() {
 
           <div className="my-2 h-px bg-border" />
 
-          {user ? (
-            <button onClick={() => { signOut(); setMobileOpen(false) }}
-              className="w-full px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center">
-              Log out
+          {/* Social icons row */}
+          <div className="flex items-center gap-1 px-2 py-1">
+            <SocialDropdown icon={<IconInstagram />} items={socialLinks.instagram} />
+            <a href={socialLinks.linkedin.url} target="_blank" rel="noopener noreferrer"
+              className="p-1.5 text-[#0A66C2] hover:opacity-80 transition-opacity">
+              <IconLinkedIn />
+            </a>
+            <a href={socialLinks.github.url} target="_blank" rel="noopener noreferrer"
+              className="p-1.5 text-text-primary hover:opacity-70 transition-opacity">
+              <IconGitHub />
+            </a>
+            {isMember && <SocialDropdown icon={<IconDiscord />} items={socialLinks.discord} />}
+            <button onClick={() => { scrollToContact(); setMobileOpen(false) }}
+              className="p-1.5 text-text-secondary hover:text-text-primary transition-colors">
+              <IconEmail />
             </button>
-          ) : (
-            <button onClick={() => { setMobileOpen(false); handleLogIn() }} disabled={loggingIn}
-              className="w-full px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center disabled:opacity-60 disabled:cursor-not-allowed">
-              {loggingIn ? 'Redirecting…' : 'Log In'}
-            </button>
+          </div>
+
+          {user && (
+            <>
+              <div className="my-2 h-px bg-border" />
+              <Link href={`/members/${user.id}`} onClick={() => setMobileOpen(false)}
+                className="block px-2 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-layer1 rounded-md transition-colors">
+                My Profile
+              </Link>
+              {isAdmin && (
+                <Link href="/admin" onClick={() => setMobileOpen(false)}
+                  className="block px-2 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-layer1 rounded-md transition-colors">
+                  Admin
+                </Link>
+              )}
+              <button onClick={() => { signOut(); setMobileOpen(false) }}
+                className="w-full mt-1 px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center">
+                Log out
+              </button>
+            </>
           )}
         </div>
       )}
