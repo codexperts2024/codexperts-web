@@ -4,10 +4,12 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
+import { useJoinModal } from '@/contexts/JoinModalContext'
 import { socialLinks } from '@/config/socialLinks'
 
 export default function PendingPage() {
   const { user, profile, loading, signOut } = useAuth()
+  const { openModal } = useJoinModal()
   const clubEntry = socialLinks.clubSignup.find(({ school }) => school === profile?.school)
   const clubUrl = clubEntry?.url ?? null
   const router = useRouter()
@@ -50,14 +52,20 @@ export default function PendingPage() {
 
         <div className="mt-8 flex flex-col gap-3">
           <button
-            onClick={signOut}
+            onClick={openModal}
             className="w-full px-4 py-2.5 rounded-xl text-sm font-medium bg-accent text-white hover:bg-accent-hover active:scale-[0.98] transition-all duration-150"
+          >
+            Edit My Profile
+          </button>
+          <button
+            onClick={signOut}
+            className="w-full px-4 py-2.5 rounded-xl text-sm font-medium border border-border text-text-secondary hover:bg-bg-surface active:scale-[0.98] transition-all duration-150"
           >
             Sign out
           </button>
           <Link
             href="/"
-            className="w-full px-4 py-2.5 rounded-xl text-sm font-medium border border-border text-text-secondary hover:bg-bg-surface transition-colors"
+            className="w-full px-4 py-2.5 rounded-xl text-sm font-medium border border-border text-text-secondary hover:bg-bg-surface transition-colors text-center"
           >
             Back to home
           </Link>

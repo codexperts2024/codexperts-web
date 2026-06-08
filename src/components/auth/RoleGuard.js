@@ -35,6 +35,7 @@ const RoleGuard = ({ children }) => {
   const router = useRouter()
   const pathname = usePathname()
   const accessError = getAccessError(pathname, profile)
+  const isOwnProfilePath = pathname === `/members/${user?.id}`
 
   useEffect(() => {
     if (loading) return
@@ -44,12 +45,15 @@ const RoleGuard = ({ children }) => {
       return
     }
 
-    if (profile?.role === ROLES.PENDING) return
+    if (profile?.role === ROLES.PENDING) {
+      if (!isOwnProfilePath) router.replace('/pending')
+      return
+    }
 
     if (accessError) {
       router.replace('/')
     }
-  }, [loading, user, profile, accessError, router])
+  }, [loading, user, profile, accessError, router, isOwnProfilePath])
 
   if (loading) {
     return (
@@ -63,21 +67,8 @@ const RoleGuard = ({ children }) => {
     return null
   }
 
-  if (profile?.role === ROLES.PENDING) {
-    return (
-      <main className="min-h-screen flex items-center justify-center">
-        <div className="text-center max-w-lg px-4">
-          <h1 className="font-montserrat font-bold text-5xl text-text-primary">Account pending</h1>
-          <p className="mt-3 text-text-hint text-lg">
-            Your account is waiting for admin approval.
-          </p>
-          <p className="mt-4 text-text-secondary text-base">
-            After you sign up, an admin reviews your request. Once approved, you
-            can use member areas like Problems and Members.
-          </p>
-        </div>
-      </main>
-    )
+  if (profile?.role === ROLES.PENDING && !isOwnProfilePath) {
+    return null
   }
 
   if (accessError) {
