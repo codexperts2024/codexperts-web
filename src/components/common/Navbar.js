@@ -214,14 +214,16 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Mobile: Login (if logged out) + hamburger */}
-        <div className="ml-auto lg:hidden flex items-center gap-1">
-          {!loading && !user && (
+        {/* Mobile: avatar (if logged in) or Login button + hamburger */}
+        <div className="ml-auto lg:hidden flex items-center gap-2">
+          {!loading && (user ? (
+            <Link href={`/members/${user.id}`}><UserChip user={user} profile={profile} /></Link>
+          ) : (
             <button onClick={handleLogIn} disabled={loggingIn}
               className="px-3 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors disabled:opacity-60">
               {loggingIn ? '…' : 'Log In'}
             </button>
-          )}
+          ))}
           <button
             className="p-2 text-text-secondary hover:text-text-primary transition-colors"
             onClick={() => setMobileOpen((o) => !o)}
