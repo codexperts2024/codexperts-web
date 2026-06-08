@@ -1,31 +1,75 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { getCurrentExecutives } from '@/services/executiveService'
 import AboutCTA from '@/components/common/AboutCTA'
+import { IconLinkedIn, IconGitHub } from '@/components/ui/SocialIcons'
 
-const senecaMembers = [
-  { key: 'seneca_president', name: 'TBD', role: 'TBD' },
-  { key: 'seneca_vp',        name: 'TBD', role: 'TBD' },
-  { key: 'seneca_treasurer', name: 'TBD', role: 'TBD' },
+const TITLE_ORDER = ['President', 'Vice President', 'Treasurer']
+const SCHOOLS = [
+  { key: 'Seneca College',  label: 'Seneca Polytechnic' },
+  { key: 'York University', label: 'York University' },
 ]
 
-const yorkMembers = [
-  { key: 'york_president', name: 'TBD', role: 'TBD' },
-  { key: 'york_vp',        name: 'TBD', role: 'TBD' },
-  { key: 'york_treasurer', name: 'TBD', role: 'TBD' },
-  { key: 'york_exec_1',    name: 'TBD', role: 'TBD' },
-  { key: 'york_exec_2',    name: 'TBD', role: 'TBD' },
-]
 
-const MemberCard = ({ name, role }) => (
-  <div className="flex flex-col justify-center items-center my-4 md:my-10 w-[45%] sm:w-[30%] md:w-auto">
-    <div className="size-16 bg-bg-layer1 rounded-xl mb-3 md:mb-5 flex justify-center items-center" />
-    <p className="mb-1 md:mb-2 text-center text-sm md:text-base text-text-primary">{name}</p>
-    <span className="inline-block px-2 md:px-2.5 py-0.5 rounded-full bg-success-bg text-success text-[10px] md:text-xs font-medium w-fit mb-1 md:mb-2">{role}</span>
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4 text-text-secondary rotate-45">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
-    </svg>
-  </div>
-)
+const MemberCard = ({ executive }) => {
+  const name = executive
+    ? `${executive.firstName} ${executive.lastName}${executive.nickname ? ` (${executive.nickname})` : ''}`
+    : 'TBD'
+  const title = executive?.title ?? 'TBD'
+  const avatarUrl = executive?.avatarUrl
+  const linkedinUrl = executive?.linkedinUrl
+  const githubUrl = executive?.githubUrl
+
+  return (
+    <div className="flex flex-col justify-center items-center my-4 md:my-10 w-[45%] sm:w-[30%] md:w-auto">
+      <div className="size-16 bg-bg-layer1 rounded-xl mb-3 md:mb-5 flex justify-center items-center overflow-hidden">
+        {avatarUrl && (
+          <img src={avatarUrl} alt={name} referrerPolicy="no-referrer" className="w-full h-full object-cover rounded-xl" />
+        )}
+      </div>
+      <p className="mb-1 md:mb-2 text-center text-sm md:text-base text-text-primary">{name}</p>
+      <span className="inline-block px-2 md:px-2.5 py-0.5 rounded-full bg-success-bg text-success text-[10px] md:text-xs font-medium w-fit mb-2 md:mb-3">
+        {title}
+      </span>
+      <div className="flex items-center gap-2">
+        {linkedinUrl ? (
+          <a href={linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-[#0A66C2] hover:opacity-80 transition-opacity">
+            <IconLinkedIn />
+          </a>
+        ) : (
+          <span className="text-text-hint cursor-default"><IconLinkedIn /></span>
+        )}
+        {githubUrl ? (
+          <a href={githubUrl} target="_blank" rel="noopener noreferrer" className="text-text-primary hover:opacity-70 transition-opacity">
+            <IconGitHub />
+          </a>
+        ) : (
+          <span className="text-text-hint cursor-default"><IconGitHub /></span>
+        )}
+      </div>
+    </div>
+  )
+}
 
 const AboutPage = () => {
+  const [executivesBySchool, setExecutivesBySchool] = useState({})
+
+  useEffect(() => {
+    getCurrentExecutives()
+      .then((data) => {
+        const grouped = {}
+        for (const school of SCHOOLS) {
+          const schoolExecs = data.filter((e) => e.school === school.key)
+          grouped[school.key] = TITLE_ORDER.map((title) =>
+            schoolExecs.find((e) => e.title === title) ?? null
+          )
+        }
+        setExecutivesBySchool(grouped)
+      })
+      .catch(() => {})
+  }, [])
+
   return (
     <main className="min-h-screen bg-bg-base">
 
@@ -115,35 +159,26 @@ const AboutPage = () => {
         </div>
       </section>
 
-      {/* Our Team header */}
+      {/* Our Team */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-12 md:pt-16 pb-6 md:pb-8">
         <h2 className="font-montserrat font-bold text-4xl md:text-5xl mb-3 text-text-primary">Our Team</h2>
         <p className="text-text-secondary">The people behind codeXperts</p>
       </div>
 
-      {/* Seneca */}
-      <section className="w-full bg-bg-base py-10 md:py-12">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <p className="font-montserrat font-semibold text-xl text-text-primary text-center md:text-left mb-6 md:mb-0">Seneca Polytechnic</p>
-          <div className="flex flex-wrap justify-center gap-6 md:justify-evenly items-center">
-            {senecaMembers.map((member) => (
-              <MemberCard key={member.key} name={member.name} role={member.role} />
-            ))}
+      {SCHOOLS.map((school) => (
+        <section key={school.key} className="w-full bg-bg-base py-10 md:py-12">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6">
+            <p className="font-montserrat font-semibold text-xl text-text-primary text-center md:text-left mb-6 md:mb-0">
+              {school.label}
+            </p>
+            <div className="flex flex-wrap justify-center gap-6 md:justify-evenly items-center">
+              {(executivesBySchool[school.key] ?? TITLE_ORDER.map(() => null)).map((exec, i) => (
+                <MemberCard key={TITLE_ORDER[i]} executive={exec} />
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
-
-      {/* York */}
-      <section className="w-full py-10 md:py-12">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <p className="font-montserrat font-semibold text-xl text-text-primary text-center md:text-left mb-6 md:mb-0">York University</p>
-          <div className="flex flex-wrap justify-center gap-6 md:justify-evenly items-center">
-            {yorkMembers.map((member) => (
-              <MemberCard key={member.key} name={member.name} role={member.role} />
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
+      ))}
 
       {/* CTA */}
       <AboutCTA />
