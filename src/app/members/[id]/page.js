@@ -42,15 +42,16 @@ function ExecutiveBadge() {
   )
 }
 
-// Sliding pill toggle — thumb slides between two options
-function SlidingToggle({ options, value, onChange }) {
-  const idx = options.findIndex(o => o.value === value)
+function SegmentedToggle({ options, value, onChange }) {
   return (
-    <div className="relative inline-flex rounded-full border border-border overflow-hidden text-xs font-medium">
-      <span className={`absolute inset-y-0 w-1/2 bg-text-primary transition-all duration-200 ${idx === 0 ? 'left-0' : 'left-1/2'}`} />
-      {options.map((opt) => (
+    <div className="inline-flex rounded-full border border-border overflow-hidden text-xs font-medium">
+      {options.map((opt, i) => (
         <button key={String(opt.value)} type="button" onClick={() => onChange(opt.value)}
-          className={`relative z-10 px-3 py-1 transition-colors ${opt.value === value ? 'text-bg-base' : 'text-text-hint'}`}>
+          className={`px-3 py-1 transition-colors ${i > 0 ? 'border-l border-border' : ''} ${
+            opt.value === value
+              ? 'bg-link-bg text-link'
+              : 'bg-transparent text-text-hint hover:text-text-secondary'
+          }`}>
           {opt.label}
         </button>
       ))}
@@ -78,10 +79,6 @@ function ReadSidebar({ member, isOwn, isExec, onEdit }) {
         <StatusBadge status={member.status} />
         {isExec && <ExecutiveBadge />}
       </div>
-
-      {v.bio !== false && member.bio && (
-        <p className="text-sm text-text-secondary leading-relaxed">{member.bio}</p>
-      )}
 
       <div className="flex flex-col gap-1 text-sm text-text-secondary">
         {member.school && <span>{member.school}</span>}
@@ -191,13 +188,13 @@ function EditSidebar({ member, onCancel, onPreview, onSave, saving, saveError })
 
       <div className="flex flex-col gap-2">
         <label className="text-xs font-medium text-text-hint uppercase tracking-wide">Status</label>
-        <SlidingToggle options={STATUS_OPTIONS} value={form.status} onChange={(v) => setForm(f => ({ ...f, status: v }))} />
+        <SegmentedToggle options={STATUS_OPTIONS} value={form.status} onChange={(v) => setForm(f => ({ ...f, status: v }))} />
       </div>
 
       <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between">
           <label className="text-xs font-medium text-text-hint uppercase tracking-wide">Bio</label>
-          <SlidingToggle options={VIS_OPTIONS} value={visibility.bio} onChange={setVis('bio')} />
+          <SegmentedToggle options={VIS_OPTIONS} value={visibility.bio} onChange={setVis('bio')} />
         </div>
         <textarea value={form.bio} onChange={(e) => setForm(f => ({ ...f, bio: e.target.value.slice(0, 300) }))}
           placeholder="Tell others about yourself..."
@@ -209,7 +206,7 @@ function EditSidebar({ member, onCancel, onPreview, onSave, saving, saveError })
       <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between">
           <label className="text-xs font-medium text-text-hint uppercase tracking-wide">LinkedIn</label>
-          <SlidingToggle options={VIS_OPTIONS} value={visibility.linkedin} onChange={setVis('linkedin')} />
+          <SegmentedToggle options={VIS_OPTIONS} value={visibility.linkedin} onChange={setVis('linkedin')} />
         </div>
         <input type="url" value={form.linkedin} onChange={setField('linkedin')}
           placeholder="https://linkedin.com/in/..."
@@ -219,7 +216,7 @@ function EditSidebar({ member, onCancel, onPreview, onSave, saving, saveError })
       <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between">
           <label className="text-xs font-medium text-text-hint uppercase tracking-wide">GitHub</label>
-          <SlidingToggle options={VIS_OPTIONS} value={visibility.github} onChange={setVis('github')} />
+          <SegmentedToggle options={VIS_OPTIONS} value={visibility.github} onChange={setVis('github')} />
         </div>
         <input type="url" value={form.github} onChange={setField('github')}
           placeholder="https://github.com/..."
@@ -317,6 +314,10 @@ export default function ProfilePage({ params }) {
     setMode('preview')
   }
 
+  const showBio = mode !== 'edit'
+    && displayMember?.bio
+    && displayMember?.profileVisibility?.bio !== false
+
   return (
     <RoleGuard>
       <main className="min-h-screen bg-bg-base">
@@ -363,6 +364,11 @@ export default function ProfilePage({ params }) {
                   </div>
 
                   <div className="flex-1 min-w-0 flex flex-col gap-8">
+                    {showBio && (
+                      <section>
+                        <p className="text-sm text-text-secondary leading-relaxed">{displayMember.bio}</p>
+                      </section>
+                    )}
                     <section>
                       <h2 className="font-montserrat font-semibold text-lg text-text-primary mb-4">Activity</h2>
                       <div className="w-full rounded-lg bg-bg-layer1 border border-border flex items-center justify-center py-12">
