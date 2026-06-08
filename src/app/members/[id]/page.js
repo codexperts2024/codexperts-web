@@ -10,11 +10,13 @@ import { IconLinkedIn, IconGitHub } from '@/components/ui/SocialIcons'
 
 function Avatar({ member }) {
   const initial = (member?.firstName?.[0] ?? '?').toUpperCase()
+  // Google profile photos include a size param (e.g. =s96-c). Bump to s400 for higher quality.
+  const src = member.avatarUrl?.replace(/=s\d+-c$/, '=s400-c') ?? member.avatarUrl
   return (
     <div className="w-full aspect-square rounded-full overflow-hidden bg-bg-layer1 flex items-center justify-center">
-      {member.avatarUrl ? (
+      {src ? (
         <img
-          src={member.avatarUrl}
+          src={src}
           alt={`${member.firstName} ${member.lastName}`}
           referrerPolicy="no-referrer"
           className="w-full h-full object-cover"
@@ -41,33 +43,23 @@ function ExecutiveBadge() {
   )
 }
 
-function VisibilityToggle({ visible, onChange }) {
+function SegmentedToggle({ options, value, onChange }) {
   return (
-    <button
-      type="button"
-      onClick={() => onChange(!visible)}
-      className={`text-[11px] flex items-center gap-1 px-2 py-0.5 rounded border transition-colors ${
-        visible ? 'border-border text-text-secondary hover:border-border-strong' : 'border-border text-text-hint bg-bg-layer1'
-      }`}
-    >
-      {visible ? '👁 Visible' : '🔒 Hidden'}
-    </button>
-  )
-}
-
-function StatusToggle({ value, onChange }) {
-  const isStudent = value !== 'graduate'
-  return (
-    <div className="flex items-center gap-2">
-      <span className={`text-sm ${isStudent ? 'text-[#1A6FBF] font-medium' : 'text-text-hint'}`}>Student</span>
-      <button
-        type="button"
-        onClick={() => onChange(isStudent ? 'graduate' : 'student')}
-        className={`relative w-10 h-5 rounded-full transition-colors duration-200 ${isStudent ? 'bg-[#1A6FBF]' : 'bg-text-secondary'}`}
-      >
-        <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 ${isStudent ? 'translate-x-0.5' : 'translate-x-5'}`} />
-      </button>
-      <span className={`text-sm ${!isStudent ? 'text-text-secondary font-medium' : 'text-text-hint'}`}>Graduate</span>
+    <div className="inline-flex rounded-full border border-border overflow-hidden text-xs font-medium">
+      {options.map((opt, i) => (
+        <button
+          key={String(opt.value)}
+          type="button"
+          onClick={() => onChange(opt.value)}
+          className={`px-3 py-1 transition-colors ${i > 0 ? 'border-l border-border' : ''} ${
+            value === opt.value
+              ? 'bg-text-primary text-bg-base'
+              : 'text-text-hint hover:text-text-secondary bg-transparent'
+          }`}
+        >
+          {opt.label}
+        </button>
+      ))}
     </div>
   )
 }
@@ -186,13 +178,21 @@ function EditSidebar({ member, onCancel, onPreview, onSave, saving }) {
 
       <div className="flex flex-col gap-2">
         <label className="text-xs font-medium text-text-hint uppercase tracking-wide">Status</label>
-        <StatusToggle value={form.status} onChange={(v) => setForm(f => ({ ...f, status: v }))} />
+        <SegmentedToggle
+          options={[{ value: 'student', label: 'Student' }, { value: 'graduate', label: 'Graduate' }]}
+          value={form.status}
+          onChange={(v) => setForm(f => ({ ...f, status: v }))}
+        />
       </div>
 
       <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between">
           <label className="text-xs font-medium text-text-hint uppercase tracking-wide">Bio</label>
-          <VisibilityToggle visible={visibility.bio} onChange={setVis('bio')} />
+          <SegmentedToggle
+            options={[{ value: true, label: 'Visible' }, { value: false, label: 'Hidden' }]}
+            value={visibility.bio}
+            onChange={setVis('bio')}
+          />
         </div>
         <textarea value={form.bio} onChange={(e) => setForm(f => ({ ...f, bio: e.target.value.slice(0, 300) }))}
           placeholder="Tell others about yourself..."
@@ -204,7 +204,11 @@ function EditSidebar({ member, onCancel, onPreview, onSave, saving }) {
       <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between">
           <label className="text-xs font-medium text-text-hint uppercase tracking-wide">LinkedIn</label>
-          <VisibilityToggle visible={visibility.linkedin} onChange={setVis('linkedin')} />
+          <SegmentedToggle
+            options={[{ value: true, label: 'Visible' }, { value: false, label: 'Hidden' }]}
+            value={visibility.linkedin}
+            onChange={setVis('linkedin')}
+          />
         </div>
         <input type="url" value={form.linkedin} onChange={setField('linkedin')}
           placeholder="https://linkedin.com/in/..."
@@ -214,7 +218,11 @@ function EditSidebar({ member, onCancel, onPreview, onSave, saving }) {
       <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between">
           <label className="text-xs font-medium text-text-hint uppercase tracking-wide">GitHub</label>
-          <VisibilityToggle visible={visibility.github} onChange={setVis('github')} />
+          <SegmentedToggle
+            options={[{ value: true, label: 'Visible' }, { value: false, label: 'Hidden' }]}
+            value={visibility.github}
+            onChange={setVis('github')}
+          />
         </div>
         <input type="url" value={form.github} onChange={setField('github')}
           placeholder="https://github.com/..."
