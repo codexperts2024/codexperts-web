@@ -30,7 +30,7 @@ function Avatar({ member }) {
 function StatusBadge({ status }) {
   const isStudent = status !== 'graduate'
   return (
-    <span className={`text-xs font-medium px-2 py-0.5 rounded ${isStudent ? 'bg-[#F0F4FF] text-[#1A6FBF]' : 'bg-[#F3F3F3] text-[#555555]'}`}>
+    <span className={`text-xs font-medium px-2 py-0.5 rounded ${isStudent ? 'bg-[#F0F4FF] text-[#1A6FBF]' : 'bg-[#FFF4EC] text-orange-500'}`}>
       {isStudent ? 'Student' : 'Graduate'}
     </span>
   )
@@ -42,20 +42,27 @@ function ExecutiveBadge() {
   )
 }
 
-function SegmentedToggle({ options, value, onChange }) {
+// iOS-style toggle switch
+function Toggle({ value, onChange, colorOn = 'bg-[#1A6FBF]', colorOff = 'bg-gray-300' }) {
   return (
-    <div className="inline-flex rounded-full border border-border overflow-hidden text-xs font-medium">
-      {options.map((opt, i) => (
-        <button key={String(opt.value)} type="button" onClick={() => onChange(opt.value)}
-          className={`px-3 py-1 transition-colors ${i > 0 ? 'border-l border-border' : ''} ${
-            opt.value === value
-              ? 'bg-link-bg text-link'
-              : 'bg-transparent text-text-hint hover:text-text-secondary'
-          }`}>
-          {opt.label}
-        </button>
-      ))}
-    </div>
+    <button
+      type="button"
+      role="switch"
+      aria-checked={value}
+      onClick={() => onChange(!value)}
+      className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 focus:outline-none ${value ? colorOn : colorOff}`}
+    >
+      <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-sm transition-transform duration-200 ${value ? 'translate-x-5' : 'translate-x-0.5'}`} />
+    </button>
+  )
+}
+
+function IconMonitor({ className = 'size-4' }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <rect x="2" y="3" width="20" height="14" rx="2" />
+      <path d="M8 21h8M12 17v4" />
+    </svg>
   )
 }
 
@@ -79,6 +86,13 @@ function ReadSidebar({ member, isOwn, isExec, onEdit }) {
         <StatusBadge status={member.status} />
         {isExec && <ExecutiveBadge />}
       </div>
+
+      {/* Bio always shown when visibility is on, even if empty */}
+      {v.bio !== false && (
+        <p className="text-sm text-text-secondary leading-relaxed min-h-[1.25rem] whitespace-pre-wrap">
+          {member.bio ?? ''}
+        </p>
+      )}
 
       <div className="flex flex-col gap-1 text-sm text-text-secondary">
         {member.school && <span>{member.school}</span>}
@@ -121,53 +135,20 @@ function ReadSidebar({ member, isOwn, isExec, onEdit }) {
   )
 }
 
-const STATUS_OPTIONS = [
-  { value: 'student', label: 'Student' },
-  { value: 'graduate', label: 'Graduate' },
-]
-const VIS_OPTIONS = [
-  { value: true, label: 'Visible' },
-  { value: false, label: 'Hidden' },
-]
-
-// Edit view — own profile only
-function EditSidebar({ member, onCancel, onPreview, onSave, saving, saveError }) {
+// Edit view — controlled by parent draft state, own profile only
+function EditSidebar({ member, draft, onDraftChange, onPreview, onCancel, onSave, saving, saveError }) {
   const fullName = `${member.firstName ?? ''} ${member.lastName ?? ''}`.trim()
-  const defaultVisibility = member.profileVisibility ?? { bio: true, linkedin: true, github: true }
 
-  const [form, setForm] = useState({
-    nickname: member.nickname ?? '',
-    bio: member.bio ?? '',
-    linkedin: member.linkedinUrl ?? '',
-    github: member.githubUrl ?? '',
-    status: member.status ?? 'student',
-  })
-  const [visibility, setVisibility] = useState({
-    bio: defaultVisibility.bio !== false,
-    linkedin: defaultVisibility.linkedin !== false,
-    github: defaultVisibility.github !== false,
-  })
-
-  const setField = (key) => (e) => setForm(f => ({ ...f, [key]: e.target.value }))
-  const setVis = (key) => (val) => setVisibility(v => ({ ...v, [key]: val }))
+  const setField = (key) => (e) => onDraftChange({ ...draft, [key]: e.target.value })
+  const setVis = (key) => (val) => onDraftChange({ ...draft, vis: { ...draft.vis, [key]: val } })
 
   const handleSave = () => onSave({
-    nickname: form.nickname || null,
-    bio: form.bio || null,
-    linkedin: form.linkedin || null,
-    github: form.github || null,
-    status: form.status,
-    profile_visibility: visibility,
-  })
-
-  // Pass current form state to parent so preview reflects unsaved changes
-  const handlePreview = () => onPreview({
-    nickname: form.nickname || null,
-    bio: form.bio || null,
-    linkedinUrl: form.linkedin || null,
-    githubUrl: form.github || null,
-    status: form.status,
-    profileVisibility: visibility,
+    nickname: draft.nickname || null,
+    bio: draft.bio || null,
+    linkedin: draft.linkedin || null,
+    github: draft.github || null,
+    status: draft.status,
+    profile_visibility: draft.vis,
   })
 
   return (
@@ -181,34 +162,64 @@ function EditSidebar({ member, onCancel, onPreview, onSave, saving, saveError })
 
       <div className="flex flex-col gap-1">
         <label className="text-xs font-medium text-text-hint uppercase tracking-wide">Nickname</label>
-        <input type="text" value={form.nickname} onChange={setField('nickname')}
+        <input type="text" value={draft.nickname} onChange={setField('nickname')}
           placeholder="Add a nickname..."
           className="w-full px-3 py-1.5 rounded border border-border bg-bg-base text-sm text-text-primary focus:outline-none focus:border-accent" />
       </div>
 
-      <div className="flex flex-col gap-2">
+      <div className="flex items-center justify-between">
         <label className="text-xs font-medium text-text-hint uppercase tracking-wide">Status</label>
-        <SegmentedToggle options={STATUS_OPTIONS} value={form.status} onChange={(v) => setForm(f => ({ ...f, status: v }))} />
+        <div className="flex items-center gap-2">
+          <Toggle
+            value={draft.status === 'student'}
+            onChange={(v) => onDraftChange({ ...draft, status: v ? 'student' : 'graduate' })}
+            colorOn="bg-[#1A6FBF]"
+            colorOff="bg-orange-400"
+          />
+          <span className={`text-xs font-medium w-14 ${draft.status === 'student' ? 'text-[#1A6FBF]' : 'text-orange-500'}`}>
+            {draft.status === 'student' ? 'Student' : 'Graduate'}
+          </span>
+        </div>
       </div>
 
       <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between">
           <label className="text-xs font-medium text-text-hint uppercase tracking-wide">Bio</label>
-          <SegmentedToggle options={VIS_OPTIONS} value={visibility.bio} onChange={setVis('bio')} />
+          <div className="flex items-center gap-2">
+            <Toggle
+              value={draft.vis.bio}
+              onChange={setVis('bio')}
+              colorOn="bg-[#1A6FBF]"
+              colorOff="bg-gray-300"
+            />
+            <span className={`text-xs font-medium w-10 ${draft.vis.bio ? 'text-[#1A6FBF]' : 'text-text-hint'}`}>
+              {draft.vis.bio ? 'Visible' : 'Hidden'}
+            </span>
+          </div>
         </div>
-        <textarea value={form.bio} onChange={(e) => setForm(f => ({ ...f, bio: e.target.value.slice(0, 300) }))}
+        <textarea value={draft.bio} onChange={(e) => onDraftChange({ ...draft, bio: e.target.value.slice(0, 300) })}
           placeholder="Tell others about yourself..."
           rows={4}
           className="w-full px-3 py-1.5 rounded border border-border bg-bg-base text-sm text-text-primary resize-none focus:outline-none focus:border-accent" />
-        <p className="text-xs text-text-hint text-right">{form.bio.length} / 300</p>
+        <p className="text-xs text-text-hint text-right">{draft.bio.length} / 300</p>
       </div>
 
       <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between">
           <label className="text-xs font-medium text-text-hint uppercase tracking-wide">LinkedIn</label>
-          <SegmentedToggle options={VIS_OPTIONS} value={visibility.linkedin} onChange={setVis('linkedin')} />
+          <div className="flex items-center gap-2">
+            <Toggle
+              value={draft.vis.linkedin}
+              onChange={setVis('linkedin')}
+              colorOn="bg-[#1A6FBF]"
+              colorOff="bg-gray-300"
+            />
+            <span className={`text-xs font-medium w-10 ${draft.vis.linkedin ? 'text-[#1A6FBF]' : 'text-text-hint'}`}>
+              {draft.vis.linkedin ? 'Visible' : 'Hidden'}
+            </span>
+          </div>
         </div>
-        <input type="url" value={form.linkedin} onChange={setField('linkedin')}
+        <input type="url" value={draft.linkedin} onChange={setField('linkedin')}
           placeholder="https://linkedin.com/in/..."
           className="w-full px-3 py-1.5 rounded border border-border bg-bg-base text-sm text-text-primary focus:outline-none focus:border-accent" />
       </div>
@@ -216,9 +227,19 @@ function EditSidebar({ member, onCancel, onPreview, onSave, saving, saveError })
       <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between">
           <label className="text-xs font-medium text-text-hint uppercase tracking-wide">GitHub</label>
-          <SegmentedToggle options={VIS_OPTIONS} value={visibility.github} onChange={setVis('github')} />
+          <div className="flex items-center gap-2">
+            <Toggle
+              value={draft.vis.github}
+              onChange={setVis('github')}
+              colorOn="bg-[#1A6FBF]"
+              colorOff="bg-gray-300"
+            />
+            <span className={`text-xs font-medium w-10 ${draft.vis.github ? 'text-[#1A6FBF]' : 'text-text-hint'}`}>
+              {draft.vis.github ? 'Visible' : 'Hidden'}
+            </span>
+          </div>
         </div>
-        <input type="url" value={form.github} onChange={setField('github')}
+        <input type="url" value={draft.github} onChange={setField('github')}
           placeholder="https://github.com/..."
           className="w-full px-3 py-1.5 rounded border border-border bg-bg-base text-sm text-text-primary focus:outline-none focus:border-accent" />
       </div>
@@ -233,7 +254,7 @@ function EditSidebar({ member, onCancel, onPreview, onSave, saving, saveError })
           {saving ? 'Saving…' : 'Save Changes'}
         </button>
         <div className="flex gap-2">
-          <button type="button" onClick={handlePreview}
+          <button type="button" onClick={onPreview}
             className="flex-1 px-4 py-2 rounded border border-border text-sm text-text-secondary hover:border-border-strong transition-colors">
             Preview
           </button>
@@ -257,7 +278,8 @@ export default function ProfilePage({ params }) {
   const [mode, setMode] = useState('read')
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState(null)
-  const [previewDraft, setPreviewDraft] = useState(null)
+  // Lifted form state — persists across edit/preview switches
+  const [draft, setDraft] = useState(null)
   const initializedRef = useRef(false)
 
   useEffect(() => {
@@ -276,6 +298,26 @@ export default function ProfilePage({ params }) {
     return () => { cancelled = true }
   }, [id])
 
+  // Initialize draft from member data (once on load, reset after save)
+  useEffect(() => {
+    if (member && draft === null) {
+      const pv = member.profileVisibility ?? {}
+      setDraft({
+        nickname: member.nickname ?? '',
+        bio: member.bio ?? '',
+        linkedin: member.linkedinUrl ?? '',
+        github: member.githubUrl ?? '',
+        status: member.status ?? 'student',
+        vis: {
+          bio: pv.bio !== false,
+          // Default to hidden if no value has been saved yet for empty fields
+          linkedin: member.linkedinUrl ? pv.linkedin !== false : false,
+          github: member.githubUrl ? pv.github !== false : false,
+        },
+      })
+    }
+  }, [member, draft])
+
   // Auto-enter edit mode once we confirm own profile
   useEffect(() => {
     if (!initializedRef.current && member && user && user.id === id) {
@@ -287,9 +329,17 @@ export default function ProfilePage({ params }) {
   const isOwn = user?.id === id
   const isExec = member?.role === 'executive' || member?.role === 'admin'
 
-  // In preview mode, merge saved member with unsaved form values
-  const displayMember = (mode === 'preview' && previewDraft)
-    ? { ...member, ...previewDraft }
+  // In preview mode, show draft values instead of saved DB values
+  const displayMember = (mode === 'preview' && draft && member)
+    ? {
+        ...member,
+        nickname: draft.nickname || null,
+        bio: draft.bio || null,
+        linkedinUrl: draft.linkedin || null,
+        githubUrl: draft.github || null,
+        status: draft.status,
+        profileVisibility: draft.vis,
+      }
     : member
 
   const handleSave = async (fields) => {
@@ -299,7 +349,7 @@ export default function ProfilePage({ params }) {
       await updateMyProfile(fields)
       const updated = await fetchMemberById(id)
       setMember(updated)
-      setPreviewDraft(null)
+      setDraft(null) // triggers re-init from updated member data
       setMode('edit')
     } catch (err) {
       console.error('Failed to save profile:', err)
@@ -308,15 +358,6 @@ export default function ProfilePage({ params }) {
       setSaving(false)
     }
   }
-
-  const handlePreview = (draft) => {
-    setPreviewDraft(draft)
-    setMode('preview')
-  }
-
-  const showBio = mode !== 'edit'
-    && displayMember?.bio
-    && displayMember?.profileVisibility?.bio !== false
 
   return (
     <RoleGuard>
@@ -334,7 +375,10 @@ export default function ProfilePage({ params }) {
               <>
                 {isOwn && mode === 'preview' && (
                   <div className="mb-6 flex items-center justify-between px-4 py-2.5 rounded-lg bg-bg-layer1 border border-border text-sm">
-                    <span className="text-text-secondary">👁 This is how others see your profile</span>
+                    <span className="flex items-center gap-2 text-text-secondary">
+                      <IconMonitor className="size-4 shrink-0" />
+                      This is how others see your profile
+                    </span>
                     <button type="button" onClick={() => setMode('edit')}
                       className="text-accent font-medium hover:opacity-80 transition-opacity">
                       ← Back to Edit
@@ -344,10 +388,12 @@ export default function ProfilePage({ params }) {
 
                 <div className="flex flex-col md:flex-row gap-8 md:gap-12 md:items-start">
                   <div className="w-full md:w-64 lg:w-72 md:flex-shrink-0">
-                    {isOwn && mode === 'edit' ? (
+                    {isOwn && mode === 'edit' && draft ? (
                       <EditSidebar
                         member={member}
-                        onPreview={handlePreview}
+                        draft={draft}
+                        onDraftChange={setDraft}
+                        onPreview={() => setMode('preview')}
                         onCancel={() => setMode('read')}
                         onSave={handleSave}
                         saving={saving}
@@ -364,11 +410,6 @@ export default function ProfilePage({ params }) {
                   </div>
 
                   <div className="flex-1 min-w-0 flex flex-col gap-8">
-                    {showBio && (
-                      <section>
-                        <p className="text-sm text-text-secondary leading-relaxed">{displayMember.bio}</p>
-                      </section>
-                    )}
                     <section>
                       <h2 className="font-montserrat font-semibold text-lg text-text-primary mb-4">Activity</h2>
                       <div className="w-full rounded-lg bg-bg-layer1 border border-border flex items-center justify-center py-12">
