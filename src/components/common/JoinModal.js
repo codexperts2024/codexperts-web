@@ -97,10 +97,21 @@ export default function JoinModal() {
       const meta = user.user_metadata
       const fullName = meta?.full_name ?? meta?.name ?? ''
       const parts = fullName.trim().split(' ')
-      setFirstName(meta?.given_name ?? parts[0] ?? '')
-      setLastName(meta?.family_name ?? parts.slice(1).join(' ') ?? '')
+      setFirstName(profile?.first_name ?? meta?.given_name ?? parts[0] ?? '')
+      setLastName(profile?.last_name ?? meta?.family_name ?? parts.slice(1).join(' ') ?? '')
+      setNickname(profile?.nickname ?? '')
+      setSchool(profile?.school ?? '')
+      setCohort(profile?.cohort ?? '')
+      setPhone(profile?.phone ?? '')
+      setStatus(profile?.status ?? '')
+      setCompany(profile?.company ?? '')
+      setOccupation(profile?.occupation ?? '')
+      const li = profile?.linkedin ?? ''
+      setLinkedin(li.replace('https://www.linkedin.com/in/', '').replace(/\/$/, ''))
+      const gh = profile?.github ?? ''
+      setGithub(gh.replace('https://github.com/', '').replace(/\/$/, ''))
     }
-  }, [isOpen, user])
+  }, [isOpen, user, profile])
 
   useEffect(() => {
     if (!isOpen) {
