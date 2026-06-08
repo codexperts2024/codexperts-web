@@ -45,7 +45,7 @@ const MemberCard = ({ executive }) => {
       </span>
       <div className="flex items-center gap-2">
         {linkedinUrl ? (
-          <a href={linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-text-secondary hover:text-text-primary transition-colors">
+          <a href={linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-[#0A66C2] hover:opacity-80 transition-opacity">
             <IconLinkedIn />
           </a>
         ) : (
