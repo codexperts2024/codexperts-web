@@ -10,7 +10,6 @@ import { IconLinkedIn, IconGitHub } from '@/components/ui/SocialIcons'
 
 function Avatar({ member }) {
   const initial = (member?.firstName?.[0] ?? '?').toUpperCase()
-  // Google profile photos include a size param (e.g. =s96-c). Bump to s400 for higher quality.
   const src = member.avatarUrl?.replace(/=s\d+-c$/, '=s400-c') ?? member.avatarUrl
   return (
     <div className="w-full aspect-square rounded-full overflow-hidden bg-bg-layer1 flex items-center justify-center">
@@ -43,20 +42,15 @@ function ExecutiveBadge() {
   )
 }
 
-function SegmentedToggle({ options, value, onChange }) {
+// Sliding pill toggle — thumb slides between two options
+function SlidingToggle({ options, value, onChange }) {
+  const idx = options.findIndex(o => o.value === value)
   return (
-    <div className="inline-flex rounded-full border border-border overflow-hidden text-xs font-medium">
-      {options.map((opt, i) => (
-        <button
-          key={String(opt.value)}
-          type="button"
-          onClick={() => onChange(opt.value)}
-          className={`px-3 py-1 transition-colors ${i > 0 ? 'border-l border-border' : ''} ${
-            value === opt.value
-              ? 'bg-text-primary text-bg-base'
-              : 'text-text-hint hover:text-text-secondary bg-transparent'
-          }`}
-        >
+    <div className="relative inline-flex rounded-full border border-border overflow-hidden text-xs font-medium">
+      <span className={`absolute inset-y-0 w-1/2 bg-text-primary transition-all duration-200 ${idx === 0 ? 'left-0' : 'left-1/2'}`} />
+      {options.map((opt) => (
+        <button key={String(opt.value)} type="button" onClick={() => onChange(opt.value)}
+          className={`relative z-10 px-3 py-1 transition-colors ${opt.value === value ? 'text-bg-base' : 'text-text-hint'}`}>
           {opt.label}
         </button>
       ))}
@@ -130,8 +124,17 @@ function ReadSidebar({ member, isOwn, isExec, onEdit }) {
   )
 }
 
+const STATUS_OPTIONS = [
+  { value: 'student', label: 'Student' },
+  { value: 'graduate', label: 'Graduate' },
+]
+const VIS_OPTIONS = [
+  { value: true, label: 'Visible' },
+  { value: false, label: 'Hidden' },
+]
+
 // Edit view — own profile only
-function EditSidebar({ member, onCancel, onPreview, onSave, saving }) {
+function EditSidebar({ member, onCancel, onPreview, onSave, saving, saveError }) {
   const fullName = `${member.firstName ?? ''} ${member.lastName ?? ''}`.trim()
   const defaultVisibility = member.profileVisibility ?? { bio: true, linkedin: true, github: true }
 
@@ -160,6 +163,16 @@ function EditSidebar({ member, onCancel, onPreview, onSave, saving }) {
     profile_visibility: visibility,
   })
 
+  // Pass current form state to parent so preview reflects unsaved changes
+  const handlePreview = () => onPreview({
+    nickname: form.nickname || null,
+    bio: form.bio || null,
+    linkedinUrl: form.linkedin || null,
+    githubUrl: form.github || null,
+    status: form.status,
+    profileVisibility: visibility,
+  })
+
   return (
     <aside className="flex flex-col gap-5">
       <Avatar member={member} />
@@ -178,21 +191,13 @@ function EditSidebar({ member, onCancel, onPreview, onSave, saving }) {
 
       <div className="flex flex-col gap-2">
         <label className="text-xs font-medium text-text-hint uppercase tracking-wide">Status</label>
-        <SegmentedToggle
-          options={[{ value: 'student', label: 'Student' }, { value: 'graduate', label: 'Graduate' }]}
-          value={form.status}
-          onChange={(v) => setForm(f => ({ ...f, status: v }))}
-        />
+        <SlidingToggle options={STATUS_OPTIONS} value={form.status} onChange={(v) => setForm(f => ({ ...f, status: v }))} />
       </div>
 
       <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between">
           <label className="text-xs font-medium text-text-hint uppercase tracking-wide">Bio</label>
-          <SegmentedToggle
-            options={[{ value: true, label: 'Visible' }, { value: false, label: 'Hidden' }]}
-            value={visibility.bio}
-            onChange={setVis('bio')}
-          />
+          <SlidingToggle options={VIS_OPTIONS} value={visibility.bio} onChange={setVis('bio')} />
         </div>
         <textarea value={form.bio} onChange={(e) => setForm(f => ({ ...f, bio: e.target.value.slice(0, 300) }))}
           placeholder="Tell others about yourself..."
@@ -204,11 +209,7 @@ function EditSidebar({ member, onCancel, onPreview, onSave, saving }) {
       <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between">
           <label className="text-xs font-medium text-text-hint uppercase tracking-wide">LinkedIn</label>
-          <SegmentedToggle
-            options={[{ value: true, label: 'Visible' }, { value: false, label: 'Hidden' }]}
-            value={visibility.linkedin}
-            onChange={setVis('linkedin')}
-          />
+          <SlidingToggle options={VIS_OPTIONS} value={visibility.linkedin} onChange={setVis('linkedin')} />
         </div>
         <input type="url" value={form.linkedin} onChange={setField('linkedin')}
           placeholder="https://linkedin.com/in/..."
@@ -218,25 +219,24 @@ function EditSidebar({ member, onCancel, onPreview, onSave, saving }) {
       <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between">
           <label className="text-xs font-medium text-text-hint uppercase tracking-wide">GitHub</label>
-          <SegmentedToggle
-            options={[{ value: true, label: 'Visible' }, { value: false, label: 'Hidden' }]}
-            value={visibility.github}
-            onChange={setVis('github')}
-          />
+          <SlidingToggle options={VIS_OPTIONS} value={visibility.github} onChange={setVis('github')} />
         </div>
         <input type="url" value={form.github} onChange={setField('github')}
           placeholder="https://github.com/..."
           className="w-full px-3 py-1.5 rounded border border-border bg-bg-base text-sm text-text-primary focus:outline-none focus:border-accent" />
       </div>
 
-      {/* Action buttons */}
+      {saveError && (
+        <p className="text-xs text-accent px-1">{saveError}</p>
+      )}
+
       <div className="flex flex-col gap-2 pt-1">
         <button type="button" onClick={handleSave} disabled={saving}
           className="w-full px-4 py-2 rounded bg-accent text-white text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50">
           {saving ? 'Saving…' : 'Save Changes'}
         </button>
         <div className="flex gap-2">
-          <button type="button" onClick={onPreview}
+          <button type="button" onClick={handlePreview}
             className="flex-1 px-4 py-2 rounded border border-border text-sm text-text-secondary hover:border-border-strong transition-colors">
             Preview
           </button>
@@ -259,6 +259,8 @@ export default function ProfilePage({ params }) {
   // 'edit' | 'preview' | 'read'
   const [mode, setMode] = useState('read')
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState(null)
+  const [previewDraft, setPreviewDraft] = useState(null)
   const initializedRef = useRef(false)
 
   useEffect(() => {
@@ -288,18 +290,31 @@ export default function ProfilePage({ params }) {
   const isOwn = user?.id === id
   const isExec = member?.role === 'executive' || member?.role === 'admin'
 
+  // In preview mode, merge saved member with unsaved form values
+  const displayMember = (mode === 'preview' && previewDraft)
+    ? { ...member, ...previewDraft }
+    : member
+
   const handleSave = async (fields) => {
     setSaving(true)
+    setSaveError(null)
     try {
       await updateMyProfile(fields)
       const updated = await fetchMemberById(id)
       setMember(updated)
+      setPreviewDraft(null)
       setMode('edit')
     } catch (err) {
       console.error('Failed to save profile:', err)
+      setSaveError(err?.message ?? 'Failed to save. Please try again.')
     } finally {
       setSaving(false)
     }
+  }
+
+  const handlePreview = (draft) => {
+    setPreviewDraft(draft)
+    setMode('preview')
   }
 
   return (
@@ -315,46 +330,54 @@ export default function ProfilePage({ params }) {
             {error && <p className="text-accent">Couldn't load profile. Try refreshing.</p>}
 
             {!loading && !error && member && (
-              <div className="flex flex-col md:flex-row gap-8 md:gap-12 md:items-start">
-                <div className="w-full md:w-64 lg:w-72 md:flex-shrink-0">
-                  {isOwn && mode === 'edit' ? (
-                    <EditSidebar
-                      member={member}
-                      onPreview={() => setMode('preview')}
-                      onCancel={() => setMode('edit')}
-                      onSave={handleSave}
-                      saving={saving}
-                    />
-                  ) : (
-                    <ReadSidebar
-                      member={member}
-                      isOwn={isOwn && mode === 'preview'}
-                      isExec={isExec}
-                      onEdit={() => setMode('edit')}
-                    />
-                  )}
-                </div>
+              <>
+                {isOwn && mode === 'preview' && (
+                  <div className="mb-6 flex items-center justify-between px-4 py-2.5 rounded-lg bg-bg-layer1 border border-border text-sm">
+                    <span className="text-text-secondary">👁 This is how others see your profile</span>
+                    <button type="button" onClick={() => setMode('edit')}
+                      className="text-accent font-medium hover:opacity-80 transition-opacity">
+                      ← Back to Edit
+                    </button>
+                  </div>
+                )}
 
-                <div className="flex-1 min-w-0 flex flex-col gap-8">
-                  {isOwn && mode === 'preview' && (
-                    <div className="px-3 py-2 rounded bg-bg-layer1 border border-border text-sm text-text-secondary">
-                      👁 This is how others see your profile
-                    </div>
-                  )}
-                  <section>
-                    <h2 className="font-montserrat font-semibold text-lg text-text-primary mb-4">Activity</h2>
-                    <div className="w-full rounded-lg bg-bg-layer1 border border-border flex items-center justify-center py-12">
-                      <p className="text-sm text-text-hint">Coming soon</p>
-                    </div>
-                  </section>
-                  <section>
-                    <h2 className="font-montserrat font-semibold text-lg text-text-primary mb-4">Achievements</h2>
-                    <div className="w-full rounded-lg bg-bg-layer1 border border-border flex items-center justify-center py-12">
-                      <p className="text-sm text-text-hint">Coming soon</p>
-                    </div>
-                  </section>
+                <div className="flex flex-col md:flex-row gap-8 md:gap-12 md:items-start">
+                  <div className="w-full md:w-64 lg:w-72 md:flex-shrink-0">
+                    {isOwn && mode === 'edit' ? (
+                      <EditSidebar
+                        member={member}
+                        onPreview={handlePreview}
+                        onCancel={() => setMode('read')}
+                        onSave={handleSave}
+                        saving={saving}
+                        saveError={saveError}
+                      />
+                    ) : (
+                      <ReadSidebar
+                        member={displayMember}
+                        isOwn={isOwn && mode === 'read'}
+                        isExec={isExec}
+                        onEdit={() => setMode('edit')}
+                      />
+                    )}
+                  </div>
+
+                  <div className="flex-1 min-w-0 flex flex-col gap-8">
+                    <section>
+                      <h2 className="font-montserrat font-semibold text-lg text-text-primary mb-4">Activity</h2>
+                      <div className="w-full rounded-lg bg-bg-layer1 border border-border flex items-center justify-center py-12">
+                        <p className="text-sm text-text-hint">Coming soon</p>
+                      </div>
+                    </section>
+                    <section>
+                      <h2 className="font-montserrat font-semibold text-lg text-text-primary mb-4">Achievements</h2>
+                      <div className="w-full rounded-lg bg-bg-layer1 border border-border flex items-center justify-center py-12">
+                        <p className="text-sm text-text-hint">Coming soon</p>
+                      </div>
+                    </section>
+                  </div>
                 </div>
-              </div>
+              </>
             )}
           </div>
         </div>
