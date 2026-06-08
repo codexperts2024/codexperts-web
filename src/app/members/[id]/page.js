@@ -1,207 +1,331 @@
 'use client'
+import { useState, useEffect } from 'react'
+import React from 'react'
+import Link from 'next/link'
 import RoleGuard from '@/components/auth/RoleGuard'
-import React, { useEffect, useState } from 'react'
-import { fetchMemberById } from '@/services/membersService' //TODO: verify 'badges' column exists in supabase and add fetchMemberBadges()
-import { cohortLabel } from '@/utils/cohort'
 import { useAuth } from '@/hooks/useAuth'
+import { fetchMemberById, updateMyProfile } from '@/services/membersService'
+import { cohortLabel } from '@/utils/cohort'
+import { IconLinkedIn, IconGitHub } from '@/components/ui/SocialIcons'
 
 function Avatar({ member }) {
-    const initial = (member?.firstName?.[0] ?? '?').toUpperCase()
-    return (
-    <div className="relative w-24 h-24 rounded-full flex-shrink-0 group">
+  const initial = (member?.firstName?.[0] ?? '?').toUpperCase()
+  return (
+    <div className="w-full aspect-square rounded-full overflow-hidden bg-bg-layer1 flex items-center justify-center">
       {member.avatarUrl ? (
         <img
           src={member.avatarUrl}
           alt={`${member.firstName} ${member.lastName}`}
-          className="w-full h-full rounded-full object-cover ring-2 ring-transparent group-hover:ring-accent transition-all"
+          referrerPolicy="no-referrer"
+          className="w-full h-full object-cover"
         />
       ) : (
-        <div className="w-full h-full rounded-full bg-bg-elevated flex items-center justify-center font-montserrat font-bold text-2xl text-text-secondary ring-2 ring-transparent group-hover:ring-accent transition-all">
-          {initial}
-        </div>
+        <span className="font-montserrat font-bold text-5xl text-text-secondary">{initial}</span>
       )}
     </div>
   )
 }
 
-function ExecutiveBadge() {
-  return (
-    <span className="text-xs font-medium px-2 py-0.5 rounded bg-success-bg text-success">
-      Executive
-    </span>
-  )
-}
-
 function StatusBadge({ status }) {
-  const isStudent = status === 'student'
+  const isStudent = status !== 'graduate'
   return (
-    <span className={`text-xs font-medium px-2 py-0.5 rounded ${isStudent ? 'bg-link-bg text-link' : 'bg-link-bg text-gold'}`}>
+    <span className={`text-xs font-medium px-2 py-0.5 rounded ${isStudent ? 'bg-[#F0F4FF] text-[#1A6FBF]' : 'bg-[#F3F3F3] text-[#555555]'}`}>
       {isStudent ? 'Student' : 'Graduate'}
     </span>
   )
 }
 
-// function BadgeCard({ badge }) {
-//   return (
-//     <div
-//       className="flex flex-col items-center gap-2 p-4 rounded-lg bg-bg-base border border-border relative"
-//       style={{ opacity: badge.unlocked ? 1 : 0.35 }}
-//     >
-//       <span className="text-2xl">{badge.icon}</span>
-//       <span className="text-xs text-center font-medium text-text-secondary">{badge.label}</span>
-//       {!badge.unlocked && (
-//         <span className="absolute top-2 right-2 text-xs text-text-hint">🔒</span>
-//       )}
-//     </div>
-//   )
-// }
+function ExecutiveBadge() {
+  return (
+    <span className="text-xs font-medium px-2 py-0.5 rounded bg-success-bg text-success">Executive</span>
+  )
+}
+
+function VisibilityToggle({ visible, onChange }) {
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(!visible)}
+      className={`text-[11px] flex items-center gap-1 px-2 py-0.5 rounded border transition-colors ${
+        visible ? 'border-border text-text-secondary hover:border-border-strong' : 'border-border text-text-hint bg-bg-layer1'
+      }`}
+    >
+      {visible ? '👁 Visible' : '🔒 Hidden'}
+    </button>
+  )
+}
+
+function StatusToggle({ value, onChange }) {
+  const isStudent = value !== 'graduate'
+  return (
+    <div className="flex items-center gap-2">
+      <span className={`text-sm ${isStudent ? 'text-[#1A6FBF] font-medium' : 'text-text-hint'}`}>Student</span>
+      <button
+        type="button"
+        onClick={() => onChange(isStudent ? 'graduate' : 'student')}
+        className={`relative w-10 h-5 rounded-full transition-colors duration-200 ${isStudent ? 'bg-[#1A6FBF]' : 'bg-text-secondary'}`}
+      >
+        <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 ${isStudent ? 'translate-x-0.5' : 'translate-x-5'}`} />
+      </button>
+      <span className={`text-sm ${!isStudent ? 'text-text-secondary font-medium' : 'text-text-hint'}`}>Graduate</span>
+    </div>
+  )
+}
+
+function ReadSidebar({ member, isOwn, isExec, onEdit }) {
+  const fullName = `${member.firstName ?? ''} ${member.lastName ?? ''}`.trim()
+  const v = member.profileVisibility
+
+  return (
+    <aside className="flex flex-col gap-4">
+      <Avatar member={member} />
+
+      <div>
+        <h1 className="font-montserrat font-bold text-2xl text-text-primary leading-tight">{fullName}</h1>
+        {member.nickname && (
+          <p className="text-text-hint text-base mt-0.5">{member.nickname}</p>
+        )}
+      </div>
+
+      <div className="flex flex-wrap gap-1.5">
+        <StatusBadge status={member.status} />
+        {isExec && <ExecutiveBadge />}
+      </div>
+
+      {v.bio !== false && member.bio && (
+        <p className="text-sm text-text-secondary leading-relaxed">{member.bio}</p>
+      )}
+
+      <div className="flex flex-col gap-1 text-sm text-text-secondary">
+        {member.school && <span>{member.school}</span>}
+        {member.cohort && <span>{cohortLabel(member.cohort)}</span>}
+      </div>
+
+      {(v.linkedin !== false && member.linkedinUrl) || (v.github !== false && member.githubUrl) ? (
+        <div className="flex flex-col gap-2 pt-1">
+          {v.linkedin !== false && member.linkedinUrl && (
+            <a href={member.linkedinUrl} target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-2 text-sm text-text-secondary hover:text-[#0A66C2] transition-colors">
+              <IconLinkedIn className="size-4 shrink-0" />
+              <span className="truncate">LinkedIn</span>
+            </a>
+          )}
+          {v.github !== false && member.githubUrl && (
+            <a href={member.githubUrl} target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary transition-colors">
+              <IconGitHub className="size-4 shrink-0" />
+              <span className="truncate">GitHub</span>
+            </a>
+          )}
+        </div>
+      ) : null}
+
+      {isOwn && (
+        <div className="flex flex-col gap-1 text-xs text-text-hint">
+          {v.bio === false && member.bio && <span>🔒 Bio hidden from others</span>}
+          {v.linkedin === false && member.linkedinUrl && <span>🔒 LinkedIn hidden from others</span>}
+          {v.github === false && member.githubUrl && <span>🔒 GitHub hidden from others</span>}
+        </div>
+      )}
+
+      {isOwn && (
+        <button onClick={onEdit}
+          className="w-full mt-1 px-4 py-1.5 rounded border border-border text-sm text-text-secondary hover:border-border-strong hover:text-text-primary transition-colors">
+          Edit Profile
+        </button>
+      )}
+    </aside>
+  )
+}
+
+function EditSidebar({ member, onCancel, onSave, saving }) {
+  const fullName = `${member.firstName ?? ''} ${member.lastName ?? ''}`.trim()
+  const [form, setForm] = useState({
+    nickname: member.nickname ?? '',
+    bio: member.bio ?? '',
+    linkedin: member.linkedinUrl ?? '',
+    github: member.githubUrl ?? '',
+    status: member.status ?? 'student',
+  })
+  const [visibility, setVisibility] = useState({
+    bio: member.profileVisibility.bio !== false,
+    linkedin: member.profileVisibility.linkedin !== false,
+    github: member.profileVisibility.github !== false,
+  })
+
+  const setField = (key) => (e) => setForm(f => ({ ...f, [key]: e.target.value }))
+  const setVis = (key) => (val) => setVisibility(v => ({ ...v, [key]: val }))
+
+  const handleSave = () => onSave({
+    nickname: form.nickname || null,
+    bio: form.bio || null,
+    linkedin: form.linkedin || null,
+    github: form.github || null,
+    status: form.status,
+    profile_visibility: visibility,
+  })
+
+  return (
+    <aside className="flex flex-col gap-5">
+      <Avatar member={member} />
+
+      <div>
+        <p className="font-montserrat font-bold text-2xl text-text-primary leading-tight">{fullName}</p>
+        <p className="text-xs text-text-hint mt-0.5">Name is managed by admin</p>
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <label className="text-xs font-medium text-text-hint uppercase tracking-wide">Nickname</label>
+        <input type="text" value={form.nickname} onChange={setField('nickname')}
+          placeholder="Add a nickname..."
+          className="w-full px-3 py-1.5 rounded border border-border bg-bg-base text-sm text-text-primary focus:outline-none focus:border-accent" />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <label className="text-xs font-medium text-text-hint uppercase tracking-wide">Status</label>
+        <StatusToggle value={form.status} onChange={(v) => setForm(f => ({ ...f, status: v }))} />
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center justify-between">
+          <label className="text-xs font-medium text-text-hint uppercase tracking-wide">Bio</label>
+          <VisibilityToggle visible={visibility.bio} onChange={setVis('bio')} />
+        </div>
+        <textarea value={form.bio} onChange={(e) => setForm(f => ({ ...f, bio: e.target.value.slice(0, 300) }))}
+          placeholder="Tell others about yourself..."
+          rows={4}
+          className="w-full px-3 py-1.5 rounded border border-border bg-bg-base text-sm text-text-primary resize-none focus:outline-none focus:border-accent" />
+        <p className="text-xs text-text-hint text-right">{form.bio.length} / 300</p>
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center justify-between">
+          <label className="text-xs font-medium text-text-hint uppercase tracking-wide">LinkedIn</label>
+          <VisibilityToggle visible={visibility.linkedin} onChange={setVis('linkedin')} />
+        </div>
+        <input type="url" value={form.linkedin} onChange={setField('linkedin')}
+          placeholder="https://linkedin.com/in/..."
+          className="w-full px-3 py-1.5 rounded border border-border bg-bg-base text-sm text-text-primary focus:outline-none focus:border-accent" />
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center justify-between">
+          <label className="text-xs font-medium text-text-hint uppercase tracking-wide">GitHub</label>
+          <VisibilityToggle visible={visibility.github} onChange={setVis('github')} />
+        </div>
+        <input type="url" value={form.github} onChange={setField('github')}
+          placeholder="https://github.com/..."
+          className="w-full px-3 py-1.5 rounded border border-border bg-bg-base text-sm text-text-primary focus:outline-none focus:border-accent" />
+      </div>
+
+      <div className="flex gap-2 pt-1">
+        <button type="button" onClick={onCancel}
+          className="flex-1 px-4 py-2 rounded border border-border text-sm text-text-secondary hover:border-border-strong transition-colors">
+          Cancel
+        </button>
+        <button type="button" onClick={handleSave} disabled={saving}
+          className="flex-1 px-4 py-2 rounded bg-accent text-white text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50">
+          {saving ? 'Saving…' : 'Save Changes'}
+        </button>
+      </div>
+    </aside>
+  )
+}
 
 export default function ProfilePage({ params }) {
-    const { id } = React.use(params)
-    const { user } = useAuth()
-    const [member, setMember] = useState(null)
-    const [badges, setBadges] = useState([])
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState(null)
-    const fullName = `${member?.firstName ?? ''} ${member?.lastName ?? ''}`.trim()
-    const displayName = member?.nickname ? `${fullName} (${member.nickname})` : fullName
+  const { id } = React.use(params)
+  const { user } = useAuth()
+  const [member, setMember] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [editing, setEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
 
-    useEffect(() => {
-        let cancelled = false
-        async function load() {
-            try {
-                // TODO: add fetchMemberBadges() later
-                const memberData = await fetchMemberById(id)
-                if (!cancelled) setMember(memberData)
-            }
-            catch (err) {
-                if (!cancelled) setError(err)
-            }
-            finally {
-                if (!cancelled) setLoading(false)
-            }
-        }
-        load()
-        return () => { cancelled = true }
-    }, [id])
+  useEffect(() => {
+    let cancelled = false
+    async function load() {
+      try {
+        const data = await fetchMemberById(id)
+        if (!cancelled) setMember(data)
+      } catch (err) {
+        if (!cancelled) setError(err)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    load()
+    return () => { cancelled = true }
+  }, [id])
 
-    const isOwn = user?.id === id
-    const isExec = member?.role?.toLowerCase() === 'executive' || member?.role?.toLowerCase() === 'admin'
-    const visibility = member?.profile_visibility ?? {}
+  const isOwn = user?.id === id
+  const isExec = member?.role === 'executive' || member?.role === 'admin'
 
-    return (
-        <RoleGuard>
-            <main className="min-h-screen bg-bg-base">
-                {/*HEADER SECTION*/}
-                <section className="bg-bg-base border-b border-border py-8 px-6">
-                    <div className="max-w-[1200px] mx-auto">
-                        {loading && <p className="text-text-secondary">Loading profile…</p>}
-                        {error && <p className="text-accent">Couldn't load profile. Try refreshing.</p>}
-                        {!loading && !error && member && (
-                            <div className="flex items-start gap-6">
-                                <Avatar member={member} />
-                                <div className="flex-1 min-w-0">
-                                    {/* Name + badges */}
-                                    <div className="flex flex-wrap items-center gap-2 mb-1">
-                                        <h1 className="font-montserrat font-bold text-3xl text-text-primary">
-                                        {displayName}
-                                        </h1>
-                                        <StatusBadge status={member.status} />
-                                        {isExec && <ExecutiveBadge />}
-                                    </div>
-                
-                                    {/* School · Cohort */}
-                                    <p className="text-sm text-text-secondary mb-3">
-                                        {member.school}{member.cohort ? ` · ${cohortLabel(member.cohort)}` : ''}
-                                    </p>
-                    
-                                    {/* Social icons */}
-                                    <div className="flex items-center gap-3">
-                                        {visibility.linkedin !== false && member.linkedinUrl && (
-                                        <a
-                                            href={member.linkedinUrl}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            aria-label={`${displayName} on LinkedIn`}
-                                            className="text-text-secondary hover:text-link transition-colors"
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M19 0h-14C2.2 0 0 2.2 0 5v14c0 2.8 2.2 5 5 5h14c2.8 0 5-2.2 5-5V5c0-2.8-2.2-5-5-5zM8 19H5V8h3v11zM6.5 6.7c-1 0-1.7-.8-1.7-1.7s.8-1.7 1.7-1.7 1.7.8 1.7 1.7-.7 1.7-1.7 1.7zM20 19h-3v-5.6c0-1.4-.5-2.3-1.8-2.3-1 0-1.6.7-1.8 1.3-.1.2-.1.5-.1.8V19h-3V8h3v1.3c.4-.6 1.1-1.5 2.7-1.5 2 0 3.5 1.3 3.5 4.1V19z" />
-                                            </svg>
-                                        </a>
-                                        )}
-                                        {visibility.github !== false && member.githubUrl && (
-                                        <a
-                                            href={member.githubUrl}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            aria-label={`${displayName} on GitHub`}
-                                            className="text-text-secondary hover:text-text-primary transition-colors"
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2 0 1.9 1.2 1.9 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.2.5-2.3 1.3-3.1-.2-.4-.6-1.6 0-3.2 0 0 1-.3 3.4 1.2a11.5 11.5 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.7 1.6.2 2.8.1 3.2.7.9 1.3 1.9 1.3 3.2 0 4.6-2.8 5.6-5.5 5.9.5.4.9 1 .9 2.2v3.3c0 .3.1.7.8.6A12 12 0 0 0 12 .3" />
-                                            </svg>
-                                        </a>
-                                        )}
-                                    </div>
-                                </div>
-                                {/* Edit button — own profile only */}
-                                {isOwn && (
-                                    <button className="flex-shrink-0 text-sm font-medium px-4 py-2 rounded border border-border-strong text-text-secondary bg-transparent hover:border-text-primary hover:text-text-primary transition-colors">
-                                        Edit Profile
-                                    </button>
-                                )}
-                            </div>
-                        )}
+  const handleSave = async (fields) => {
+    setSaving(true)
+    try {
+      await updateMyProfile(fields)
+      const updated = await fetchMemberById(id)
+      setMember(updated)
+      setEditing(false)
+    } catch (err) {
+      console.error('Failed to save profile:', err)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <RoleGuard>
+      <main className="min-h-screen bg-bg-base">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 pt-6 pb-16">
+          <Link href="/members" className="text-sm text-text-secondary hover:text-text-primary transition-colors">
+            ← Members
+          </Link>
+
+          <div className="mt-8">
+            {loading && <p className="text-text-secondary">Loading…</p>}
+            {error && <p className="text-accent">Couldn't load profile. Try refreshing.</p>}
+
+            {!loading && !error && member && (
+              <div className="flex flex-col md:flex-row gap-8 md:gap-12 md:items-start">
+                <div className="w-full md:w-64 lg:w-72 md:flex-shrink-0">
+                  {editing ? (
+                    <EditSidebar
+                      member={member}
+                      onCancel={() => setEditing(false)}
+                      onSave={handleSave}
+                      saving={saving}
+                    />
+                  ) : (
+                    <ReadSidebar
+                      member={member}
+                      isOwn={isOwn}
+                      isExec={isExec}
+                      onEdit={() => setEditing(true)}
+                    />
+                  )}
+                </div>
+
+                <div className="flex-1 min-w-0 flex flex-col gap-8">
+                  <section>
+                    <h2 className="font-montserrat font-semibold text-lg text-text-primary mb-4">Activity</h2>
+                    <div className="w-full rounded-lg bg-bg-layer1 border border-border flex items-center justify-center py-12">
+                      <p className="text-sm text-text-hint">Coming soon</p>
                     </div>
-                </section>
+                  </section>
 
-                {!loading && !error && member && (
-                    <>
-                        {/* BIO */}
-                        {visibility.bio !== false && (
-                            <section className="border-b border-border py-8 px-6">
-                                <div className="max-w-[1200px] mx-auto">
-                                    <h2 className="font-montserrat font-semibold text-xl text-text-primary mb-3">About</h2>
-                                    {member.bio ? (
-                                        <p className="text-base leading-relaxed text-text-secondary">{member.bio}</p>
-                                    ) : (
-                                        <p className="text-base italic text-text-hint">This member hasn't added a bio yet.</p>
-                                    )}
-                                </div>
-                            </section>
-                        )}
-            
-                        {/* ACTIVITY HEATMAP — placeholder */}
-                        <section className="border-b border-border py-8 px-6">
-                            <div className="max-w-[1200px] mx-auto">
-                                <h2 className="font-montserrat font-semibold text-xl text-text-primary mb-3">Activity</h2>
-                                <div className="w-full rounded-lg bg-bg-elevated flex items-center justify-center py-10">
-                                <p className="text-sm text-text-hint">Coming soon</p>
-                                </div>
-                            </div>
-                        </section>
-            
-                        {/* BADGES */}
-                        <section className="py-8 px-6">
-                            <div className="max-w-[1200px] mx-auto">
-                                <h2 className="font-montserrat font-semibold text-xl text-text-primary mb-4">Achievements</h2>
-                                <p className="text-sm text-text-hint">Coming soon</p>
-                                {/* TODO: uncomment badge render when available */}
-                                {/* {badges.length === 0 ? (
-                                    <p className="text-sm italic text-text-hint">No achievements yet. Keep going!</p>
-                                    ) : (
-                                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
-                                        {badges.map((badge) => (
-                                            <BadgeCard key={badge.id} badge={badge} />
-                                        ))}
-                                    </div>
-                                )} */}
-                            </div>
-                        </section>
-                    </>
-                )}   
-            </main>
-        </RoleGuard>
-    )
+                  <section>
+                    <h2 className="font-montserrat font-semibold text-lg text-text-primary mb-4">Achievements</h2>
+                    <div className="w-full rounded-lg bg-bg-layer1 border border-border flex items-center justify-center py-12">
+                      <p className="text-sm text-text-hint">Coming soon</p>
+                    </div>
+                  </section>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </main>
+    </RoleGuard>
+  )
 }

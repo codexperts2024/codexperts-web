@@ -195,7 +195,7 @@ export default function Navbar() {
           <div className="w-px h-5 bg-border mx-1" />
           {user ? (
             <div className="flex items-center gap-2">
-              <UserChip user={user} profile={profile} />
+              <Link href={`/members/${user.id}`}><UserChip user={user} profile={profile} /></Link>
               <button onClick={signOut}
                 className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors">
                 Log out
@@ -218,7 +218,7 @@ export default function Navbar() {
           {socialIconsRow}
           {user && (
             <div className="ml-1">
-              <UserChip user={user} profile={profile} />
+              <Link href={`/members/${user.id}`}><UserChip user={user} profile={profile} /></Link>
             </div>
           )}
           <button
