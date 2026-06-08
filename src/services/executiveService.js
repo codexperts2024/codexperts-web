@@ -8,6 +8,7 @@ export async function getCurrentExecutives() {
     .select(`
       id,
       title,
+      school,
       start_date,
       term,
       profiles (
@@ -29,6 +30,7 @@ export async function getCurrentExecutives() {
   return (data ?? []).map((row) => ({
     id: row.id,
     title: row.title,
+    school: row.school,
     startDate: row.start_date,
     term: row.term,
     userId: row.profiles?.id,

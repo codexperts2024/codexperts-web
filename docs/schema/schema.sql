@@ -7,3 +7,4 @@ SET search_path TO public;
 \i ./tables/announcements.sql
 \i ./tables/submissions.sql
 \i ./tables/attendances.sql
+\i ./tables/executive_roles.sql
