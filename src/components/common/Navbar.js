@@ -213,9 +213,8 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Mobile: social icons + UserChip + hamburger */}
+        {/* Mobile: UserChip + hamburger */}
         <div className="ml-auto lg:hidden flex items-center gap-1">
-          {socialIconsRow}
           {user && (
             <div className="ml-1">
               <Link href={`/members/${user.id}`}><UserChip user={user} profile={profile} /></Link>
