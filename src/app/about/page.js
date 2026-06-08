@@ -22,7 +22,7 @@ const MemberCard = ({ executive }) => {
     <div className="flex flex-col justify-center items-center my-4 md:my-10 w-[45%] sm:w-[30%] md:w-auto">
       <div className="size-16 bg-bg-layer1 rounded-xl mb-3 md:mb-5 flex justify-center items-center overflow-hidden">
         {avatarUrl && (
-          <img src={avatarUrl} alt={name} className="w-full h-full object-cover rounded-xl" />
+          <img src={avatarUrl} alt={name} referrerPolicy="no-referrer" className="w-full h-full object-cover rounded-xl" />
         )}
       </div>
       <p className="mb-1 md:mb-2 text-center text-sm md:text-base text-text-primary">{name}</p>
