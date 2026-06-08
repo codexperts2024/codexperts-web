@@ -275,10 +275,6 @@ export default function Navbar() {
           {user && (
             <>
               <div className="my-2 h-px bg-border" />
-              <Link href={`/members/${user.id}`} onClick={() => setMobileOpen(false)}
-                className="block px-2 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-layer1 rounded-md transition-colors">
-                My Profile
-              </Link>
               {isAdmin && (
                 <Link href="/admin" onClick={() => setMobileOpen(false)}
                   className="block px-2 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-layer1 rounded-md transition-colors">
