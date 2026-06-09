@@ -1,23 +1,47 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import Script from 'next/script'
 import Button from '@/components/ui/Button'
 import JoinUsButton from '@/components/ui/JoinUsButton'
+import HeroImageEditor from '@/components/home/HeroImageEditor'
+import { getOptimizedUrl } from '@/services/cloudinaryService'
+import { supabase } from '@/lib/supabase'
+
+const FALLBACK_HERO = '/hero.jpg'
 
 export default function HomePage() {
+  const [heroUrl, setHeroUrl] = useState(null)
+
+  useEffect(() => {
+    supabase
+      .from('site_settings')
+      .select('value')
+      .eq('key', 'hero_image_url')
+      .single()
+      .then(({ data }) => {
+        if (data?.value) setHeroUrl(data.value)
+      })
+  }, [])
+
+  const src = getOptimizedUrl(heroUrl) ?? FALLBACK_HERO
+
   return (
     <main className="min-h-screen bg-bg-base">
 
       {/* Hero — full width, no padding */}
-      <section>
+      <section className="relative">
         <Image
-          src="/hero.jpg"
+          src={src}
           alt="group photo of codeXperts"
           width={1920}
           height={1080}
           className="object-cover object-[0%_60%] w-full h-[50vh] md:h-[70vh]"
           priority
         />
+        <HeroImageEditor onUpdate={setHeroUrl} />
       </section>
 
       {/* Social Feed — full width bg-bg-base, inner container matches footer */}
