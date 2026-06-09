@@ -43,7 +43,7 @@ The **codeXperts Club** official website — a members-only platform for a codin
 | **Activity Heatmap** | GitHub-style contribution graph per member, combining submissions and attendance |
 | **Events Page** | Past and upcoming events; individual event detail pages with tracks, gallery, and prev/next nav |
 | **Member Profiles** | Per-member profile page with bio, social links, and self-edit mode |
-| **Announcements** | Role-gated announcement board |
+| **Announcements** | Public board with Post View (markdown, prev/next nav) and List View (table, pagination); admin/exec create and delete |
 
 ---
 
@@ -132,7 +132,7 @@ Sprint Contribution Report — Total
 ───────────────────────────────────
 Name    Issues Contribution
 ───────────────────────────────────
-Paul    24     ████████████████████████████████████████████████
+Paul    28     ████████████████████████████████████████████████████████
 
 Dave    8      ████████████████
 
@@ -368,7 +368,7 @@ Sprint Contribution Report — Week 5
 ──────────────────────────────────────
 Name    Done/All  Contribution
 ──────────────────────────────────────
-Paul    2/2       ████
+Paul    3/3       ██████
 
 Kai     1/1       ██
 

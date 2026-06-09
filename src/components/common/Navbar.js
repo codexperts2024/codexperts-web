@@ -136,6 +136,7 @@ export default function Navbar() {
   const role = profile?.role ?? null
   const isMember = role === 'member' || role === 'executive' || role === 'admin'
   const isAdmin = role === 'admin'
+  const profileHref = role === 'pending' ? '/pending' : `/members/${user?.id}`
 
   const allLinks = isMember ? [...publicLinks, ...memberOnlyLinks] : publicLinks
 
@@ -196,7 +197,7 @@ export default function Navbar() {
           <div className="w-px h-5 bg-border mx-1" />
           {user ? (
             <div className="flex items-center gap-2">
-              <Link href={`/members/${user.id}`}><UserChip user={user} profile={profile} /></Link>
+              <Link href={profileHref}><UserChip user={user} profile={profile} /></Link>
               <button onClick={signOut}
                 className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors">
                 Log out
@@ -217,7 +218,7 @@ export default function Navbar() {
         {/* Mobile: avatar (if logged in) or Login button + hamburger */}
         <div className="ml-auto lg:hidden flex items-center gap-2">
           {!loading && (user ? (
-            <Link href={`/members/${user.id}`}><UserChip user={user} profile={profile} /></Link>
+            <Link href={profileHref}><UserChip user={user} profile={profile} /></Link>
           ) : (
             <button onClick={handleLogIn} disabled={loggingIn}
               className="px-3 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors disabled:opacity-60">
@@ -275,10 +276,6 @@ export default function Navbar() {
           {user && (
             <>
               <div className="my-2 h-px bg-border" />
-              <Link href={`/members/${user.id}`} onClick={() => setMobileOpen(false)}
-                className="block px-2 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-layer1 rounded-md transition-colors">
-                My Profile
-              </Link>
               {isAdmin && (
                 <Link href="/admin" onClick={() => setMobileOpen(false)}
                   className="block px-2 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-layer1 rounded-md transition-colors">
