@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useJoinModal } from '@/contexts/JoinModalContext'
 import { useAuth } from '@/hooks/useAuth'
 import { createProfile } from '@/services/authService'
+import { formatRequestError } from '@/utils/requestErrors'
 import Button from '@/components/ui/Button'
 import { cohortLabel } from '@/utils/cohort'
 import { SCHOOLS } from '@/utils/constants'
@@ -151,6 +152,7 @@ export default function JoinModal() {
   async function handleSubmit() {
     if (submitting || !validate() || !user) return
     setSubmitting(true)
+    setErrors({})
 
     try {
       await createProfile({
@@ -171,11 +173,12 @@ export default function JoinModal() {
       })
 
       sessionStorage.removeItem('join_modal_dismissed')
-      await refreshProfile()
+      refreshProfile().catch(() => {})
       closeModal()
       router.push('/pending')
     } catch (err) {
-      setErrors({ submit: err.message })
+      setErrors({ submit: formatRequestError(err) })
+    } finally {
       setSubmitting(false)
     }
   }

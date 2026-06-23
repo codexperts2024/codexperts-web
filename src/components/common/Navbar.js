@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { socialLinks } from '@/config/socialLinks'
 import { useAuth } from '@/hooks/useAuth'
 import { signInWithGoogle } from '@/services/authService'
+import { canAccessAdminRoutes } from '@/utils/constants'
 import { IconLinkedIn, IconGitHub } from '@/components/ui/SocialIcons'
 
 const publicLinks = [
@@ -135,7 +136,7 @@ export default function Navbar() {
 
   const role = profile?.role ?? null
   const isMember = role === 'member' || role === 'executive' || role === 'admin'
-  const isAdmin = role === 'admin'
+  const canAccessAdmin = canAccessAdminRoutes(role)
   const profileHref = role === 'pending' ? '/pending' : `/members/${user?.id}`
 
   const allLinks = isMember ? [...publicLinks, ...memberOnlyLinks] : publicLinks
@@ -209,7 +210,7 @@ export default function Navbar() {
               {loggingIn ? 'Redirecting…' : 'Log In'}
             </button>
           )}
-          {isAdmin && (
+          {canAccessAdmin && (
             <Link href="/admin" title="Admin"
               className="ml-1 p-1.5 text-text-secondary hover:text-text-primary transition-colors">⚙</Link>
           )}
@@ -276,7 +277,7 @@ export default function Navbar() {
           {user && (
             <>
               <div className="my-2 h-px bg-border" />
-              {isAdmin && (
+              {canAccessAdmin && (
                 <Link href="/admin" onClick={() => setMobileOpen(false)}
                   className="block px-2 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-layer1 rounded-md transition-colors">
                   Admin
