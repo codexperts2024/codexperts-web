@@ -26,6 +26,8 @@ CREATE TABLE profiles (
   avatar_url      TEXT,
   bio             TEXT,
   profile_visibility JSONB NOT NULL DEFAULT '{"bio": true, "linkedin": true, "github": true}',
+  application_status TEXT NOT NULL DEFAULT 'pending'
+    CHECK (application_status IN ('pending', 'approved', 'rejected')),
   created_at      TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   updated_at      TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
