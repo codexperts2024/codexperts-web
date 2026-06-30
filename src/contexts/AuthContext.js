@@ -9,6 +9,7 @@ export const AuthContext = createContext(null)
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
+  const [accessToken, setAccessToken] = useState(null)
   const [loading, setLoading] = useState(true)
 
   // getSession, fetchProfile, supabase are stable module-level references;
@@ -24,6 +25,7 @@ export function AuthProvider({ children }) {
       try {
         const session = await getSession()
         setUser(session?.user ?? null)
+        setAccessToken(session?.access_token ?? null)
         if (session?.user) {
           const p = await fetchProfile(session.user.id)
           setProfile(p)
@@ -52,10 +54,12 @@ export function AuthProvider({ children }) {
         try {
           const session = await getSession()
           setUser(session?.user ?? null)
+          setAccessToken(session?.access_token ?? null)
           if (!session?.user) setProfile(null)
         } catch {
           setUser(null)
           setProfile(null)
+          setAccessToken(null)
         }
       })()
     }
@@ -68,6 +72,7 @@ export function AuthProvider({ children }) {
         // buttons disappear briefly).
         if (!initialized) return
         setUser(session?.user ?? null)
+        setAccessToken(session?.access_token ?? null)
         if (session?.user) {
           try {
             const p = await fetchProfile(session.user.id)
@@ -105,12 +110,13 @@ export function AuthProvider({ children }) {
     }
     setUser(null)
     setProfile(null)
+    setAccessToken(null)
     sessionStorage.removeItem('join_modal_dismissed')
     window.location.href = '/'
   }
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ user, profile, accessToken, loading, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   )

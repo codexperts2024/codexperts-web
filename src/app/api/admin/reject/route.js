@@ -22,7 +22,7 @@ export async function POST(request) {
   }
 
   if (target.application_status === 'rejected') {
-    return Response.json({ error: 'Cannot approve a rejected application' }, { status: 400 })
+    return Response.json({ error: 'Application is already rejected' }, { status: 400 })
   }
 
   if (target.role !== 'pending' || target.application_status !== 'pending') {
@@ -31,7 +31,7 @@ export async function POST(request) {
 
   const { data, error } = await serviceClient
     .from('profiles')
-    .update({ role: 'member', application_status: 'approved' })
+    .update({ application_status: 'rejected' })
     .eq('id', userId)
     .select('id, first_name, last_name, email, avatar_url, school, cohort, phone, status, role, application_status, created_at')
     .single()
