@@ -5,3 +5,30 @@
 body {
   font-family: var(--font-inter), sans-serif;
 }
+
+/* DOCX viewer — preserve native page width; scroll horizontally when needed */
+.docx-preview-problem .docx-wrapper {
+  background: #fff;
+  padding: 0;
+}
+
+.docx-preview-problem .docx-wrapper > section.docx {
+  width: auto !important;
+  min-width: min(100%, 40rem);
+  margin: 0 auto 1rem;
+  box-sizing: border-box;
+  background: #fff;
+}
+
+.docx-preview-problem section.docx {
+  color: #000;
+}
+
+.docx-preview-problem table {
+  border-collapse: collapse;
+}
+
+.docx-preview-problem img {
+  max-width: 100%;
+  height: auto;
+}

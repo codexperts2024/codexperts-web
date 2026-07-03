@@ -14,12 +14,34 @@ const customTheme = EditorView.theme({
   '.cm-editor': { borderRadius: '0 0 6px 6px' },
 })
 
-export default function MarkdownCodeEditor({ value, onChange, height = '360px' }) {
+export default function MarkdownCodeEditor({ value, onChange, height = '360px', onFilesDrop }) {
+  const extensions = [markdown(), customTheme]
+
+  if (onFilesDrop) {
+    extensions.push(EditorView.domEventHandlers({
+      dragover(event) {
+        if (event.dataTransfer?.types?.includes('Files')) {
+          event.preventDefault()
+          return true
+        }
+        return false
+      },
+      drop(event) {
+        const files = Array.from(event.dataTransfer?.files ?? [])
+        if (files.length === 0) return false
+        event.preventDefault()
+        event.stopPropagation()
+        onFilesDrop(files)
+        return true
+      },
+    }))
+  }
+
   return (
     <CodeMirror
       value={value}
       height={height}
-      extensions={[markdown(), customTheme]}
+      extensions={extensions}
       onChange={onChange}
       basicSetup={{
         lineNumbers: true,
