@@ -5,8 +5,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="codeXperts API")
 
-# Comma-separated list of explicit origins. Production domain and any extra
-# Vercel preview aliases should be set here in the Railway environment.
+# Comma-separated list of explicit origins. Production domain and Vercel preview
+# aliases should be set in the Heroku config vars.
 origins = [
     o.strip()
     for o in os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
@@ -33,6 +33,10 @@ app.add_middleware(
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+from routers import documents
+
+app.include_router(documents.router)
 
 # Routers added in later sprints:
 # from routers import execute, attendance

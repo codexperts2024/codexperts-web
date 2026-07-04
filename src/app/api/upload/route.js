@@ -7,13 +7,14 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 })
 
-const ALLOWED_FOLDERS = ['hero', 'profiles', 'announcements', 'events']
+const ALLOWED_FOLDERS = ['hero', 'profiles', 'announcements', 'events', 'problems']
 
 const FOLDER_ROLES = {
   hero: ['executive', 'admin'],
   profiles: ['member', 'executive', 'admin'],
   announcements: ['executive', 'admin'],
   events: ['executive', 'admin'],
+  problems: ['executive', 'admin'],
 }
 
 function getServiceClient() {
