@@ -36,7 +36,7 @@ The **codeXperts Club** official website — a members-only platform for a codin
 | Feature | Description |
 |---------|-------------|
 | **Google OAuth + RBAC** | 4-tier role system (Public → Member → Executive → Admin) with Supabase RLS enforcement |
-| **Coding Problems** | Weekly problems posted by execs, solved in a Monaco Editor (VSCode-style), executed via Piston API |
+| **Coding Problems** | Weekly problems on `/problems` (markdown editor or Word/PDF document mode); exec/admin CRUD; members read-only |
 | **QR Attendance** | Admin generates a session token → members scan to check in → auto-expires |
 | **Schedule Page** | Google Calendar API integration — synced events with subscribe/download for members |
 | **Member Directory** | Filterable profile cards with cohort, school, role badges, and per-field visibility controls |
@@ -132,13 +132,13 @@ Sprint Contribution Report — Total
 ───────────────────────────────────
 Name    Issues Contribution
 ───────────────────────────────────
-Paul    28     ████████████████████████████████████████████████████████
+Paul    29     ██████████████████████████████████████████████████████████
 
 Dave    8      ████████████████
 
-Kai     6      ████████████
+Kai     7      ██████████████
 
-Gary    6      ████████████
+Gary    7      ██████████████
 
 Sid     3      ██████
 
@@ -224,7 +224,7 @@ Name    Done/All  Contribution
 ──────────────────────────────────────
 Paul    4/4       ████████
 
-Kai     3/4       ██████░░
+Kai     4/4       ████████
 
 Dave    3/3       ██████
 
@@ -278,7 +278,7 @@ Sid     1/1       ██
 
 Kai     1/1       ██
 
-Gary    0/1       ░░
+Gary    1/1       ██
 
 Andra   0         
 
@@ -316,7 +316,7 @@ Sprint Contribution Report — Week 4
 ──────────────────────────────────────
 Name    Done/All  Contribution
 ──────────────────────────────────────
-Paul    4/5       ████████░░
+Paul    5/5       ██████████
 
 Gary    1/1       ██
 
@@ -441,7 +441,8 @@ codexperts-web/
 │   │   ├── about/           # /about
 │   │   ├── schedule/        # /schedule
 │   │   ├── api/             # Next.js API routes
-│   │   │   └── calendar/    # GET /api/calendar — iCal fetch + parse (no API key)
+│   │   │   ├── calendar/    # GET /api/calendar — iCal fetch + parse (no API key)
+│   │   │   └── problems/    # Document upload, DOCX→PDF preview/convert
 │   │   ├── announcements/   # /announcements
 │   │   ├── events/          # /events
 │   │   ├── join/            # /join — redirects to / (join flow is Navbar modal)
@@ -451,6 +452,7 @@ codexperts-web/
 │   │   └── admin/           # /admin (admin only)
 │   ├── components/
 │   │   ├── common/          # Navbar, Footer
+│   │   ├── layout/          # PageContainer (About-style max width)
 │   │   ├── auth/            # ProtectedRoute, RoleGuard
 │   │   └── ui/              # Button, Card, Modal
 │   ├── config/
@@ -469,9 +471,11 @@ codexperts-web/
 │   └── schema/              # Database schema definitions
 ├── backend/
 │   ├── main.py              # FastAPI entry point
+│   ├── Procfile             # Heroku web process
+│   ├── Aptfile              # LibreOffice for DOCX→PDF on Heroku
 │   ├── requirements.txt
 │   ├── .env.example
-│   └── routers/
+│   └── routers/             # documents (DOCX→PDF), future execute/attendance
 ├── scripts/
 │   └── sprint-report.js     # CLI tool — GitHub Issue contribution report per member
 ├── package.json
