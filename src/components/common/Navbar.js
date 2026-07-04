@@ -207,7 +207,7 @@ export default function Navbar() {
           ) : (
             <button onClick={handleLogIn} disabled={loggingIn}
               className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
-              {loggingIn ? 'Redirecting…' : 'Log In'}
+              {loggingIn ? 'Redirecting…' : 'Get Started'}
             </button>
           )}
           {canAccessAdmin && (
@@ -223,7 +223,7 @@ export default function Navbar() {
           ) : (
             <button onClick={handleLogIn} disabled={loggingIn}
               className="px-3 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors disabled:opacity-60">
-              {loggingIn ? '…' : 'Log In'}
+              {loggingIn ? '…' : 'Get Started'}
             </button>
           ))}
           <button
