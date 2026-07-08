@@ -49,8 +49,8 @@ export async function fetchProblems(schoolFilter) {
   let query = supabase
     .from('problems')
     .select(SELECT_FIELDS)
-    .order('week', { ascending: false, nullsFirst: false })
     .order('created_at', { ascending: false })
+    .order('week', { ascending: false, nullsFirst: false })
 
   if (schoolFilter && schoolFilter !== 'All Schools') {
     query = query.eq('school', schoolFilter)
