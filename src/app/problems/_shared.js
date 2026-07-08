@@ -69,6 +69,7 @@ export function emptyProblemForm() {
     description: '',
     pendingFile: null,
     fileUrl: null,
+    sourceFileUrl: null,
     documentName: null,
     pendingImageFiles: [],
   }
@@ -85,6 +86,7 @@ export function problemToForm(problem) {
     description: problem.description ?? '',
     pendingFile: null,
     fileUrl: problem.file_url,
+    sourceFileUrl: problem.source_file_url ?? null,
     documentName: problem.file_url ? problem.file_url.split('/').pop() : null,
     pendingImageFiles: [],
   }
@@ -152,6 +154,7 @@ export function DocumentViewer({ storagePath, fileFormat, accessToken, className
   const [error, setError] = useState('')
   const [pdfUrl, setPdfUrl] = useState('')
   const [docxBuffer, setDocxBuffer] = useState(null)
+  const isPdfStorage = storagePath?.toLowerCase().endsWith('.pdf')
 
   useEffect(() => {
     if (!storagePath || !fileFormat || !accessToken) {
@@ -167,7 +170,7 @@ export function DocumentViewer({ storagePath, fileFormat, accessToken, className
       setPdfUrl('')
       setDocxBuffer(null)
       try {
-        if (fileFormat === FILE_FORMAT.PDF) {
+        if (isPdfStorage) {
           const url = await getDocumentSignedUrl(storagePath, accessToken)
           if (!cancelled) setPdfUrl(url)
         } else if (fileFormat === FILE_FORMAT.DOCX) {
@@ -183,7 +186,7 @@ export function DocumentViewer({ storagePath, fileFormat, accessToken, className
 
     load()
     return () => { cancelled = true }
-  }, [storagePath, fileFormat, accessToken])
+  }, [storagePath, fileFormat, accessToken, isPdfStorage])
 
   useEffect(() => {
     if (!docxBuffer || !containerRef.current) return
@@ -208,7 +211,7 @@ export function DocumentViewer({ storagePath, fileFormat, accessToken, className
     return <p className={`text-text-secondary font-inter text-sm ${className}`}>{error}</p>
   }
 
-  if (fileFormat === FILE_FORMAT.PDF && pdfUrl) {
+  if (isPdfStorage && pdfUrl) {
     return (
       <iframe
         title="Problem document"
