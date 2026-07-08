@@ -15,6 +15,10 @@ import {
   uploadProblemDocument,
   removeProblemDocument,
   CONTENT_TYPE,
+  FILE_FORMAT,
+  buildProblemDocumentFilename,
+  getProblemDownloadStoragePath,
+  downloadProblemDocument,
 } from '@/services/problemsService'
 import { fetchUserSubmissions } from '@/services/submissionsService'
 import { ROLES } from '@/utils/constants'
@@ -48,9 +52,27 @@ function downloadMd(problem) {
   URL.revokeObjectURL(url)
 }
 
+async function downloadDocument(problem, accessToken) {
+  const storagePath = getProblemDownloadStoragePath(problem)
+  if (!storagePath || !accessToken) return
+
+  const blob = await downloadProblemDocument(
+    storagePath,
+    accessToken,
+    buildProblemDocumentFilename(problem),
+  )
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = buildProblemDocumentFilename(problem)
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
 function PostView({
   problems, currentIdx, navigateTo, setView, profile, onDelete, onEdit, onNew,
   schoolFilter, setSchoolFilter, showForm, form, onFormChange, onPublish, onCancelForm, submitting, editMode, accessToken,
+  onDownloadDocument,
 }) {
   const router = useRouter()
   const problem = problems[currentIdx]
@@ -147,7 +169,7 @@ function PostView({
                   <List size={14} />
                   List
                 </button>
-                {isMarkdown && (
+                {isMarkdown ? (
                   <button
                     onClick={() => downloadMd(problem)}
                     className="flex items-center gap-1.5 px-5 py-2 rounded-md text-sm font-medium font-inter border border-border-strong text-text-secondary hover:border-text-primary hover:text-text-primary transition-colors"
@@ -155,6 +177,15 @@ function PostView({
                   >
                     <Download size={14} />
                     .md
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => onDownloadDocument(problem)}
+                    className="flex items-center gap-1.5 px-5 py-2 rounded-md text-sm font-medium font-inter border border-border-strong text-text-secondary hover:border-text-primary hover:text-text-primary transition-colors"
+                    title={`Download .${problem.file_format === FILE_FORMAT.DOCX ? 'docx' : 'pdf'}`}
+                  >
+                    <Download size={14} />
+                    .{problem.file_format === FILE_FORMAT.DOCX ? 'docx' : 'pdf'}
                   </button>
                 )}
               </div>
@@ -400,10 +431,11 @@ function ProblemsContent() {
     return Number.isNaN(n) ? null : n
   }
 
-  async function persistDocument(problemId, pendingFile, existingPath) {
-    const { path, fileFormat } = await uploadProblemDocument(pendingFile, problemId, accessToken)
-    if (existingPath) await removeProblemDocument(existingPath)
-    return { path, fileFormat }
+  async function persistDocument(problemId, pendingFile, existing) {
+    const { path, sourcePath, fileFormat } = await uploadProblemDocument(pendingFile, problemId, accessToken)
+    if (existing?.file_url) await removeProblemDocument(existing.file_url, accessToken)
+    if (existing?.source_file_url) await removeProblemDocument(existing.source_file_url, accessToken)
+    return { path, sourcePath, fileFormat }
   }
 
   async function finalizeMarkdownDescription(description, pendingImageFiles) {
@@ -448,9 +480,10 @@ function ProblemsContent() {
           createdBy: user?.id,
         })
         createdId = row.id
-        const { path, fileFormat } = await persistDocument(row.id, form.pendingFile, null)
+        const { path, sourcePath, fileFormat } = await persistDocument(row.id, form.pendingFile, null)
         await updateProblem(row.id, {
           fileUrl: path,
+          sourceFileUrl: sourcePath,
           fileFormat,
           contentType: CONTENT_TYPE.DOCUMENT,
         })
@@ -476,7 +509,7 @@ function ProblemsContent() {
       setCurrentIdx(0)
     } catch (err) {
       if (createdId) {
-        try { await deleteProblem(createdId) } catch { /* rollback best-effort */ }
+        try { await deleteProblem(createdId, accessToken) } catch { /* rollback best-effort */ }
       }
       alert(err.message ?? 'Failed to publish. Please try again.')
     } finally {
@@ -499,10 +532,12 @@ function ProblemsContent() {
 
       if (form.contentType === CONTENT_TYPE.DOCUMENT) {
         let fileUrl = form.fileUrl
+        let sourceFileUrl = form.sourceFileUrl ?? null
         let fileFormat = form.fileFormat
         if (form.pendingFile) {
-          const uploaded = await persistDocument(id, form.pendingFile, existing?.file_url)
+          const uploaded = await persistDocument(id, form.pendingFile, existing)
           fileUrl = uploaded.path
+          sourceFileUrl = uploaded.sourcePath
           fileFormat = uploaded.fileFormat
         }
         await updateProblem(id, {
@@ -512,12 +547,14 @@ function ProblemsContent() {
           school,
           contentType: CONTENT_TYPE.DOCUMENT,
           fileUrl,
+          sourceFileUrl,
           fileFormat,
           description: '',
         })
       } else {
-        if (existing?.content_type === CONTENT_TYPE.DOCUMENT && existing.file_url) {
-          await removeProblemDocument(existing.file_url)
+        if (existing?.content_type === CONTENT_TYPE.DOCUMENT) {
+          if (existing.file_url) await removeProblemDocument(existing.file_url, accessToken)
+          if (existing.source_file_url) await removeProblemDocument(existing.source_file_url, accessToken)
         }
         const description = await finalizeMarkdownDescription(form.description, form.pendingImageFiles)
         await updateProblem(id, {
@@ -529,6 +566,7 @@ function ProblemsContent() {
           contentType: CONTENT_TYPE.MARKDOWN,
           fileFormat: null,
           fileUrl: null,
+          sourceFileUrl: null,
         })
       }
 
@@ -551,13 +589,29 @@ function ProblemsContent() {
 
   async function handleDelete(id) {
     if (!confirm('Delete this problem? This cannot be undone.')) return
+    if (!accessToken) {
+      alert('Session expired. Please refresh and log in again.')
+      return
+    }
     try {
-      await deleteProblem(id)
+      await deleteProblem(id, accessToken)
       cancelForm()
       await loadProblems()
       setCurrentIdx(0)
-    } catch {
-      alert('Failed to delete. Please try again.')
+    } catch (err) {
+      alert(err.message ?? 'Failed to delete. Please try again.')
+    }
+  }
+
+  async function handleDownloadDocument(problem) {
+    if (!accessToken) {
+      alert('Session expired. Please refresh and log in again.')
+      return
+    }
+    try {
+      await downloadDocument(problem, accessToken)
+    } catch (err) {
+      alert(err.message ?? 'Failed to download document.')
     }
   }
 
@@ -606,6 +660,7 @@ function ProblemsContent() {
       setView={setView}
       onDelete={handleDelete}
       onEdit={openEdit}
+      onDownloadDocument={handleDownloadDocument}
     />
   ) : (
     <ListView
