@@ -433,8 +433,8 @@ function ProblemsContent() {
 
   async function persistDocument(problemId, pendingFile, existing) {
     const { path, sourcePath, fileFormat } = await uploadProblemDocument(pendingFile, problemId, accessToken)
-    if (existing?.file_url) await removeProblemDocument(existing.file_url)
-    if (existing?.source_file_url) await removeProblemDocument(existing.source_file_url)
+    if (existing?.file_url) await removeProblemDocument(existing.file_url, accessToken)
+    if (existing?.source_file_url) await removeProblemDocument(existing.source_file_url, accessToken)
     return { path, sourcePath, fileFormat }
   }
 
@@ -509,7 +509,7 @@ function ProblemsContent() {
       setCurrentIdx(0)
     } catch (err) {
       if (createdId) {
-        try { await deleteProblem(createdId) } catch { /* rollback best-effort */ }
+        try { await deleteProblem(createdId, accessToken) } catch { /* rollback best-effort */ }
       }
       alert(err.message ?? 'Failed to publish. Please try again.')
     } finally {
@@ -553,8 +553,8 @@ function ProblemsContent() {
         })
       } else {
         if (existing?.content_type === CONTENT_TYPE.DOCUMENT) {
-          if (existing.file_url) await removeProblemDocument(existing.file_url)
-          if (existing.source_file_url) await removeProblemDocument(existing.source_file_url)
+          if (existing.file_url) await removeProblemDocument(existing.file_url, accessToken)
+          if (existing.source_file_url) await removeProblemDocument(existing.source_file_url, accessToken)
         }
         const description = await finalizeMarkdownDescription(form.description, form.pendingImageFiles)
         await updateProblem(id, {
@@ -589,13 +589,17 @@ function ProblemsContent() {
 
   async function handleDelete(id) {
     if (!confirm('Delete this problem? This cannot be undone.')) return
+    if (!accessToken) {
+      alert('Session expired. Please refresh and log in again.')
+      return
+    }
     try {
-      await deleteProblem(id)
+      await deleteProblem(id, accessToken)
       cancelForm()
       await loadProblems()
       setCurrentIdx(0)
-    } catch {
-      alert('Failed to delete. Please try again.')
+    } catch (err) {
+      alert(err.message ?? 'Failed to delete. Please try again.')
     }
   }
 

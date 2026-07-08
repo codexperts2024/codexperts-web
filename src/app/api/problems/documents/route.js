@@ -129,3 +129,20 @@ export async function GET(request) {
 
   return Response.json({ signedUrl: data.signedUrl })
 }
+
+export async function DELETE(request) {
+  const auth = await verifyAdminCaller(request)
+  if (auth.error) return auth.error
+
+  const path = request.nextUrl.searchParams.get('path')
+  if (!path) {
+    return Response.json({ error: 'path is required.' }, { status: 400 })
+  }
+
+  const { error } = await auth.serviceClient.storage.from(PROBLEM_BUCKET).remove([path])
+  if (error) {
+    return Response.json({ error: error.message ?? 'Failed to delete file.' }, { status: 500 })
+  }
+
+  return Response.json({ ok: true })
+}

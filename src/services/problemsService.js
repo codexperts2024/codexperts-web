@@ -214,26 +214,30 @@ export async function downloadProblemDocument(storagePath, accessToken, filename
   return res.blob()
 }
 
-export async function removeProblemDocument(storagePath) {
+export async function removeProblemDocument(storagePath, accessToken) {
   if (!storagePath) return
-  const { error } = await supabase.storage.from(PROBLEM_BUCKET).remove([storagePath])
-  if (error) throw error
+  if (!accessToken) throw new Error('Not authenticated.')
+
+  const res = await fetch(
+    `/api/problems/documents?path=${encodeURIComponent(storagePath)}`,
+    {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${accessToken}` },
+    },
+  )
+
+  const body = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(body.error ?? 'Failed to remove document.')
 }
 
-export async function deleteProblem(id) {
-  const { data: problem, error: fetchError } = await supabase
-    .from('problems')
-    .select('file_url, source_file_url, content_type')
-    .eq('id', id)
-    .single()
+export async function deleteProblem(id, accessToken) {
+  if (!accessToken) throw new Error('Not authenticated.')
 
-  if (fetchError) throw fetchError
+  const res = await fetch(`/api/problems/${id}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
 
-  if (problem?.content_type === CONTENT_TYPE.DOCUMENT) {
-    if (problem.file_url) await removeProblemDocument(problem.file_url)
-    if (problem.source_file_url) await removeProblemDocument(problem.source_file_url)
-  }
-
-  const { error } = await supabase.from('problems').delete().eq('id', id)
-  if (error) throw error
+  const body = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(body.error ?? 'Failed to delete problem.')
 }
