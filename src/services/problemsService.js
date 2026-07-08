@@ -26,9 +26,25 @@ function mapProblem(row) {
     content_type: row.content_type ?? CONTENT_TYPE.MARKDOWN,
     file_format: row.file_format,
     file_url: row.file_url,
+    source_file_url: row.source_file_url ?? null,
     created_at: row.created_at,
     created_by: row.created_by,
   }
+}
+
+export function buildProblemDocumentFilename(problem) {
+  const slug = (problem.title || 'problem').trim().toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '') || 'problem'
+  const ext = problem.file_format === FILE_FORMAT.DOCX ? 'docx' : 'pdf'
+  return `${slug}.${ext}`
+}
+
+export function getProblemDownloadStoragePath(problem) {
+  if (problem.file_format === FILE_FORMAT.DOCX) {
+    return problem.source_file_url || problem.file_url
+  }
+  return problem.file_url
 }
 
 export function detectProblemFileType(file) {
@@ -70,6 +86,7 @@ export async function createProblem({
   contentType = CONTENT_TYPE.MARKDOWN,
   fileFormat = null,
   fileUrl = null,
+  sourceFileUrl = null,
   createdBy,
 }) {
   const { data, error } = await supabase
@@ -83,6 +100,7 @@ export async function createProblem({
       content_type: contentType,
       file_format: fileFormat,
       file_url: fileUrl,
+      source_file_url: sourceFileUrl,
       created_by: createdBy ?? null,
     })
     .select(SELECT_FIELDS)
@@ -102,6 +120,7 @@ export async function updateProblem(id, fields) {
   if (fields.contentType !== undefined) payload.content_type = fields.contentType
   if (fields.fileFormat !== undefined) payload.file_format = fields.fileFormat
   if (fields.fileUrl !== undefined) payload.file_url = fields.fileUrl
+  if (fields.sourceFileUrl !== undefined) payload.source_file_url = fields.sourceFileUrl
 
   const { data, error } = await supabase
     .from('problems')
@@ -138,7 +157,11 @@ export async function uploadProblemDocument(file, problemId, accessToken) {
 
   const body = await res.json()
   if (!res.ok) throw new Error(body.error ?? 'Upload failed.')
-  return { path: body.path, fileFormat: body.fileFormat }
+  return {
+    path: body.path,
+    sourcePath: body.sourcePath ?? null,
+    fileFormat: body.fileFormat,
+  }
 }
 
 export async function previewDocxAsPdf(file, accessToken) {
@@ -174,11 +197,16 @@ export async function getDocumentSignedUrl(storagePath, accessToken) {
   return body.signedUrl
 }
 
-export async function downloadProblemDocument(storagePath, accessToken) {
-  const res = await fetch(
-    `/api/problems/documents?path=${encodeURIComponent(storagePath)}&download=1`,
-    { headers: { Authorization: `Bearer ${accessToken}` } },
-  )
+export async function downloadProblemDocument(storagePath, accessToken, filename) {
+  const params = new URLSearchParams({
+    path: storagePath,
+    download: '1',
+  })
+  if (filename) params.set('filename', filename)
+
+  const res = await fetch(`/api/problems/documents?${params}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
     throw new Error(body.error ?? 'Failed to download document.')
@@ -195,14 +223,15 @@ export async function removeProblemDocument(storagePath) {
 export async function deleteProblem(id) {
   const { data: problem, error: fetchError } = await supabase
     .from('problems')
-    .select('file_url, content_type')
+    .select('file_url, source_file_url, content_type')
     .eq('id', id)
     .single()
 
   if (fetchError) throw fetchError
 
-  if (problem?.content_type === CONTENT_TYPE.DOCUMENT && problem.file_url) {
-    await removeProblemDocument(problem.file_url)
+  if (problem?.content_type === CONTENT_TYPE.DOCUMENT) {
+    if (problem.file_url) await removeProblemDocument(problem.file_url)
+    if (problem.source_file_url) await removeProblemDocument(problem.source_file_url)
   }
 
   const { error } = await supabase.from('problems').delete().eq('id', id)
