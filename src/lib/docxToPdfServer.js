@@ -36,6 +36,9 @@ async function canUseLocalLibreOffice() {
   }
 }
 
+const PDF_EXPORT_FILTER =
+  'pdf:writer_pdf_Export:{"EmbedStandardFonts":{"type":"boolean","value":"true"},"UseTaggedPDF":{"type":"boolean","value":"false"}}'
+
 async function convertWithLocalLibreOffice(buffer) {
   const dir = await mkdtemp(path.join(tmpdir(), 'docx-pdf-'))
   try {
@@ -50,7 +53,7 @@ async function convertWithLocalLibreOffice(buffer) {
         '--nologo',
         '--nofirststartwizard',
         '--convert-to',
-        'pdf',
+        PDF_EXPORT_FILTER,
         '--outdir',
         dir,
         input,
