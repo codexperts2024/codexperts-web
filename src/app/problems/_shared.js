@@ -553,6 +553,7 @@ export function ProblemForm({ form, onChange, onSubmit, onCancel, submitting, ed
               <div>
                 <p className="font-medium text-text-primary">Document mode</p>
                 <p>Word / Google Docs export (.docx) converts to PDF automatically. PDF uploads as-is. View-only after publish.</p>
+                <p className="text-text-hint text-xs mt-1">For pixel-perfect layout, export PDF from Word and upload the PDF. Server conversion may differ slightly from Word.</p>
               </div>
             </div>
             {form.documentName && (

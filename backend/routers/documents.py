@@ -84,7 +84,7 @@ async def convert_docx_to_pdf(file: UploadFile = File(...)):
                     "--norestore",
                     f"-env:UserInstallation=file://{user_install}",
                     "--convert-to",
-                    "pdf",
+                    "pdf:writer_pdf_Export:{\"EmbedStandardFonts\":{\"type\":\"boolean\",\"value\":\"true\"},\"UseTaggedPDF\":{\"type\":\"boolean\",\"value\":\"false\"}}",
                     "--outdir",
                     str(tmp_path),
                     str(input_path),

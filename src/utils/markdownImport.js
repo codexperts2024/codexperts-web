@@ -161,9 +161,7 @@ export function buildPendingImageMap(files) {
 
 export function guessTitleFromFilename(filename) {
   const base = filename.replace(/\.[^.]+$/, '').trim()
-  const withoutNumericPrefix = base.replace(/^\d+[-_.\s]+/, '')
-  const cleaned = (withoutNumericPrefix || base).replace(/[-_]+/g, ' ').trim()
-  return cleaned || 'Untitled'
+  return base.replace(/_/g, ' ').trim() || 'Untitled'
 }
 
 export function guessTitleFromImport(mdFile, mdText) {
