@@ -472,7 +472,7 @@ codexperts-web/
 ├── backend/
 │   ├── main.py              # FastAPI entry point
 │   ├── Procfile             # Heroku web process
-│   ├── Aptfile              # LibreOffice for DOCX→PDF on Heroku
+│   ├── .profile.d/          # Optional dyno env (LibreOffice via Heroku buildpack)
 │   ├── requirements.txt
 │   ├── .env.example
 │   └── routers/             # documents (DOCX→PDF), future execute/attendance
