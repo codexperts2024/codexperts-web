@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { getAnnouncementLengthError } from '@/utils/announcementLimits'
 
 const SELECT_FIELDS = 'id, title, content, created_at, author_id, profiles(first_name, last_name)'
 
@@ -12,6 +13,11 @@ function map(row) {
   }
 }
 
+function assertLength(title, content) {
+  const error = getAnnouncementLengthError(title, content)
+  if (error) throw new Error(error)
+}
+
 export async function fetchAnnouncements() {
   const { data, error } = await supabase
     .from('announcements')
@@ -22,6 +28,7 @@ export async function fetchAnnouncements() {
 }
 
 export async function createAnnouncement(title, content, authorId) {
+  assertLength(title, content)
   const { data, error } = await supabase
     .from('announcements')
     .insert({ title, content, author_id: authorId })
@@ -32,6 +39,7 @@ export async function createAnnouncement(title, content, authorId) {
 }
 
 export async function updateAnnouncement(id, title, content) {
+  assertLength(title, content)
   const { data, error } = await supabase
     .from('announcements')
     .update({ title, content })

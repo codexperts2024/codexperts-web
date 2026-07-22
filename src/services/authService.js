@@ -35,6 +35,9 @@ export async function fetchProfile(userId) {
 }
 
 export async function createProfile({ id, first_name, last_name, nickname, email, avatarUrl, school, cohort, phone, status, company, occupation, linkedin, github }) {
+  // JoinModal onboarding: fills empty identity fields. DB trigger
+  // protect_profiles_admin_columns blocks changes once those fields are set,
+  // and always blocks role / application_status for non-admins.
   const request = supabase
     .from('profiles')
     .update({

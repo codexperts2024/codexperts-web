@@ -63,6 +63,11 @@ WITH CHECK (
   auth.uid() = id
 );
 
+-- Column-level protection for self-updates is enforced by the
+-- protect_profiles_admin_columns BEFORE UPDATE trigger on profiles
+-- (see docs/schema/tables/profiles.sql and migration
+-- 20260722160000_protect_profiles_admin_columns.sql).
+
 CREATE POLICY problems_select_member_plus
 ON public.problems
 FOR SELECT

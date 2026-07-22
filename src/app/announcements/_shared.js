@@ -3,13 +3,26 @@
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import Markdown from 'react-markdown'
+import imageCompression from 'browser-image-compression'
 
 import { IconEdit, IconTrash, IconNew } from '@/components/ui/Icons'
+import { sanitizeMarkdownUrl } from '@/utils/sanitizeMarkdownUrl'
+import {
+  ANNOUNCEMENT_CONTENT_MAX,
+  ANNOUNCEMENT_TITLE_MAX,
+  getAnnouncementLengthError,
+} from '@/utils/announcementLimits'
+import { uploadImage } from '@/services/cloudinaryService'
+import { formatRequestError } from '@/utils/requestErrors'
 
 const MarkdownCodeEditor = dynamic(() => import('./_editor'), { ssr: false })
 
 export function formatDate(str) {
   return new Date(str).toLocaleDateString('en-CA', { year: 'numeric', month: 'short', day: 'numeric' })
+}
+
+function safeUrlTransform(url) {
+  return sanitizeMarkdownUrl(url) ?? ''
 }
 
 const mdComponents = {
@@ -22,8 +35,20 @@ const mdComponents = {
   li: ({ children }) => <li className="mb-1">{children}</li>,
   strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
   em: ({ children }) => <em className="italic">{children}</em>,
-  a: ({ href, children }) => <a href={href} className="text-link hover:underline" target="_blank" rel="noopener noreferrer">{children}</a>,
-  img: ({ src, alt }) => <img src={src} alt={alt} className="max-w-full rounded-md my-4" />,
+  a: ({ href, children }) => {
+    const safeHref = sanitizeMarkdownUrl(href)
+    if (!safeHref) return <span>{children}</span>
+    return (
+      <a href={safeHref} className="text-link hover:underline" target="_blank" rel="noopener noreferrer">
+        {children}
+      </a>
+    )
+  },
+  img: ({ src, alt }) => {
+    const safeSrc = sanitizeMarkdownUrl(src)
+    if (!safeSrc) return null
+    return <img src={safeSrc} alt={alt ?? ''} className="max-w-full rounded-md my-4" />
+  },
   blockquote: ({ children }) => <blockquote className="border-l-4 border-border pl-4 italic text-text-secondary my-4">{children}</blockquote>,
   code: ({ children, className }) => {
     const isBlock = Boolean(className?.includes('language-'))
@@ -32,6 +57,14 @@ const mdComponents = {
       : <code className="bg-bg-layer1 rounded px-1 py-0.5 font-mono text-sm">{children}</code>
   },
   hr: () => <hr className="border-border my-6" />,
+}
+
+export function AnnouncementMarkdown({ children }) {
+  return (
+    <Markdown components={mdComponents} urlTransform={safeUrlTransform}>
+      {children}
+    </Markdown>
+  )
 }
 
 export function PageHeader({ isAdmin, onNew }) {
@@ -73,39 +106,100 @@ function EditorTabs({ activeTab, onTabChange }) {
   )
 }
 
-export function PostForm({ form, onChange, onSubmit, onCancel, submitting, editMode = false }) {
+export function PostForm({ form, onChange, onSubmit, onCancel, submitting, editMode = false, error = '' }) {
   const [tab, setTab] = useState('Write')
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState('')
+  const lengthError = getAnnouncementLengthError(form.title, form.content)
+  const displayError = error || uploadError || lengthError
+  const overLimit = Boolean(lengthError)
+
+  async function handleImageFiles(files, view) {
+    const images = files.filter((file) => file.type.startsWith('image/'))
+    if (images.length === 0) return
+
+    setUploading(true)
+    setUploadError('')
+    try {
+      for (const file of images) {
+        const compressed = await imageCompression(file, {
+          maxSizeMB: 1,
+          maxWidthOrHeight: 1920,
+          useWebWorker: true,
+        })
+        const uploadFile = compressed instanceof File
+          ? compressed
+          : new File([compressed], file.name, { type: compressed.type || file.type })
+        const { url } = await uploadImage(uploadFile, 'announcements')
+        const markdown = `![${file.name}](${url})\n`
+        if (view) {
+          const pos = view.state.selection.main.head
+          view.dispatch({
+            changes: { from: pos, insert: markdown },
+            selection: { anchor: pos + markdown.length },
+          })
+        } else {
+          onChange((prev) => ({ ...prev, content: `${prev.content}${markdown}` }))
+        }
+      }
+    } catch (err) {
+      setUploadError(formatRequestError(err))
+    } finally {
+      setUploading(false)
+    }
+  }
 
   return (
     <div className="flex flex-col gap-4">
-      <input
-        type="text"
-        placeholder="Title"
-        value={form.title}
-        onChange={e => onChange(prev => ({ ...prev, title: e.target.value }))}
-        className="w-full border border-border rounded-md px-3 py-2 text-sm font-inter text-text-primary bg-white focus:outline-none focus:border-border-strong"
-      />
+      <div>
+        <input
+          type="text"
+          placeholder="Title"
+          value={form.title}
+          onChange={e => onChange(prev => ({ ...prev, title: e.target.value }))}
+          maxLength={ANNOUNCEMENT_TITLE_MAX}
+          className="w-full border border-border rounded-md px-3 py-2 text-sm font-inter text-text-primary bg-white focus:outline-none focus:border-border-strong"
+        />
+        <p className="mt-1 text-xs text-text-hint font-inter text-right">
+          {form.title.length}/{ANNOUNCEMENT_TITLE_MAX}
+        </p>
+      </div>
 
       <div className="border border-border rounded-md overflow-hidden">
         <EditorTabs activeTab={tab} onTabChange={setTab} />
 
         {tab === 'Write' ? (
-          <div className="bg-white">
+          <div className="bg-white relative">
             <MarkdownCodeEditor
               value={form.content}
               onChange={val => onChange(prev => ({ ...prev, content: val ?? '' }))}
+              onFilesDrop={handleImageFiles}
             />
+            {uploading && (
+              <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
+                <p className="text-sm font-inter text-text-secondary">Uploading image…</p>
+              </div>
+            )}
           </div>
         ) : (
           <div className="min-h-[360px] bg-white px-6 py-4">
             {form.content.trim() ? (
-              <Markdown components={mdComponents}>{form.content}</Markdown>
+              <AnnouncementMarkdown>{form.content}</AnnouncementMarkdown>
             ) : (
               <p className="text-text-hint font-inter text-sm italic">Nothing to preview.</p>
             )}
           </div>
         )}
       </div>
+      <p className="text-xs text-text-hint font-inter text-right -mt-2">
+        {form.content.length}/{ANNOUNCEMENT_CONTENT_MAX}
+        {' · '}
+        Drop or paste images in Write
+      </p>
+
+      {displayError && (
+        <p className="text-sm text-error font-inter">{displayError}</p>
+      )}
 
       <div className="flex gap-3 justify-end">
         <button
@@ -116,7 +210,7 @@ export function PostForm({ form, onChange, onSubmit, onCancel, submitting, editM
         </button>
         <button
           onClick={onSubmit}
-          disabled={!form.title.trim() || submitting}
+          disabled={!form.title.trim() || submitting || overLimit || uploading}
           className="px-5 py-2 bg-accent text-white rounded-md text-sm font-medium font-inter hover:bg-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {submitting ? (editMode ? 'Saving...' : 'Publishing...') : (editMode ? 'Save' : 'Publish')}
@@ -163,7 +257,7 @@ export function PostContent({ post }) {
         </p>
         <div className="border-t border-border mb-8" />
         <div>
-          <Markdown components={mdComponents}>{post.content}</Markdown>
+          <AnnouncementMarkdown>{post.content}</AnnouncementMarkdown>
         </div>
       </div>
     </div>
@@ -176,9 +270,14 @@ export function NavRow({ onPrev, onNext, onList, onDelete, onEdit, prevDisabled,
 
   async function handleDelete() {
     setDeleting(true)
-    await onDelete()
-    setDeleting(false)
-    setShowDeleteModal(false)
+    try {
+      await onDelete()
+      setShowDeleteModal(false)
+    } catch {
+      // Parent surfaces the error message
+    } finally {
+      setDeleting(false)
+    }
   }
 
   const btnBase = 'px-4 py-2 border rounded-md text-sm font-inter transition-colors'

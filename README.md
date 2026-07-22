@@ -112,7 +112,7 @@ Public (Unauthenticated)
 | **Public** | Landing, public announcements, events |
 | **Member** | Dashboard, member directory, problem submissions |
 | **Executive** | Post problems, manage sessions, events CRUD |
-| **Admin** | User approval, role management, full access |
+| **Admin** | User approval, role management, executive position assignment for Our Team, full access |
 
 **Onboarding flow:** `Google Sign-In → pending → Admin approval → member`
 
@@ -135,7 +135,7 @@ Sprint Contribution Report — Total
 ───────────────────────────────────
 Name    Issues Contribution
 ───────────────────────────────────
-Paul    29     ██████████████████████████████████████████████████████████
+Paul    30     ████████████████████████████████████████████████████████████
 
 Dave    8      ████████████████
 
@@ -143,9 +143,9 @@ Kai     7      ██████████████
 
 Gary    7      ██████████████
 
-Sid     3      ██████
+Andra   4      ████████
 
-Andra   3      ██████
+Sid     3      ██████
 
 Judy    2      ████
 
@@ -375,7 +375,7 @@ Paul    3/3       ██████
 
 Kai     1/1       ██
 
-Andra   0/1       ░░
+Andra   1/1       ██
 
 Sid     0         
 

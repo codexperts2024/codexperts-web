@@ -15,15 +15,6 @@ import {
 import MemberTable from './_components/MemberTable'
 import MemberEditPanel from './_components/MemberEditPanel'
 
-function sortMembers(members) {
-  return [...members].sort((a, b) => {
-    const aPending = isPendingApplicant(a)
-    const bPending = isPendingApplicant(b)
-    if (aPending !== bPending) return aPending ? -1 : 1
-    return (a.firstName ?? '').localeCompare(b.firstName ?? '')
-  })
-}
-
 export default function AdminPage() {
   const { profile, accessToken, loading: authLoading } = useAuth()
   const isAdmin = profile?.role === ROLES.ADMIN
@@ -41,7 +32,7 @@ export default function AdminPage() {
     setLoadError('')
     try {
       const data = await fetchAdminMembers(accessToken)
-      setMembers(sortMembers(data))
+      setMembers(data)
     } catch (err) {
       setLoadError(formatRequestError(err))
     } finally {
@@ -69,12 +60,33 @@ export default function AdminPage() {
     })
   }, [members])
 
+  const closeEditor = useCallback(() => {
+    setSelectedMember(null)
+    setSaveError('')
+  }, [])
+
+  useEffect(() => {
+    if (!selectedMember) return undefined
+    const previous = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    function onKeyDown(e) {
+      if (e.key === 'Escape') closeEditor()
+    }
+    window.addEventListener('keydown', onKeyDown)
+
+    return () => {
+      document.body.style.overflow = previous
+      window.removeEventListener('keydown', onKeyDown)
+    }
+  }, [selectedMember, closeEditor])
+
   async function handleApprove(userId) {
     if (!accessToken) return
     setActionLoadingId(userId)
     try {
       const updated = await approveMember(accessToken, userId)
-      setMembers(prev => sortMembers(prev.map(m => (m.id === userId ? updated : m))))
+      setMembers(prev => prev.map(m => (m.id === userId ? updated : m)))
       if (selectedMember?.id === userId) setSelectedMember(null)
     } catch (err) {
       setLoadError(formatRequestError(err))
@@ -88,7 +100,7 @@ export default function AdminPage() {
     setActionLoadingId(userId)
     try {
       await rejectMember(accessToken, userId)
-      setMembers(prev => sortMembers(prev.filter(m => m.id !== userId)))
+      setMembers(prev => prev.filter(m => m.id !== userId))
       if (selectedMember?.id === userId) setSelectedMember(null)
     } catch (err) {
       setLoadError(formatRequestError(err))
@@ -103,9 +115,8 @@ export default function AdminPage() {
     setSaveError('')
     try {
       const updated = await updateAdminMember(accessToken, selectedMember.id, form)
-      setMembers(prev => sortMembers(prev.map(m => (m.id === updated.id ? updated : m))))
-      setSelectedMember(null)
-      setSaveError('')
+      setMembers(prev => prev.map(m => (m.id === updated.id ? updated : m)))
+      closeEditor()
     } catch (err) {
       setSaveError(formatRequestError(err))
     } finally {
@@ -137,34 +148,15 @@ export default function AdminPage() {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-text-primary" />
             </div>
           ) : (
-            <div className={`grid gap-4 ${isAdmin && selectedMember ? 'lg:grid-cols-5' : 'grid-cols-1'}`}>
-              <div className={isAdmin && selectedMember ? 'lg:col-span-3' : ''}>
-                <MemberTable
-                  members={members}
-                  selectedId={selectedMember?.id}
-                  isAdmin={isAdmin}
-                  actionLoadingId={actionLoadingId}
-                  onSelect={setSelectedMember}
-                  onApprove={handleApprove}
-                  onReject={handleReject}
-                />
-              </div>
-
-              {isAdmin && selectedMember && (
-                <div className="lg:col-span-2">
-                  <MemberEditPanel
-                    member={selectedMember}
-                    saving={saving}
-                    error={saveError}
-                    onSave={handleSave}
-                    onCancel={() => {
-                      setSelectedMember(null)
-                      setSaveError('')
-                    }}
-                  />
-                </div>
-              )}
-            </div>
+            <MemberTable
+              members={members}
+              selectedId={selectedMember?.id}
+              isAdmin={isAdmin}
+              actionLoadingId={actionLoadingId}
+              onSelect={setSelectedMember}
+              onApprove={handleApprove}
+              onReject={handleReject}
+            />
           )}
 
           {!loading && pendingCount === 0 && !isAdmin && (
@@ -173,6 +165,30 @@ export default function AdminPage() {
             </p>
           )}
         </div>
+
+        {isAdmin && selectedMember && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-6"
+            onClick={closeEditor}
+            role="presentation"
+          >
+            <div
+              className="w-full max-w-md"
+              onClick={e => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="edit-member-title"
+            >
+              <MemberEditPanel
+                member={selectedMember}
+                saving={saving}
+                error={saveError}
+                onSave={handleSave}
+                onCancel={closeEditor}
+              />
+            </div>
+          </div>
+        )}
       </main>
     </RoleGuard>
   )

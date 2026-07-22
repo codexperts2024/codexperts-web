@@ -30,6 +30,7 @@ export async function getCurrentExecutives() {
   return (data ?? []).map((row) => ({
     id: row.id,
     title: row.title,
+    // Campus seat comes from executive_roles.school (not profile.school)
     school: row.school,
     startDate: row.start_date,
     term: row.term,
@@ -38,7 +39,6 @@ export async function getCurrentExecutives() {
     lastName: row.profiles?.last_name,
     nickname: row.profiles?.nickname,
     avatarUrl: row.profiles?.avatar_url,
-    school: row.profiles?.school,
     linkedinUrl: row.profiles?.linkedin,
     githubUrl: row.profiles?.github,
   }))

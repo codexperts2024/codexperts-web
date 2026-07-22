@@ -45,6 +45,8 @@ export async function fetchMemberById(id) {
 }
 
 export async function updateMyProfile({ nickname, bio, linkedin, github, status, profile_visibility, company, occupation, phone, school }) {
+  // Only user-editable fields. role / name / email / cohort / avatar are
+  // protected by protect_profiles_admin_columns (DB trigger).
   const { data: { user } } = await supabase.auth.getUser()
   const { error } = await supabase
     .from('profiles')
