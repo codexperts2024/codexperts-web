@@ -160,7 +160,7 @@ const AboutPage = () => {
       </section>
 
       {/* Our Team */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-12 md:pt-16 pb-6 md:pb-8">
+      <div id="team" className="max-w-6xl mx-auto px-4 sm:px-6 pt-12 md:pt-16 pb-6 md:pb-8 scroll-mt-20">
         <h2 className="font-montserrat font-bold text-4xl md:text-5xl mb-3 text-text-primary">Our Team</h2>
         <p className="text-text-secondary">The people behind codeXperts</p>
       </div>

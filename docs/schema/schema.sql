@@ -5,6 +5,7 @@ SET search_path TO public;
 \i ./tables/problems.sql
 \i ./tables/sessions.sql
 \i ./tables/announcements.sql
+\i ./tables/events.sql
 \i ./tables/submissions.sql
 \i ./tables/attendances.sql
 \i ./tables/executive_roles.sql

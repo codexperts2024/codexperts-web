@@ -1,11 +1,12 @@
 # Page: Events `/events` + `/events/:id`
-> Visibility: public
+> Visibility: public (read) · Create/Edit/Delete: executive, admin
 
 ## Design Tokens (summary)
-- BG: `#FFFFFF` / Surface: `#F9F9F9`
-- Accent: `#C0392B`
-- Text: `#1A1A1A` / `#555555`
+- BG: `bg-bg-surface` (`#FAFAF8`) / `bg-bg-base` (`#F8F9F6`)
+- Accent: `accent` (`#B80F0A`)
+- Text: `text-text-primary` / `text-text-secondary`
 - Font: Montserrat (headings) / Inter (body)
+- See `docs/design/design-system.md` and `tailwind.config.js`
 
 ---
 
@@ -13,11 +14,11 @@
 
 **FOLLOW THIS SPEC EXACTLY. Do not add, remove, or rearrange any element.**
 
-- Background: Upcoming section bg `#FFFFFF`, Past Events section bg `#F9F9F9`. Do NOT change.
+- Background: Upcoming section `bg-bg-surface`, Past Events section `bg-bg-base`. Do NOT change.
 - Font: Montserrat for H1/H2/H3. Inter for body, meta, buttons. Do NOT use any other font.
-- Accent `#C0392B` used ONLY on [Learn More →] button. Nowhere else.
+- Accent (`bg-accent` / `#B80F0A`) used ONLY on [Learn More →] CTA and exec action buttons. Nowhere else.
 - Do NOT add a calendar view, filter bar, tags, or search box on this page.
-- UPCOMING section: ONE featured event as a wide banner card (full container width). Cover photo top (~400px), H3 title, meta row (📅 date · 📍 location), 2-line description, [Learn More →] primary red button. If multiple upcoming events, stack vertically — do NOT use a carousel or slider.
+- UPCOMING section: featured events as wide banner cards (full container width), stacked vertically. Cover photo top (~400px), H3 title, meta row (date · location), 2-line description, [Learn More →] primary accent button. If multiple upcoming events, stack vertically — do NOT use a carousel or slider.
 - PAST EVENTS section: 3-column grid desktop / 2-col tablet / 1-col mobile. Card: cover photo 200px → date → title → campus badge. No extra info on card.
 - Past event card hover: box-shadow `0 4px 12px rgba(0,0,0,0.10)`. No color change.
 - Render BOTH the list view AND the detail view (`/events/:id`) as separate screens.
@@ -33,13 +34,14 @@
 │ NAVBAR                                    [Log In]  │
 ├─────────────────────────────────────────────────────┤
 │                                                     │
-│  PAGE HEADER  (bg: #F9F9F9, padding: 32px 0)        │
+│  PAGE HEADER  (bg-bg-base, padding: 32px 0)         │
 │  H1: "Events"                                       │
 │  Subtitle: "Competitions, workshops, and meetups"   │
+│  [New]  ← executive/admin only                      │
 │                                                     │
 ├─────────────────────────────────────────────────────┤
 │                                                     │
-│  UPCOMING EVENTS  (bg: #FFFFFF, padding: 48px 0)    │
+│  UPCOMING EVENTS  (bg-bg-surface, padding: 48px 0)  │
 │  H2: "Upcoming"                                     │
 │                                                     │
 │  ┌─────────────────────────────────────────────┐    │
@@ -47,25 +49,23 @@
 │  │  ~400px tall, object-fit cover, radius 8px  │    │
 │  │                                             │    │
 │  │  H3: Spring Coding Competition 2026         │    │
-│  │  📅 April 20, 2026  ·  📍 Seneca College   │    │
+│  │  date · location                            │    │
 │  │  Short description (2 lines max)            │    │
 │  │                                             │    │
 │  │  [Learn More →]   ← links to /events/:id   │    │
 │  └─────────────────────────────────────────────┘    │
 │                                                     │
-│  If multiple upcoming events: horizontal scroll     │
-│  or stacked cards (max 3 visible)                   │
+│  If multiple upcoming events: stacked vertically    │
 │                                                     │
 │  Empty state: "No upcoming events at the moment.    │
 │               Check back soon!"                     │
 │                                                     │
 ├─────────────────────────────────────────────────────┤
 │                                                     │
-│  PAST EVENTS  (bg: #F9F9F9, padding: 48px 0)        │
+│  PAST EVENTS  (bg-bg-base, padding: 48px 0)         │
 │  H2: "Past Events"                                  │
 │                                                     │
 │  Grid: 3 columns desktop / 2 tablet / 1 mobile      │
-│  repeat(auto-fit, minmax(280px, 1fr))               │
 │                                                     │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐          │
 │  │ [photo]  │  │ [photo]  │  │ [photo]  │          │
@@ -99,7 +99,7 @@
 │                                                     │
 │  BREADCRUMB  (padding: 16px 0)                      │
 │  Events  /  Spring Coding Competition 2026          │
-│  color: #555555, Inter 13px                         │
+│  text-text-secondary, Inter 13px                    │
 │  [← Back to Events]                                 │
 │                                                     │
 ├─────────────────────────────────────────────────────┤
@@ -109,33 +109,25 @@
 │                                                     │
 ├─────────────────────────────────────────────────────┤
 │                                                     │
-│  EVENT INFO  (bg: #FFFFFF, padding: 48px 0)         │
+│  EVENT INFO  (bg-bg-surface, padding: 48px 0)       │
 │  max-width: 900px, centered                         │
 │                                                     │
-│  H1: [Event Title]                                  │
+│  H1: [Event Title]  (+ Edit/Delete for exec+)       │
 │  Meta row:                                          │
-│    📅 [Date]   ·   📍 [Location]   ·   🏫 [Campus] │
-│    Inter 14px, color #555555                        │
+│    [Date]   ·   [Location]   ·   [Campus]           │
+│    Inter 14px, text-text-secondary                  │
 │                                                     │
-│  Divider: 1px solid #E5E5E5                         │
+│  Divider: border-border                             │
 │                                                     │
 │  H3: "About this Event"                             │
 │  Body: full description, markdown rendered          │
-│        What we did, how it went, highlights         │
 │                                                     │
 ├─────────────────────────────────────────────────────┤
 │                                                     │
-│  PHOTO GALLERY  (bg: #F9F9F9, padding: 48px 0)      │
+│  PHOTO GALLERY  (bg-bg-base, padding: 48px 0)       │
 │  H3: "Photos"                                       │
 │                                                     │
-│  Masonry or uniform grid                            │
-│  ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐               │
-│  │ img  │ │ img  │ │ img  │ │ img  │               │
-│  └──────┘ └──────┘ └──────┘ └──────┘               │
-│  ┌───────────┐ ┌───────────┐                        │
-│  │   img     │ │   img     │                        │
-│  └───────────┘ └───────────┘                        │
-│                                                     │
+│  Uniform grid                                       │
 │  Click photo → lightbox (full-screen overlay)       │
 │  Lightbox: [← prev] [photo] [next →] [✕ close]     │
 │                                                     │
@@ -154,16 +146,16 @@
 
 ## Past Event Card Spec
 ```
-background: #FFFFFF
-border: 1px solid #E5E5E5
+background: bg-bg-surface
+border: border-border
 border-radius: 8px
 overflow: hidden
 
   Cover photo: width 100%, height 200px, object-fit cover
   Padding below photo: 16px
 
-  Date: Inter 400 12px, color #999999
-  Title: Inter 500 15px, color #1A1A1A
+  Date: Inter 400 12px, text-text-hint
+  Title: Inter 500 15px, text-text-primary
   Campus tag: small badge — Seneca or York
   hover: box-shadow 0 4px 12px rgba(0,0,0,0.10)
 ```
@@ -176,4 +168,5 @@ overflow: hidden
 - Event detail supports multiple photos (gallery)
 - Photo lightbox: keyboard arrow navigation supported
 - `/events/:id` works for both upcoming and past events
-- Admin manages events via `/admin` panel (CRUD)
+- Data stored in Supabase `events` table
+- Executive/Admin manages events via inline CRUD on `/events` and `/events/:id` (create, edit, delete + Cloudinary cover/gallery upload)
