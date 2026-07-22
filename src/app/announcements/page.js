@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { canAccessAdminRoutes } from '@/utils/constants'
+import { formatRequestError } from '@/utils/requestErrors'
 import {
   fetchAnnouncements,
   createAnnouncement,
@@ -14,7 +15,19 @@ import { formatDate, PageHeader, PostContent, NavRow, PostForm } from './_shared
 
 const ITEMS_PER_PAGE = 20
 
-function ListView({ announcements, isAdmin, onNew, showForm, form, onFormChange, onPublish, onCancelForm, publishing }) {
+function ListView({
+  announcements,
+  isAdmin,
+  onNew,
+  showForm,
+  form,
+  onFormChange,
+  onPublish,
+  onCancelForm,
+  publishing,
+  formError,
+  actionError,
+}) {
   const router = useRouter()
   const [page, setPage] = useState(1)
   const totalPages = Math.ceil(announcements.length / ITEMS_PER_PAGE)
@@ -25,6 +38,14 @@ function ListView({ announcements, isAdmin, onNew, showForm, form, onFormChange,
     <>
       <PageHeader isAdmin={isAdmin} onNew={onNew} />
 
+      {actionError && !showForm && (
+        <div className="bg-white px-4 sm:px-6 pt-4">
+          <div className="max-w-[800px] mx-auto">
+            <p className="text-sm text-error font-inter">{actionError}</p>
+          </div>
+        </div>
+      )}
+
       {showForm && (
         <div className="bg-white py-8 px-4 sm:px-6">
           <div className="max-w-[800px] mx-auto">
@@ -34,6 +55,7 @@ function ListView({ announcements, isAdmin, onNew, showForm, form, onFormChange,
               onSubmit={onPublish}
               onCancel={onCancelForm}
               submitting={publishing}
+              error={formError}
             />
           </div>
         </div>
@@ -112,6 +134,8 @@ function AnnouncementsContent() {
   const [editMode, setEditMode] = useState(false)
   const [form, setForm] = useState({ title: '', content: '' })
   const [submitting, setSubmitting] = useState(false)
+  const [formError, setFormError] = useState('')
+  const [actionError, setActionError] = useState('')
 
   const view = searchParams.get('view')
 
@@ -121,18 +145,42 @@ function AnnouncementsContent() {
       .finally(() => setLoading(false))
   }, [])
 
-  function openNew() { setEditMode(false); setForm({ title: '', content: '' }); setShowForm(true) }
-  function openEdit(post) { setEditMode(true); setForm({ title: post.title, content: post.content }); setShowForm(true) }
-  function cancelForm() { setShowForm(false); setEditMode(false); setForm({ title: '', content: '' }) }
+  function openNew() {
+    setEditMode(false)
+    setForm({ title: '', content: '' })
+    setFormError('')
+    setActionError('')
+    setShowForm(true)
+  }
+  function openEdit(post) {
+    setEditMode(true)
+    setForm({ title: post.title, content: post.content })
+    setFormError('')
+    setActionError('')
+    setShowForm(true)
+  }
+  function cancelForm() {
+    setShowForm(false)
+    setEditMode(false)
+    setForm({ title: '', content: '' })
+    setFormError('')
+  }
 
   async function handlePublish() {
     if (!form.title.trim()) return
+    if (!user || !isAdmin) {
+      setFormError('You do not have permission to do that.')
+      return
+    }
     setSubmitting(true)
+    setFormError('')
     try {
       const post = await createAnnouncement(form.title.trim(), form.content, user.id)
       setAnnouncements(prev => [post, ...prev])
       cancelForm()
       router.push(`/announcements/${post.id}`)
+    } catch (err) {
+      setFormError(formatRequestError(err))
     } finally {
       setSubmitting(false)
     }
@@ -140,24 +188,41 @@ function AnnouncementsContent() {
 
   async function handleUpdate(id) {
     if (!form.title.trim()) return
+    if (!user || !isAdmin) {
+      setFormError('You do not have permission to do that.')
+      return
+    }
     setSubmitting(true)
+    setFormError('')
     try {
       const updated = await updateAnnouncement(id, form.title.trim(), form.content)
       setAnnouncements(prev => prev.map(a => a.id === id ? updated : a))
       cancelForm()
+    } catch (err) {
+      setFormError(formatRequestError(err))
     } finally {
       setSubmitting(false)
     }
   }
 
   async function handleDelete(id) {
-    await deleteAnnouncement(id)
-    const remaining = announcements.filter(a => a.id !== id)
-    setAnnouncements(remaining)
-    if (remaining.length > 0) {
-      router.push(`/announcements/${remaining[0].id}`)
-    } else {
-      router.push('/announcements')
+    if (!user || !isAdmin) {
+      setActionError('You do not have permission to do that.')
+      throw new Error('Forbidden')
+    }
+    setActionError('')
+    try {
+      await deleteAnnouncement(id)
+      const remaining = announcements.filter(a => a.id !== id)
+      setAnnouncements(remaining)
+      if (remaining.length > 0) {
+        router.push(`/announcements/${remaining[0].id}`)
+      } else {
+        router.push('/announcements')
+      }
+    } catch (err) {
+      setActionError(formatRequestError(err))
+      throw err
     }
   }
 
@@ -181,6 +246,8 @@ function AnnouncementsContent() {
         onPublish={handlePublish}
         onCancelForm={cancelForm}
         publishing={submitting}
+        formError={formError}
+        actionError={actionError}
       />
     )
   }
@@ -190,6 +257,14 @@ function AnnouncementsContent() {
   return (
     <>
       <PageHeader isAdmin={isAdmin} onNew={openNew} />
+
+      {actionError && !showForm && (
+        <div className="bg-white px-4 sm:px-6 pt-4">
+          <div className="max-w-[800px] mx-auto">
+            <p className="text-sm text-error font-inter">{actionError}</p>
+          </div>
+        </div>
+      )}
 
       {showForm && (
         <div className="bg-white py-8 px-4 sm:px-6">
@@ -201,6 +276,7 @@ function AnnouncementsContent() {
               onCancel={cancelForm}
               submitting={submitting}
               editMode={editMode}
+              error={formError}
             />
           </div>
         </div>

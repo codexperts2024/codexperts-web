@@ -13,6 +13,10 @@ export function formatRequestError(error) {
     return 'Network error. Check your internet connection and try again.'
   }
 
+  if (message.includes('row-level security') || message.includes('permission denied') || message.includes('42501')) {
+    return 'You do not have permission to do that.'
+  }
+
   if (message.includes('application_status') || message.includes('column')) {
     return 'Database is out of date. Ask a developer to run the latest Supabase migration.'
   }
