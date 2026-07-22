@@ -42,6 +42,7 @@ The **codeXperts Club** official website — a members-only platform for a codin
 | **Member Directory** | Filterable profile cards with cohort, school, role badges, and per-field visibility controls |
 | **Activity Heatmap** | GitHub-style contribution graph per member, combining submissions and attendance |
 | **Events Page** | Past and upcoming events from Supabase; exec/admin inline CRUD with Cloudinary cover/gallery; detail pages with markdown body, lightbox gallery, and prev/next nav |
+| **Our Mentor** | Public welcome letter from the founder; portrait stored on Cloudinary and editable by executive/admin |
 | **Member Profiles** | Per-member profile page with bio, social links, and self-edit mode |
 | **Announcements** | Public board with Post View (markdown, prev/next nav) and List View (table, pagination); admin/exec create and delete |
 
@@ -441,6 +442,7 @@ codexperts-web/
 │   │   ├── layout.js        # Root layout (Navbar included)
 │   │   ├── page.js          # / Home
 │   │   ├── about/           # /about
+│   │   ├── mentor/          # /mentor — founder welcome letter
 │   │   ├── schedule/        # /schedule
 │   │   ├── api/             # Next.js API routes
 │   │   │   ├── calendar/    # GET /api/calendar — iCal fetch + parse (no API key)
@@ -454,6 +456,7 @@ codexperts-web/
 │   │   └── admin/           # /admin (admin only)
 │   ├── components/
 │   │   ├── common/          # Navbar, Footer
+│   │   ├── mentor/          # Mentor photo editor
 │   │   ├── layout/          # PageContainer (About-style max width)
 │   │   ├── auth/            # ProtectedRoute, RoleGuard
 │   │   └── ui/              # Button, Card, Modal

@@ -164,6 +164,7 @@ export default function Navbar() {
   const aboutItems = [
     { label: 'About Us', href: '/about' },
     { label: 'Our Team', href: '/about#team' },
+    { label: 'Our Mentor', href: '/mentor' },
   ]
   const updatesItems = [
     { label: 'Announcements', href: '/announcements' },
@@ -178,6 +179,7 @@ export default function Navbar() {
     { label: 'Home', href: '/' },
     { label: 'About Us', href: '/about' },
     { label: 'Our Team', href: '/about#team' },
+    { label: 'Our Mentor', href: '/mentor' },
     { label: 'Announcements', href: '/announcements' },
     { label: 'Schedule', href: '/schedule' },
     { label: 'Events', href: '/events' },
