@@ -17,11 +17,12 @@
 - Accent `#C0392B` used ONLY on: [Join Us →] primary button. Nowhere else.
 - Do NOT add animations, parallax, scroll effects, hero text overlay on the photo, or decorative illustrations.
 - Do NOT add a carousel, news ticker, or any auto-rotating element.
-- The group photo is a full-width image with NO text on top of it. It is purely a photo.
+- The group photo sits in the page content column (`max-w-6xl` + horizontal padding), uses a fixed `16/7` aspect ratio, and scales without changing crop. Do NOT use viewport-height-based hero sizing (`50vh` / `70vh`) — that crops differently per screen.
+- The group photo has NO text on top of it. It is purely a photo.
 - The Elfsight social feed is a single embedded widget block — render as a gray placeholder box labeled "Elfsight Social Feed (Instagram + LinkedIn)" centered, width 100%, height 300px.
 - The two CTA buttons are side by side: [Join Us →] on the LEFT (primary red), [About Us →] on the RIGHT (secondary outline). Do NOT swap order.
 - [Log In] button in navbar: Secondary outline style — border 1px `#CCCCCC`, text `#555555`, radius 6px. Do NOT make it red.
-- Mobile: group photo height reduces to 280px. Elfsight feed stacks full width. CTA buttons stack vertically (Join Us on top).
+- Mobile: hero keeps the same `16/7` aspect ratio (height scales with width). Elfsight feed stacks full width. CTA buttons stack vertically (Join Us on top).
 - Navbar collapses to hamburger icon on mobile (≤768px). Social icons move to bottom of mobile menu.
 - Navbar has EXACTLY these items in this order (left to right):
   LEFT SIDE: [codeXperts logo] · Home · About▾ · Updates▾ · Events · (Practice▾) · (Members) · Join Us · {⚙}
@@ -82,9 +83,9 @@ RIGHT SIDE (icons + auth):
 │ NAVBAR                                    [Log In]  │
 ├─────────────────────────────────────────────────────┤
 │                                                     │
-│  [Full-width club group photo]                      │
-│   width: 100%, height: ~500px, object-fit: cover    │
-│                                                     │
+│  [Club group photo — max-w-6xl, gutters, aspect 16/7]│
+│   object-fit: cover, object-position: center          │
+│   (same crop on all breakpoints)                      │
 ├─────────────────────────────────────────────────────┤
 │                                                     │
 │  ELFSIGHT SOCIAL FEED                               │
