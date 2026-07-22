@@ -80,6 +80,8 @@ Adding a new campus = one entry in the config file, no component changes needed.
 ### [public] Events `/events`
 - Event cards (hackathons, workshops, socials)
 - Past events archive
+- Executive/Admin creates, edits, and deletes via the Events page (inline CRUD)
+- Stored in `events` table in Supabase (cover + gallery images via Cloudinary)
 
 ### [public] Announcements `/announcements`
 - Club-wide announcements posted by Executives/Admins

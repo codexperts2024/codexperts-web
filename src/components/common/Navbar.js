@@ -5,23 +5,10 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { socialLinks } from '@/config/socialLinks'
 import { useAuth } from '@/hooks/useAuth'
+import { useJoinModal } from '@/contexts/JoinModalContext'
 import { signInWithGoogle } from '@/services/authService'
 import { canAccessAdminRoutes } from '@/utils/constants'
 import { IconLinkedIn, IconGitHub } from '@/components/ui/SocialIcons'
-
-const publicLinks = [
-  { label: 'Home', href: '/' },
-  { label: 'About', href: '/about' },
-  { label: 'Announcements', href: '/announcements' },
-  { label: 'Schedule', href: '/schedule' },
-  { label: 'Events', href: '/events' },
-]
-
-const memberOnlyLinks = [
-  { label: 'Problems', href: '/problems' },
-  { label: 'Solutions', href: '/solutions' },
-  { label: 'Members', href: '/members' },
-]
 
 function IconInstagram() {
   return (
@@ -33,7 +20,6 @@ function IconInstagram() {
   )
 }
 
-
 function IconDiscord() {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
@@ -41,7 +27,6 @@ function IconDiscord() {
     </svg>
   )
 }
-
 
 function IconEmail() {
   return (
@@ -90,7 +75,7 @@ function UserChip({ user, profile }) {
 function SocialDropdown({ icon, items }) {
   return (
     <div className="relative group">
-      <button className="p-1.5 text-text-secondary hover:text-text-primary transition-colors">{icon}</button>
+      <button type="button" className="p-1.5 text-text-secondary hover:text-text-primary transition-colors">{icon}</button>
       <div className="absolute right-0 top-full pt-2 z-50 hidden group-hover:block">
         <div className="bg-bg-surface rounded-lg shadow-lg border border-border min-w-[130px] py-1.5">
           {items.map(({ school, url }) => (
@@ -106,11 +91,11 @@ function SocialDropdown({ icon, items }) {
 }
 
 function NavLink({ href, label, pathname }) {
-  const active = pathname === href
+  const active = pathname === href || (href !== '/' && pathname.startsWith(href))
   return (
     <Link
       href={href}
-      className={`relative px-1 py-1 text-sm transition-colors ${
+      className={`relative px-1.5 py-1 text-sm whitespace-nowrap transition-colors ${
         active ? 'text-text-primary font-medium' : 'text-text-secondary hover:text-text-primary'
       }`}
     >
@@ -120,9 +105,45 @@ function NavLink({ href, label, pathname }) {
   )
 }
 
+function NavDropdown({ label, items, pathname }) {
+  const active = items.some(({ href }) => {
+    const path = href.split('#')[0]
+    return pathname === path || (path !== '/' && pathname.startsWith(path))
+  })
+
+  return (
+    <div className="relative group">
+      <button
+        type="button"
+        className={`relative px-1.5 py-1 text-sm whitespace-nowrap transition-colors ${
+          active ? 'text-text-primary font-medium' : 'text-text-secondary hover:text-text-primary'
+        }`}
+      >
+        {label}
+        <span className="ml-0.5 text-[10px] opacity-70">▾</span>
+        {active && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent rounded-full" />}
+      </button>
+      <div className="absolute left-0 top-full pt-2 z-50 hidden group-hover:block">
+        <div className="bg-bg-surface rounded-lg shadow-lg border border-border min-w-[160px] py-1.5">
+          {items.map(({ href, label: itemLabel }) => (
+            <Link
+              key={href}
+              href={href}
+              className="block px-4 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-layer1 transition-colors whitespace-nowrap"
+            >
+              {itemLabel}
+            </Link>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function Navbar() {
   const pathname = usePathname()
   const { user, profile, loading, signOut } = useAuth()
+  const { openModal } = useJoinModal()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [loggingIn, setLoggingIn] = useState(false)
 
@@ -137,9 +158,37 @@ export default function Navbar() {
   const role = profile?.role ?? null
   const isMember = role === 'member' || role === 'executive' || role === 'admin'
   const canAccessAdmin = canAccessAdminRoutes(role)
+  const showJoinUs = !isMember
   const profileHref = role === 'pending' ? '/pending' : `/members/${user?.id}`
 
-  const allLinks = isMember ? [...publicLinks, ...memberOnlyLinks] : publicLinks
+  const aboutItems = [
+    { label: 'About Us', href: '/about' },
+    { label: 'Our Team', href: '/about#team' },
+  ]
+  const updatesItems = [
+    { label: 'Announcements', href: '/announcements' },
+    { label: 'Schedule', href: '/schedule' },
+  ]
+  const practiceItems = [
+    { label: 'Problems', href: '/problems' },
+    { label: 'Solutions', href: '/solutions' },
+  ]
+
+  const mobileLinks = [
+    { label: 'Home', href: '/' },
+    { label: 'About Us', href: '/about' },
+    { label: 'Our Team', href: '/about#team' },
+    { label: 'Announcements', href: '/announcements' },
+    { label: 'Schedule', href: '/schedule' },
+    { label: 'Events', href: '/events' },
+    ...(isMember
+      ? [
+          { label: 'Problems', href: '/problems' },
+          { label: 'Solutions', href: '/solutions' },
+          { label: 'Members', href: '/members' },
+        ]
+      : []),
+  ]
 
   async function handleLogIn() {
     if (loggingIn) return
@@ -168,7 +217,7 @@ export default function Navbar() {
         <IconGitHub />
       </a>
       {isMember && <SocialDropdown icon={<IconDiscord />} items={socialLinks.discord} />}
-      <button onClick={scrollToContact}
+      <button type="button" onClick={scrollToContact}
         className="p-1.5 text-text-secondary hover:text-text-primary transition-colors">
         <IconEmail />
       </button>
@@ -178,75 +227,93 @@ export default function Navbar() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-40 bg-bg-surface border-b border-border shadow-sm">
 
-      <div className="relative w-full px-4 sm:px-6 h-14 flex items-center">
+      {/* 3-zone layout: logo | centered nav | actions — sides shrink equally as nav grows */}
+      <div className="w-full px-4 sm:px-6 h-14 flex items-center">
 
-        {/* Logo */}
-        <Link href="/" className="shrink-0">
-          <img src="/codeXpertsLogo.svg" alt="codeXperts" className="h-8 w-auto" />
-        </Link>
-
-        {/* Desktop: center nav links */}
-        <div className="absolute left-1/2 -translate-x-1/2 hidden lg:flex items-center gap-4">
-          {allLinks.map(({ href, label }) => (
-            <NavLink key={href} href={href} label={label} pathname={pathname} />
-          ))}
+        <div className="flex-1 flex items-center justify-start min-w-0">
+          <Link href="/" className="shrink-0">
+            <img src="/codeXpertsLogo.svg" alt="codeXperts" className="h-8 w-auto" />
+          </Link>
         </div>
 
-        {/* Desktop: right side — social icons + auth */}
-        <div className="ml-auto hidden lg:flex items-center gap-1 shrink-0">
-          {socialIconsRow}
-          <div className="w-px h-5 bg-border mx-1" />
-          {user ? (
-            <div className="flex items-center gap-2">
-              <Link href={profileHref}><UserChip user={user} profile={profile} /></Link>
-              <button onClick={signOut}
-                className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors">
-                Log out
+        <div className="hidden lg:flex items-center justify-center gap-1 shrink-0 px-2">
+          <NavLink href="/" label="Home" pathname={pathname} />
+          <NavDropdown label="About" items={aboutItems} pathname={pathname} />
+          <NavDropdown label="Updates" items={updatesItems} pathname={pathname} />
+          <NavLink href="/events" label="Events" pathname={pathname} />
+          {isMember && (
+            <>
+              <NavDropdown label="Practice" items={practiceItems} pathname={pathname} />
+              <NavLink href="/members" label="Members" pathname={pathname} />
+            </>
+          )}
+          {showJoinUs && (
+            <button
+              type="button"
+              onClick={openModal}
+              className="relative px-1.5 py-1 text-sm whitespace-nowrap text-text-secondary hover:text-text-primary transition-colors"
+            >
+              Join Us
+            </button>
+          )}
+        </div>
+
+        <div className="flex-1 flex items-center justify-end min-w-0 gap-1">
+          <div className="hidden lg:flex items-center gap-1">
+            {socialIconsRow}
+            <div className="w-px h-5 bg-border mx-1" />
+            {user ? (
+              <div className="flex items-center gap-2">
+                <Link href={profileHref}><UserChip user={user} profile={profile} /></Link>
+                <button type="button" onClick={signOut}
+                  className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors">
+                  Log out
+                </button>
+              </div>
+            ) : (
+              <button type="button" onClick={handleLogIn} disabled={loggingIn}
+                className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
+                {loggingIn ? 'Redirecting…' : 'Get Started'}
               </button>
-            </div>
-          ) : (
-            <button onClick={handleLogIn} disabled={loggingIn}
-              className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
-              {loggingIn ? 'Redirecting…' : 'Get Started'}
-            </button>
-          )}
-          {canAccessAdmin && (
-            <Link href="/admin" title="Admin"
-              className="ml-1 p-1.5 text-text-secondary hover:text-text-primary transition-colors">⚙</Link>
-          )}
-        </div>
+            )}
+            {canAccessAdmin && (
+              <Link href="/admin" title="Admin"
+                className="ml-1 p-1.5 text-text-secondary hover:text-text-primary transition-colors">⚙</Link>
+            )}
+          </div>
 
-        {/* Mobile: avatar (if logged in) or Login button + hamburger */}
-        <div className="ml-auto lg:hidden flex items-center gap-2">
-          {!loading && (user ? (
-            <Link href={profileHref}><UserChip user={user} profile={profile} /></Link>
-          ) : (
-            <button onClick={handleLogIn} disabled={loggingIn}
-              className="px-3 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors disabled:opacity-60">
-              {loggingIn ? '…' : 'Get Started'}
+          <div className="lg:hidden flex items-center gap-2">
+            {!loading && (user ? (
+              <Link href={profileHref}><UserChip user={user} profile={profile} /></Link>
+            ) : (
+              <button type="button" onClick={handleLogIn} disabled={loggingIn}
+                className="px-3 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors disabled:opacity-60">
+                {loggingIn ? '…' : 'Get Started'}
+              </button>
+            ))}
+            <button
+              type="button"
+              className="p-2 text-text-secondary hover:text-text-primary transition-colors"
+              onClick={() => setMobileOpen((o) => !o)}
+              aria-label="Toggle menu"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                {mobileOpen
+                  ? <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  : <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />}
+              </svg>
             </button>
-          ))}
-          <button
-            className="p-2 text-text-secondary hover:text-text-primary transition-colors"
-            onClick={() => setMobileOpen((o) => !o)}
-            aria-label="Toggle menu"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              {mobileOpen
-                ? <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                : <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />}
-            </svg>
-          </button>
+          </div>
         </div>
       </div>
 
       {/* Mobile menu */}
       {mobileOpen && (
         <div className="lg:hidden border-t border-border bg-bg-surface px-6 py-4 flex flex-col gap-1 relative z-50">
-          {allLinks.map(({ href, label }) => (
+          {mobileLinks.map(({ href, label }) => (
             <Link key={href} href={href} onClick={() => setMobileOpen(false)}
               className={`block px-2 py-2 text-sm rounded-md transition-colors ${
-                pathname === href
+                pathname === href.split('#')[0]
                   ? 'text-text-primary font-medium'
                   : 'text-text-secondary hover:text-text-primary hover:bg-bg-layer1'
               }`}>
@@ -254,9 +321,18 @@ export default function Navbar() {
             </Link>
           ))}
 
+          {showJoinUs && (
+            <button
+              type="button"
+              onClick={() => { openModal(); setMobileOpen(false) }}
+              className="block text-left px-2 py-2 text-sm rounded-md text-text-secondary hover:text-text-primary hover:bg-bg-layer1 transition-colors"
+            >
+              Join Us
+            </button>
+          )}
+
           <div className="my-2 h-px bg-border" />
 
-          {/* Social icons row */}
           <div className="flex items-center gap-1 px-2 py-1">
             <SocialDropdown icon={<IconInstagram />} items={socialLinks.instagram} />
             <a href={socialLinks.linkedin.url} target="_blank" rel="noopener noreferrer"
@@ -268,7 +344,7 @@ export default function Navbar() {
               <IconGitHub />
             </a>
             {isMember && <SocialDropdown icon={<IconDiscord />} items={socialLinks.discord} />}
-            <button onClick={() => { scrollToContact(); setMobileOpen(false) }}
+            <button type="button" onClick={() => { scrollToContact(); setMobileOpen(false) }}
               className="p-1.5 text-text-secondary hover:text-text-primary transition-colors">
               <IconEmail />
             </button>
@@ -283,7 +359,7 @@ export default function Navbar() {
                   Admin
                 </Link>
               )}
-              <button onClick={() => { signOut(); setMobileOpen(false) }}
+              <button type="button" onClick={() => { signOut(); setMobileOpen(false) }}
                 className="w-full mt-1 px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center">
                 Log out
               </button>

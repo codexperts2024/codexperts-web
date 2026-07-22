@@ -41,7 +41,7 @@ The **codeXperts Club** official website — a members-only platform for a codin
 | **Schedule Page** | Google Calendar API integration — synced events with subscribe/download for members |
 | **Member Directory** | Filterable profile cards with cohort, school, role badges, and per-field visibility controls |
 | **Activity Heatmap** | GitHub-style contribution graph per member, combining submissions and attendance |
-| **Events Page** | Past and upcoming events; individual event detail pages with tracks, gallery, and prev/next nav |
+| **Events Page** | Past and upcoming events from Supabase; exec/admin inline CRUD with Cloudinary cover/gallery; detail pages with markdown body, lightbox gallery, and prev/next nav |
 | **Member Profiles** | Per-member profile page with bio, social links, and self-edit mode |
 | **Announcements** | Public board with Post View (markdown, prev/next nav) and List View (table, pagination); admin/exec create and delete |
 
@@ -87,7 +87,9 @@ Frontend (Next.js — Vercel)
 │       ├── submissions    → profile_id, problem_id, code, language, ai_feedback
 │       ├── sessions       → token, expires_time, is_active
 │       ├── attendances    → profile_id, session_id, checked_at
-│       └── announcements  → author_id, title, content, created_at
+│       ├── announcements  → author_id, title, content, created_at
+│       └── events         → title, description, body, event_date, location, campus,
+│                             cover_image_url, gallery_urls, author_id
 │
 └── FastAPI (Heroku)
     ├── /health            → service health check
@@ -106,9 +108,9 @@ Public (Unauthenticated)
 
 | Role | Access |
 |------|--------|
-| **Public** | Landing, public announcements |
+| **Public** | Landing, public announcements, events |
 | **Member** | Dashboard, member directory, problem submissions |
-| **Executive** | Post problems, manage sessions |
+| **Executive** | Post problems, manage sessions, events CRUD |
 | **Admin** | User approval, role management, full access |
 
 **Onboarding flow:** `Google Sign-In → pending → Admin approval → member`
