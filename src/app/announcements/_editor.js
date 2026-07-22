@@ -14,6 +14,10 @@ const customTheme = EditorView.theme({
   '.cm-editor': { borderRadius: '0 0 6px 6px' },
 })
 
+function collectImageFiles(fileList) {
+  return Array.from(fileList ?? []).filter((file) => file.type.startsWith('image/'))
+}
+
 export default function MarkdownCodeEditor({ value, onChange, height = '360px', onFilesDrop }) {
   const extensions = [markdown(), customTheme]
 
@@ -26,12 +30,23 @@ export default function MarkdownCodeEditor({ value, onChange, height = '360px', 
         }
         return false
       },
-      drop(event) {
-        const files = Array.from(event.dataTransfer?.files ?? [])
+      drop(event, view) {
+        const files = collectImageFiles(event.dataTransfer?.files)
         if (files.length === 0) return false
         event.preventDefault()
         event.stopPropagation()
-        onFilesDrop(files)
+        onFilesDrop(files, view)
+        return true
+      },
+      paste(event, view) {
+        const items = Array.from(event.clipboardData?.items ?? [])
+        const files = items
+          .filter((item) => item.kind === 'file' && item.type.startsWith('image/'))
+          .map((item) => item.getAsFile())
+          .filter(Boolean)
+        if (files.length === 0) return false
+        event.preventDefault()
+        onFilesDrop(files, view)
         return true
       },
     }))

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import Markdown from 'react-markdown'
+import imageCompression from 'browser-image-compression'
 
 import { IconEdit, IconTrash, IconNew } from '@/components/ui/Icons'
 import { sanitizeMarkdownUrl } from '@/utils/sanitizeMarkdownUrl'
@@ -11,6 +12,8 @@ import {
   ANNOUNCEMENT_TITLE_MAX,
   getAnnouncementLengthError,
 } from '@/utils/announcementLimits'
+import { uploadImage } from '@/services/cloudinaryService'
+import { formatRequestError } from '@/utils/requestErrors'
 
 const MarkdownCodeEditor = dynamic(() => import('./_editor'), { ssr: false })
 
@@ -105,9 +108,46 @@ function EditorTabs({ activeTab, onTabChange }) {
 
 export function PostForm({ form, onChange, onSubmit, onCancel, submitting, editMode = false, error = '' }) {
   const [tab, setTab] = useState('Write')
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState('')
   const lengthError = getAnnouncementLengthError(form.title, form.content)
-  const displayError = error || lengthError
+  const displayError = error || uploadError || lengthError
   const overLimit = Boolean(lengthError)
+
+  async function handleImageFiles(files, view) {
+    const images = files.filter((file) => file.type.startsWith('image/'))
+    if (images.length === 0) return
+
+    setUploading(true)
+    setUploadError('')
+    try {
+      for (const file of images) {
+        const compressed = await imageCompression(file, {
+          maxSizeMB: 1,
+          maxWidthOrHeight: 1920,
+          useWebWorker: true,
+        })
+        const uploadFile = compressed instanceof File
+          ? compressed
+          : new File([compressed], file.name, { type: compressed.type || file.type })
+        const { url } = await uploadImage(uploadFile, 'announcements')
+        const markdown = `![${file.name}](${url})\n`
+        if (view) {
+          const pos = view.state.selection.main.head
+          view.dispatch({
+            changes: { from: pos, insert: markdown },
+            selection: { anchor: pos + markdown.length },
+          })
+        } else {
+          onChange((prev) => ({ ...prev, content: `${prev.content}${markdown}` }))
+        }
+      }
+    } catch (err) {
+      setUploadError(formatRequestError(err))
+    } finally {
+      setUploading(false)
+    }
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -129,11 +169,17 @@ export function PostForm({ form, onChange, onSubmit, onCancel, submitting, editM
         <EditorTabs activeTab={tab} onTabChange={setTab} />
 
         {tab === 'Write' ? (
-          <div className="bg-white">
+          <div className="bg-white relative">
             <MarkdownCodeEditor
               value={form.content}
               onChange={val => onChange(prev => ({ ...prev, content: val ?? '' }))}
+              onFilesDrop={handleImageFiles}
             />
+            {uploading && (
+              <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
+                <p className="text-sm font-inter text-text-secondary">Uploading image…</p>
+              </div>
+            )}
           </div>
         ) : (
           <div className="min-h-[360px] bg-white px-6 py-4">
@@ -147,6 +193,8 @@ export function PostForm({ form, onChange, onSubmit, onCancel, submitting, editM
       </div>
       <p className="text-xs text-text-hint font-inter text-right -mt-2">
         {form.content.length}/{ANNOUNCEMENT_CONTENT_MAX}
+        {' · '}
+        Drop or paste images in Write
       </p>
 
       {displayError && (
@@ -162,7 +210,7 @@ export function PostForm({ form, onChange, onSubmit, onCancel, submitting, editM
         </button>
         <button
           onClick={onSubmit}
-          disabled={!form.title.trim() || submitting || overLimit}
+          disabled={!form.title.trim() || submitting || overLimit || uploading}
           className="px-5 py-2 bg-accent text-white rounded-md text-sm font-medium font-inter hover:bg-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {submitting ? (editMode ? 'Saving...' : 'Publishing...') : (editMode ? 'Save' : 'Publish')}
