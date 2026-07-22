@@ -73,6 +73,11 @@ Adding a new campus = one entry in the config file, no component changes needed.
 - Club intro
 - Executive Board (org chart / team cards)
 
+### [public] Our Mentor `/mentor`
+- Welcome letter from Professor Danny Yoon (Founder and Mentor)
+- Portrait photo (Cloudinary; executive/admin can replace via inline editor)
+- Accessible via About▾ → Our Mentor
+
 ### [public] Schedule `/schedule`
 - Weekly/monthly meeting schedule
 - Google Calendar embed (public Google Calendar)
