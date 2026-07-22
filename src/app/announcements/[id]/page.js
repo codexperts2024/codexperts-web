@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { canAccessAdminRoutes } from '@/utils/constants'
+import { formatRequestError } from '@/utils/requestErrors'
 import {
   fetchAnnouncements,
   createAnnouncement,
@@ -24,6 +25,8 @@ export default function AnnouncementPostPage() {
   const [editMode, setEditMode] = useState(false)
   const [form, setForm] = useState({ title: '', content: '' })
   const [submitting, setSubmitting] = useState(false)
+  const [formError, setFormError] = useState('')
+  const [actionError, setActionError] = useState('')
 
   useEffect(() => {
     fetchAnnouncements()
@@ -35,18 +38,42 @@ export default function AnnouncementPostPage() {
   const idx = announcements.findIndex(a => a.id === numId)
   const post = idx !== -1 ? announcements[idx] : null
 
-  function openNew() { setEditMode(false); setForm({ title: '', content: '' }); setShowForm(true) }
-  function openEdit() { setEditMode(true); setForm({ title: post.title, content: post.content }); setShowForm(true) }
-  function cancelForm() { setShowForm(false); setEditMode(false); setForm({ title: '', content: '' }) }
+  function openNew() {
+    setEditMode(false)
+    setForm({ title: '', content: '' })
+    setFormError('')
+    setActionError('')
+    setShowForm(true)
+  }
+  function openEdit() {
+    setEditMode(true)
+    setForm({ title: post.title, content: post.content })
+    setFormError('')
+    setActionError('')
+    setShowForm(true)
+  }
+  function cancelForm() {
+    setShowForm(false)
+    setEditMode(false)
+    setForm({ title: '', content: '' })
+    setFormError('')
+  }
 
   async function handlePublish() {
     if (!form.title.trim()) return
+    if (!user || !isAdmin) {
+      setFormError('You do not have permission to do that.')
+      return
+    }
     setSubmitting(true)
+    setFormError('')
     try {
       const created = await createAnnouncement(form.title.trim(), form.content, user.id)
       setAnnouncements(prev => [created, ...prev])
       cancelForm()
       router.push(`/announcements/${created.id}`)
+    } catch (err) {
+      setFormError(formatRequestError(err))
     } finally {
       setSubmitting(false)
     }
@@ -54,24 +81,41 @@ export default function AnnouncementPostPage() {
 
   async function handleUpdate() {
     if (!form.title.trim()) return
+    if (!user || !isAdmin) {
+      setFormError('You do not have permission to do that.')
+      return
+    }
     setSubmitting(true)
+    setFormError('')
     try {
       const updated = await updateAnnouncement(numId, form.title.trim(), form.content)
       setAnnouncements(prev => prev.map(a => a.id === numId ? updated : a))
       cancelForm()
+    } catch (err) {
+      setFormError(formatRequestError(err))
     } finally {
       setSubmitting(false)
     }
   }
 
   async function handleDelete() {
-    await deleteAnnouncement(numId)
-    const remaining = announcements.filter(a => a.id !== numId)
-    setAnnouncements(remaining)
-    if (remaining.length > 0) {
-      router.push(`/announcements/${remaining[0].id}`)
-    } else {
-      router.push('/announcements')
+    if (!user || !isAdmin) {
+      setActionError('You do not have permission to do that.')
+      throw new Error('Forbidden')
+    }
+    setActionError('')
+    try {
+      await deleteAnnouncement(numId)
+      const remaining = announcements.filter(a => a.id !== numId)
+      setAnnouncements(remaining)
+      if (remaining.length > 0) {
+        router.push(`/announcements/${remaining[0].id}`)
+      } else {
+        router.push('/announcements')
+      }
+    } catch (err) {
+      setActionError(formatRequestError(err))
+      throw err
     }
   }
 
@@ -111,6 +155,14 @@ export default function AnnouncementPostPage() {
     <main className="min-h-screen bg-white">
       <PageHeader isAdmin={isAdmin} onNew={openNew} />
 
+      {actionError && !showForm && (
+        <div className="bg-white px-4 sm:px-6 pt-4">
+          <div className="max-w-[800px] mx-auto">
+            <p className="text-sm text-error font-inter">{actionError}</p>
+          </div>
+        </div>
+      )}
+
       {showForm && (
         <div className="bg-white py-8 px-4 sm:px-6">
           <div className="max-w-[800px] mx-auto">
@@ -121,6 +173,7 @@ export default function AnnouncementPostPage() {
               onCancel={cancelForm}
               submitting={submitting}
               editMode={editMode}
+              error={formError}
             />
           </div>
         </div>

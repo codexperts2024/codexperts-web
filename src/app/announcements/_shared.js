@@ -98,7 +98,7 @@ function EditorTabs({ activeTab, onTabChange }) {
   )
 }
 
-export function PostForm({ form, onChange, onSubmit, onCancel, submitting, editMode = false }) {
+export function PostForm({ form, onChange, onSubmit, onCancel, submitting, editMode = false, error = '' }) {
   const [tab, setTab] = useState('Write')
 
   return (
@@ -131,6 +131,10 @@ export function PostForm({ form, onChange, onSubmit, onCancel, submitting, editM
           </div>
         )}
       </div>
+
+      {error && (
+        <p className="text-sm text-error font-inter">{error}</p>
+      )}
 
       <div className="flex gap-3 justify-end">
         <button
@@ -201,9 +205,14 @@ export function NavRow({ onPrev, onNext, onList, onDelete, onEdit, prevDisabled,
 
   async function handleDelete() {
     setDeleting(true)
-    await onDelete()
-    setDeleting(false)
-    setShowDeleteModal(false)
+    try {
+      await onDelete()
+      setShowDeleteModal(false)
+    } catch {
+      // Parent surfaces the error message
+    } finally {
+      setDeleting(false)
+    }
   }
 
   const btnBase = 'px-4 py-2 border rounded-md text-sm font-inter transition-colors'
