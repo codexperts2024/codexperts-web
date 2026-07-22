@@ -234,7 +234,8 @@ Style:
 
 About dropdown:
   └ About Us  → /about
-  └ Our Team  → /team
+  └ Our Team  → /about#team
+  └ Our Mentor → /mentor
 
 Updates dropdown:
   └ Announcements  → /announcements
@@ -249,7 +250,7 @@ Practice dropdown (member only):
 |------|-------|------------|-------|
 | Logo | `/` | public | Links to Home |
 | Home | `/` | public | |
-| About | dropdown | public | About Us + Our Team |
+| About | dropdown | public | About Us + Our Team + Our Mentor |
 | Updates | dropdown | public | Announcements + Schedule |
 | Events | `/events` | public | |
 | Join Us | modal | public | Opens signup modal; hidden after login & approval |

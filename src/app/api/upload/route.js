@@ -7,7 +7,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 })
 
-const ALLOWED_FOLDERS = ['hero', 'profiles', 'announcements', 'events', 'problems']
+const ALLOWED_FOLDERS = ['hero', 'profiles', 'announcements', 'events', 'problems', 'mentors']
 
 const FOLDER_ROLES = {
   hero: ['executive', 'admin'],
@@ -15,6 +15,7 @@ const FOLDER_ROLES = {
   announcements: ['executive', 'admin'],
   events: ['executive', 'admin'],
   problems: ['executive', 'admin'],
+  mentors: ['executive', 'admin'],
 }
 
 function getServiceClient() {
@@ -80,6 +81,10 @@ export async function POST(request) {
     return Response.json({ url: result.secure_url, publicId: result.public_id })
   } catch (error) {
     console.error('Upload error:', error)
-    return Response.json({ error: 'Upload failed' }, { status: 500 })
+    const missingKey = !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET
+    const message = missingKey
+      ? 'Cloudinary is not configured. Add CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET to .env.local'
+      : (error?.message || 'Upload failed')
+    return Response.json({ error: message }, { status: 500 })
   }
 }

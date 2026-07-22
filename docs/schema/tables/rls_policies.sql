@@ -4,6 +4,7 @@ ALTER TABLE public.submissions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.attendances ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.announcements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.events ENABLE ROW LEVEL SECURITY;
 
 
 -- Helper used by profiles_select_directory_member_plus to avoid the RLS
@@ -350,6 +351,60 @@ WITH CHECK (
 
 CREATE POLICY announcements_delete_exec_admin
 ON public.announcements
+FOR DELETE
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1
+    FROM public.profiles AS p
+    WHERE p.id = auth.uid()
+      AND p.role IN ('executive'::public.member_role, 'admin'::public.member_role)
+  )
+);
+
+CREATE POLICY events_select_public
+ON public.events
+FOR SELECT
+TO anon, authenticated
+USING (TRUE);
+
+CREATE POLICY events_insert_exec_admin
+ON public.events
+FOR INSERT
+TO authenticated
+WITH CHECK (
+  author_id = auth.uid()
+  AND EXISTS (
+    SELECT 1
+    FROM public.profiles AS p
+    WHERE p.id = auth.uid()
+      AND p.role IN ('executive'::public.member_role, 'admin'::public.member_role)
+  )
+);
+
+CREATE POLICY events_update_exec_admin
+ON public.events
+FOR UPDATE
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1
+    FROM public.profiles AS p
+    WHERE p.id = auth.uid()
+      AND p.role IN ('executive'::public.member_role, 'admin'::public.member_role)
+  )
+)
+WITH CHECK (
+  EXISTS (
+    SELECT 1
+    FROM public.profiles AS p
+    WHERE p.id = auth.uid()
+      AND p.role IN ('executive'::public.member_role, 'admin'::public.member_role)
+  )
+);
+
+CREATE POLICY events_delete_exec_admin
+ON public.events
 FOR DELETE
 TO authenticated
 USING (

@@ -1,324 +1,328 @@
-import Link from 'next/link';
-import Image from 'next/image';
-import { clubEvents } from '@/components/eventsArr';
-import Gallery from '@/components/gallery';
-import { isEventUpcoming } from '@/lib/events';
+'use client'
 
-function getEventById(id) {
-  return clubEvents.find(event => event.id === id);
+import { useState, useEffect, use } from 'react'
+import Link from 'next/link'
+import Image from 'next/image'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/hooks/useAuth'
+import { canAccessAdminRoutes } from '@/utils/constants'
+import { isEventUpcoming, formatEventDate } from '@/lib/events'
+import Gallery from '@/components/gallery'
+import {
+  fetchEvents,
+  fetchEventById,
+  createEvent,
+  updateEvent,
+  deleteEvent,
+  fetchEventCategories,
+} from '@/services/eventService'
+import {
+  PageHeader,
+  EventForm,
+  EventBody,
+  AdminActions,
+  EMPTY_EVENT_FORM,
+  eventToForm,
+  formToPayload,
+} from '../_shared'
+
+function sortUpcoming(events) {
+  return [...events].sort((a, b) => {
+    const dateA = a.endDate ? new Date(a.endDate) : new Date(a.date)
+    const dateB = b.endDate ? new Date(b.endDate) : new Date(b.date)
+    return dateA - dateB
+  })
 }
 
-function getPastEvents() {
-  return clubEvents
-    .filter(event => !isEventUpcoming(event))
-    .sort((a, b) => {
-      const dateA = a.endDate ? new Date(a.endDate) : new Date(a.date);
-      const dateB = b.endDate ? new Date(b.endDate) : new Date(b.date);
-      return dateB - dateA;
-    });
+function sortPast(events) {
+  return [...events].sort((a, b) => {
+    const dateA = a.endDate ? new Date(a.endDate) : new Date(a.date)
+    const dateB = b.endDate ? new Date(b.endDate) : new Date(b.date)
+    return dateB - dateA
+  })
 }
 
-function getUpcomingEvents() {
-  return clubEvents
-    .filter(event => isEventUpcoming(event))
-    .sort((a, b) => {
-      const dateA = a.endDate ? new Date(a.endDate) : new Date(a.date);
-      const dateB = b.endDate ? new Date(b.endDate) : new Date(b.date);
-      return dateA - dateB;
-    });
+function getAdjacent(events, currentId) {
+  const index = events.findIndex((e) => e.id === currentId)
+  if (index === -1) return { previous: null, next: null }
+  return {
+    previous: index > 0 ? events[index - 1] : null,
+    next: index < events.length - 1 ? events[index + 1] : null,
+  }
 }
 
-function getAdjacentEvents(currentEventId, isPast) {
-  const eventsArr = isPast ? getPastEvents() : getUpcomingEvents();
-  const currentIndex = eventsArr.findIndex(event => event.id === currentEventId);
+export default function EventDetailPage({ params }) {
+  const { id } = use(params)
+  const router = useRouter()
+  const { user, profile } = useAuth()
+  const isAdmin = canAccessAdminRoutes(profile?.role)
 
-  if (eventsArr.length === 0 || currentIndex === -1) {
-    return { previous: null, next: null };
+  const [event, setEvent] = useState(null)
+  const [allEvents, setAllEvents] = useState([])
+  const [categoryOptions, setCategoryOptions] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [notFound, setNotFound] = useState(false)
+  const [showForm, setShowForm] = useState(false)
+  const [editMode, setEditMode] = useState(false)
+  const [form, setForm] = useState(EMPTY_EVENT_FORM)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let cancelled = false
+    async function load() {
+      setLoading(true)
+      setNotFound(false)
+      try {
+        const [detail, list, cats] = await Promise.all([
+          fetchEventById(id),
+          fetchEvents(),
+          fetchEventCategories(),
+        ])
+        if (cancelled) return
+        setEvent(detail)
+        setAllEvents(list)
+        setCategoryOptions(cats)
+      } catch {
+        if (!cancelled) setNotFound(true)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    load()
+    return () => { cancelled = true }
+  }, [id])
+
+  function openNew() {
+    setEditMode(false)
+    setForm(EMPTY_EVENT_FORM)
+    setShowForm(true)
+    setError('')
   }
 
-  return {
-    previous: currentIndex > 0 ? eventsArr[currentIndex - 1] : null,
-    next: currentIndex < eventsArr.length - 1 ? eventsArr[currentIndex + 1] : null,
-  };
-}
+  function openEdit() {
+    if (!event) return
+    setEditMode(true)
+    setForm(eventToForm(event))
+    setShowForm(true)
+    setError('')
+  }
 
-function EventNav({ previous, next }) {
-  const hasPrevious = previous !== null;
-  const hasNext = next !== null;
+  function cancelForm() {
+    setShowForm(false)
+    setEditMode(false)
+    setForm(EMPTY_EVENT_FORM)
+  }
 
-  return (
-    <div className="max-w-4xl mx-auto px-4 md:px-6 pb-16">
-      <div className="flex items-center justify-between mt-10 pt-20 border-t border-gray-100">
-        <Link
-          href={hasPrevious ? `/events/${previous.id}` : '#'}
-          className={`border px-5 py-2.5 rounded-md flex items-center gap-2 transition font-inter text-sm ${
-            hasPrevious
-              ? 'border-gray-300 hover:bg-gray-100 text-gray-800 cursor-pointer'
-              : 'border-gray-200 text-gray-400 cursor-not-allowed bg-gray-50'
-          }`}
-        >
-          <svg className="w-4 h-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 12h14M5 12l4-4m-4 4 4 4" />
-          </svg>
-          Previous Event
-        </Link>
+  async function handlePublish() {
+    if (!form.title.trim() || !form.date || !user?.id) return
+    setSubmitting(true)
+    setError('')
+    try {
+      const created = await createEvent(formToPayload(form), user.id)
+      cancelForm()
+      router.push(`/events/${created.id}`)
+    } catch (err) {
+      setError(err.message || 'Failed to publish event')
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
-        <Link
-          href={hasNext ? `/events/${next.id}` : '#'}
-          className={`border px-5 py-2.5 rounded-md flex items-center gap-2 transition font-inter text-sm ${
-            hasNext
-              ? 'border-gray-300 hover:bg-gray-100 text-gray-800 cursor-pointer'
-              : 'border-gray-200 text-gray-400 cursor-not-allowed bg-gray-50'
-          }`}
-        >
-          Next Event
-          <svg className="w-4 h-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 12H5M19 12l-4 4m4-4-4-4" />
-          </svg>
-        </Link>
-      </div>
-    </div>
-  );
-}
+  async function handleUpdate() {
+    if (!form.title.trim() || !form.date || !event) return
+    setSubmitting(true)
+    setError('')
+    try {
+      const updated = await updateEvent(event.id, formToPayload(form))
+      setEvent(updated)
+      setAllEvents((prev) => prev.map((e) => (e.id === updated.id ? updated : e)))
+      if (updated.category) {
+        setCategoryOptions((prev) => [...new Set([...prev, updated.category])])
+      }
+      cancelForm()
+    } catch (err) {
+      setError(err.message || 'Failed to update event')
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
-export async function generateStaticParams() {
-  return clubEvents.map((event) => ({
-    id: event.id.toString(),
-  }));
-}
+  async function handleDelete() {
+    if (!event) return
+    await deleteEvent(event.id)
+    router.push('/events')
+  }
 
-export default async function EventPage({ params }) {
-  const { id } = await params;
-  const eventId = parseInt(id);
-
-  const event = getEventById(eventId);
-
-  if (!event) {
+  if (loading) {
     return (
-      <div className="min-h-screen w-full bg-bg-base flex items-center justify-center px-4">
-        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md text-center">
-          <div className="text-6xl mb-4">🔍</div>
-          <h2 className="text-2xl font-bold font-montserrat text-gray-800 mb-2">Event Not Found</h2>
-          <p className="text-gray-500 font-inter">
+      <main className="min-h-screen w-full bg-bg-base">
+        <div className="flex justify-center items-center py-32">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-text-primary" />
+        </div>
+      </main>
+    )
+  }
+
+  if (notFound || !event) {
+    return (
+      <main className="min-h-screen w-full bg-bg-base flex items-center justify-center px-4">
+        <div className="bg-bg-surface rounded-lg border border-border p-8 max-w-md text-center">
+          <h2 className="text-2xl font-bold font-montserrat text-text-primary mb-2">Event Not Found</h2>
+          <p className="text-text-secondary font-inter mb-6">
             The event you&apos;re looking for doesn&apos;t exist or has been removed.
           </p>
+          <Link
+            href="/events"
+            className="inline-block px-4 py-2 border border-border-strong rounded-md text-sm font-inter text-text-secondary hover:bg-bg-base transition-colors"
+          >
+            ← Back to Events
+          </Link>
         </div>
-      </div>
-    );
+      </main>
+    )
   }
 
-  const isPast = !isEventUpcoming(event);
-  const { previous, next } = getAdjacentEvents(event.id, isPast);
+  const isPast = !isEventUpcoming(event)
+  const siblings = isPast
+    ? sortPast(allEvents.filter((e) => !isEventUpcoming(e)))
+    : sortUpcoming(allEvents.filter(isEventUpcoming))
+  const { previous, next } = getAdjacent(siblings, event.id)
 
-  const descriptions = event.infoDescription && event.infoDescription.trim() !== ''
-    ? event.infoDescription.split('\n\n')
-    : ['No detailed description available for this event.'];
+  const btnBase = 'px-4 py-2 border rounded-md text-sm font-inter transition-colors'
+  const btnActive = `${btnBase} border-border-strong text-text-secondary hover:bg-bg-base`
+  const btnDisabled = `${btnBase} border-border text-border-strong cursor-not-allowed`
 
   return (
-    <div className="min-h-screen w-full bg-bg-base">
-      {/* Breadcrumb */}
-      <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-6">
-        <div className="flex items-center gap-2 text-sm text-gray-500 font-inter">
-          <Link href="/events" className="hover:text-gray-800 transition">
-            Events
-          </Link>
-          <span className="text-gray-400">›</span>
-          <span className="text-gray-900 font-medium">
-            {event.title}
-          </span>
-        </div>
-      </div>
+    <main className="min-h-screen w-full bg-bg-base">
+      <PageHeader isAdmin={isAdmin} onNew={openNew} />
 
-      <div className="w-full h-[400px] relative">
-        <div className={`relative w-full h-96 overflow-hidden ${
-          !isPast ? 'bg-gradient-to-r from-red-700 to-red-900' : 'bg-gradient-to-r from-gray-700 to-gray-900'
-        }`}>
-          {event.image && (
-            <Image
-              src={event.image}
-              alt={event.title}
-              fill
-              className="object-cover"
+      {showForm && (
+        <div className="bg-bg-surface py-8 px-6 md:px-8">
+          <div className="max-w-[800px] mx-auto">
+            <EventForm
+              form={form}
+              onChange={setForm}
+              onSubmit={editMode ? handleUpdate : handlePublish}
+              onCancel={cancelForm}
+              submitting={submitting}
+              editMode={editMode}
+              categoryOptions={categoryOptions}
             />
-          )}
-          <div className="absolute inset-0 bg-black/30" />
-        </div>
-      </div>
-
-      {!isPast && (
-        <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-10">
-
-            <div className="lg:col-span-2">
-              <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 leading-tight font-montserrat">
-                {event.title}
-              </h1>
-
-              <div className="flex flex-wrap items-center gap-4 md:gap-6 mt-6 text-sm text-gray-500 font-inter">
-                <div className="flex items-center gap-2">
-                  <svg className="w-5 h-5 text-red-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  <span>
-                    {event.endDate
-                      ? `${new Date(event.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} – ${new Date(event.endDate).getDate()}, ${new Date(event.endDate).getFullYear()}`
-                      : new Date(event.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-                    }
-                  </span>
-                </div>
-                {event.location && (
-                  <div className="flex items-center gap-2">
-                    <svg className="w-5 h-5 text-red-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span>{event.location}</span>
-                  </div>
-                )}
-                {event.school && (
-                  <div className="flex items-center gap-2">
-                    <svg className="w-5 h-5 text-red-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-                    </svg>
-                    <span>{event.school}</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-12">
-                <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4 font-montserrat">
-                  About this Event
-                </h2>
-                <div className="bg-bg-layer1 rounded-xl p-5 md:p-6 text-gray-600 leading-relaxed space-y-3 font-inter text-sm md:text-base">
-                  {descriptions.map((paragraph, index) => (
-                    <p key={index}>{paragraph.trim()}</p>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-7 flex flex-col sm:flex-row items-center justify-between gap-4 mt-14">
-                <div>
-                  <p className="text-xs font-bold tracking-widest text-red-700 uppercase">Registration Open</p>
-                  <h3 className="text-lg md:text-xl font-bold text-gray-900 mt-1">Secure your spot in the lab</h3>
-                </div>
-                {event.registration ? (
-                  <Link
-                    href={event.registration}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-red-700 hover:bg-red-800 text-white font-semibold px-6 py-3 rounded-md transition font-inter text-sm inline-block"
-                  >
-                    {event.cta}
-                  </Link>
-                ) : (
-                  <button
-                    disabled
-                    className="bg-gray-400 cursor-not-allowed text-white font-semibold px-6 py-3 rounded-md font-inter text-sm inline-block"
-                  >
-                    Registration Coming Soon
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {event.tracks && event.tracks.length > 0 && (
-              <div className="space-y-5">
-                <div className="bg-bg-layer1 rounded-xl p-5">
-                  <h3 className="text-lg md:text-xl font-bold text-gray-800 ml-2 mb-4 font-montserrat">
-                    Competition Tracks
-                  </h3>
-                  {event.tracks.map((track, index) => (
-                    <div key={index}>
-                      <div className="flex items-center gap-2 mt-2 ml-4">
-                        <span className="w-2 h-2 rounded-full bg-red-800 shrink-0"></span>
-                        <p className="font-semibold text-gray-800 font-inter text-sm md:text-base">
-                          {track.name}
-                        </p>
-                      </div>
-                      <p className="text-gray-500 text-xs md:text-sm ml-8 font-inter">
-                        {track.sub}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         </div>
       )}
 
-      {isPast && (
-        <div className="max-w-4xl mx-auto px-4 md:px-6 py-12 md:py-16 lg:py-20">
-          <div className="mb-4 md:mb-6">
-            <span className="inline-flex items-center rounded-md bg-gray-200 px-5 py-2 text-xs text-gray-500 inset-ring inset-ring-gray-500/10 tracking-widest">
-              PAST EVENT
-            </span>
-          </div>
-
-          <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 leading-tight font-montserrat mt-4">
-            {event.title}
-          </h1>
-
-          <div className="flex flex-wrap items-center gap-4 md:gap-6 mt-6 text-sm text-gray-500 font-inter">
-            <div className="flex items-center gap-2">
-              <svg className="w-5 h-5 text-red-700 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 10h16m-8-3V4M7 7V4m10 3V4M5 20h14a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1Zm3-7h.01v.01H8V13Zm4 0h.01v.01H12V13Zm4 0h.01v.01H16V13Zm-8 4h.01v.01H8V17Zm4 0h.01v.01H12V17Zm4 0h.01v.01H16V17Z" />
-              </svg>
-              <span>
-                {new Date(event.date).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </span>
-            </div>
-
-            {event.location && event.location.trim() !== '' && (
-              <div className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-red-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <span>{event.location}</span>
-              </div>
-            )}
-
-            {event.school && event.school.trim() !== '' && (
-              <div className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-red-700 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3.78552 9.5 12.7855 14l9-4.5-9-4.5-8.99998 4.5Zm0 0V17m3-6v6.2222c0 .3483 2 1.7778 5.99998 1.7778 4 0 6-1.3738 6-1.7778V11" />
-                </svg>
-                <span>{event.school}</span>
-              </div>
-            )}
-          </div>
-
-          <div className="mt-12">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-10">
-              <div className="md:col-span-1">
-                <h2 className="text-xl md:text-2xl font-bold text-gray-800 font-montserrat">
-                  About this Event
-                </h2>
-              </div>
-
-              <div className="md:col-span-2">
-                <div className="bg-bg-layer1 rounded-xl p-5 md:p-6 text-gray-600 leading-relaxed space-y-3 font-inter text-sm md:text-base">
-                  {descriptions.map((paragraph, index) => (
-                    <p key={index}>{paragraph.trim()}</p>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {event.gallery && event.gallery.length > 0 && (
-            <Gallery gallery={event.gallery} eventTitle={event.title} />
-          )}
+      {error && (
+        <div className="px-6 md:px-8 py-4">
+          <p className="max-w-6xl mx-auto text-sm font-inter text-error">{error}</p>
         </div>
       )}
 
-      <EventNav previous={previous} next={next} />
-    </div>
-  );
+      {!showForm && (
+        <>
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2 text-[13px] text-text-secondary font-inter">
+                <Link href="/events" className="hover:text-text-primary transition">
+                  Events
+                </Link>
+                <span>/</span>
+                <span className="text-text-primary">{event.title}</span>
+              </div>
+              <Link
+                href="/events"
+                className="text-sm font-inter text-text-secondary hover:text-text-primary transition"
+              >
+                ← Back to Events
+              </Link>
+            </div>
+          </div>
+
+          <div className="px-4 sm:px-6">
+            <div className="max-w-6xl mx-auto bg-bg-layer1 rounded-lg overflow-hidden">
+              {event.coverImageUrl ? (
+                <Image
+                  src={event.coverImageUrl}
+                  alt={event.title}
+                  width={1600}
+                  height={900}
+                  className="w-full h-auto max-h-[560px] object-contain mx-auto"
+                  sizes="(max-width: 1280px) 100vw, 1152px"
+                  priority
+                  unoptimized
+                />
+              ) : (
+                <div className="w-full h-[240px] bg-bg-layer2" />
+              )}
+            </div>
+          </div>
+
+          <section className="bg-bg-surface py-12 px-4 sm:px-6">
+            <div className="max-w-6xl mx-auto">
+              <div className="flex items-start justify-between gap-4">
+                <h1 className="text-3xl md:text-4xl font-bold font-montserrat text-text-primary">
+                  {event.title}
+                </h1>
+                {isAdmin && (
+                  <AdminActions onEdit={openEdit} onDelete={handleDelete} />
+                )}
+              </div>
+
+              <p className="mt-4 text-sm font-inter text-text-secondary">
+                {formatEventDate(event.date, event.endDate)}
+                {event.location ? ` · ${event.location}` : ''}
+                {event.campus ? ` · ${event.campus}` : ''}
+              </p>
+
+              {event.registrationUrl && (
+                <a
+                  href={event.registrationUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block mt-6 bg-accent hover:bg-accent-hover text-bg-base font-inter text-sm font-medium px-5 py-2.5 rounded-md transition-colors"
+                >
+                  {event.ctaLabel || 'Register'}
+                </a>
+              )}
+
+              <div className="border-t border-border my-8" />
+
+              <h3 className="text-xl font-semibold font-montserrat text-text-primary mb-4">
+                About this Event
+              </h3>
+              <EventBody body={event.body} />
+            </div>
+          </section>
+
+          {event.galleryUrls?.length > 0 && (
+            <section className="bg-bg-base py-12 px-4 sm:px-6">
+              <div className="max-w-6xl mx-auto">
+                <Gallery gallery={event.galleryUrls} eventTitle={event.title} />
+              </div>
+            </section>
+          )}
+
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+            <div className="flex items-center justify-between">
+              {previous ? (
+                <Link href={`/events/${previous.id}`} className={btnActive}>
+                  ← Previous Event
+                </Link>
+              ) : (
+                <span className={btnDisabled}>← Previous Event</span>
+              )}
+              {next ? (
+                <Link href={`/events/${next.id}`} className={btnActive}>
+                  Next Event →
+                </Link>
+              ) : (
+                <span className={btnDisabled}>Next Event →</span>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+    </main>
+  )
 }

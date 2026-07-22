@@ -73,6 +73,11 @@ Adding a new campus = one entry in the config file, no component changes needed.
 - Club intro
 - Executive Board (org chart / team cards)
 
+### [public] Our Mentor `/mentor`
+- Welcome letter from Professor Danny Yoon (Founder and Mentor)
+- Portrait photo (Cloudinary; executive/admin can replace via inline editor)
+- Accessible via About▾ → Our Mentor
+
 ### [public] Schedule `/schedule`
 - Weekly/monthly meeting schedule
 - Google Calendar embed (public Google Calendar)
@@ -80,6 +85,8 @@ Adding a new campus = one entry in the config file, no component changes needed.
 ### [public] Events `/events`
 - Event cards (hackathons, workshops, socials)
 - Past events archive
+- Executive/Admin creates, edits, and deletes via the Events page (inline CRUD)
+- Stored in `events` table in Supabase (cover + gallery images via Cloudinary)
 
 ### [public] Announcements `/announcements`
 - Club-wide announcements posted by Executives/Admins
