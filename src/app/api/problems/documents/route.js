@@ -10,6 +10,14 @@ import {
 
 export const runtime = 'nodejs'
 
+async function uploadBytes(serviceClient, path, bytes, contentType) {
+  const { error } = await serviceClient.storage
+    .from(PROBLEM_BUCKET)
+    .upload(path, bytes, { contentType, upsert: false })
+
+  if (error) throw error
+}
+
 export async function POST(request) {
   const auth = await verifyAdminCaller(request)
   if (auth.error) return auth.error
@@ -26,18 +34,44 @@ export async function POST(request) {
     return Response.json({ error: 'File exceeds the 50 MB limit.' }, { status: 400 })
   }
 
-  let fileType = detectProblemFileType(file)
-  if (fileType !== FILE_FORMAT.DOCX && fileType !== FILE_FORMAT.PDF) {
+  const sourceType = detectProblemFileType(file)
+  if (sourceType !== FILE_FORMAT.DOCX && sourceType !== FILE_FORMAT.PDF) {
     return Response.json({ error: 'Only .docx and .pdf files are supported.' }, { status: 400 })
   }
 
-  let bytes = Buffer.from(await file.arrayBuffer())
+  const bytes = Buffer.from(await file.arrayBuffer())
 
-  if (fileType === FILE_FORMAT.DOCX) {
-    try {
-      bytes = await convertDocxToPdf(bytes, file.name)
-      fileType = FILE_FORMAT.PDF
-    } catch (err) {
+  try {
+    if (sourceType === FILE_FORMAT.DOCX) {
+      const sourcePath = `${problemId}/${randomUUID()}.docx`
+      const pdfPath = `${problemId}/${randomUUID()}.pdf`
+      const pdfBytes = await convertDocxToPdf(bytes, file.name)
+
+      await uploadBytes(
+        auth.serviceClient,
+        sourcePath,
+        bytes,
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      )
+      await uploadBytes(auth.serviceClient, pdfPath, pdfBytes, 'application/pdf')
+
+      return Response.json({
+        path: pdfPath,
+        sourcePath,
+        fileFormat: FILE_FORMAT.DOCX,
+      })
+    }
+
+    const pdfPath = `${problemId}/${randomUUID()}.pdf`
+    await uploadBytes(auth.serviceClient, pdfPath, bytes, 'application/pdf')
+
+    return Response.json({
+      path: pdfPath,
+      sourcePath: null,
+      fileFormat: FILE_FORMAT.PDF,
+    })
+  } catch (err) {
+    if (sourceType === FILE_FORMAT.DOCX) {
       return Response.json(
         {
           error: err?.message
@@ -46,22 +80,8 @@ export async function POST(request) {
         { status: 422 },
       )
     }
+    return Response.json({ error: err?.message ?? 'Upload failed.' }, { status: 500 })
   }
-
-  const path = `${problemId}/${randomUUID()}.${fileType}`
-
-  const { error } = await auth.serviceClient.storage
-    .from(PROBLEM_BUCKET)
-    .upload(path, bytes, {
-      contentType: fileType === FILE_FORMAT.PDF ? 'application/pdf' : undefined,
-      upsert: false,
-    })
-
-  if (error) {
-    return Response.json({ error: error.message ?? 'Upload failed.' }, { status: 500 })
-  }
-
-  return Response.json({ path, fileFormat: fileType })
 }
 
 export async function GET(request) {
@@ -87,12 +107,16 @@ export async function GET(request) {
       ? 'application/pdf'
       : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
 
-    return new Response(data, {
-      headers: {
-        'Content-Type': contentType,
-        'Cache-Control': 'private, max-age=3600',
-      },
-    })
+    const filename = request.nextUrl.searchParams.get('filename')
+    const headers = {
+      'Content-Type': contentType,
+      'Cache-Control': 'private, max-age=3600',
+    }
+    if (filename) {
+      headers['Content-Disposition'] = `attachment; filename="${filename.replace(/"/g, '')}"`
+    }
+
+    return new Response(data, { headers })
   }
 
   const { data, error } = await auth.serviceClient.storage
@@ -104,4 +128,21 @@ export async function GET(request) {
   }
 
   return Response.json({ signedUrl: data.signedUrl })
+}
+
+export async function DELETE(request) {
+  const auth = await verifyAdminCaller(request)
+  if (auth.error) return auth.error
+
+  const path = request.nextUrl.searchParams.get('path')
+  if (!path) {
+    return Response.json({ error: 'path is required.' }, { status: 400 })
+  }
+
+  const { error } = await auth.serviceClient.storage.from(PROBLEM_BUCKET).remove([path])
+  if (error) {
+    return Response.json({ error: error.message ?? 'Failed to delete file.' }, { status: 500 })
+  }
+
+  return Response.json({ ok: true })
 }
