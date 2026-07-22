@@ -1,5 +1,7 @@
 export const SCHOOLS = ['Seneca College', 'York University']
 
+export const EXECUTIVE_TITLES = ['President', 'Vice President', 'Treasurer']
+
 export const ROLES = {
   PENDING: 'pending',
   MEMBER: 'member',

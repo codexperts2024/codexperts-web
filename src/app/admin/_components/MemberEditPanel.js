@@ -1,15 +1,21 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { SCHOOLS, ROLES } from '@/utils/constants'
+import { SCHOOLS, ROLES, EXECUTIVE_TITLES } from '@/utils/constants'
 import { generateCohortOptions } from '@/utils/cohortOptions'
 import { formatPhone } from '@/utils/phone'
 import { memberToForm } from '@/services/adminService'
 
 const ROLE_OPTIONS = [
+  { value: ROLES.PENDING, label: 'Pending' },
   { value: ROLES.MEMBER, label: 'Member' },
   { value: ROLES.EXECUTIVE, label: 'Executive' },
   { value: ROLES.ADMIN, label: 'Admin' },
+]
+
+const TITLE_OPTIONS = [
+  { value: '', label: 'None' },
+  ...EXECUTIVE_TITLES.map((title) => ({ value: title, label: title })),
 ]
 
 const STATUS_OPTIONS = [
@@ -46,11 +52,12 @@ export default function MemberEditPanel({ member, saving, error, onSave, onCance
   }
 
   const displayName = [member.firstName, member.lastName].filter(Boolean).join(' ') || member.email
+  const isPendingRole = form.role === ROLES.PENDING
 
   return (
-    <div className="border border-border rounded-lg bg-bg-surface flex flex-col max-h-[calc(100vh-12rem)] min-h-[320px]">
+    <div className="border border-border rounded-lg bg-bg-surface flex flex-col max-h-[min(90vh,40rem)] shadow-lg">
       <div className="px-4 py-3 border-b border-border shrink-0">
-        <h2 className="font-montserrat font-semibold text-lg text-text-primary">Edit member</h2>
+        <h2 id="edit-member-title" className="font-montserrat font-semibold text-lg text-text-primary">Edit member</h2>
         <p className="text-sm text-text-secondary mt-0.5 truncate">{displayName}</p>
       </div>
 
@@ -62,7 +69,7 @@ export default function MemberEditPanel({ member, saving, error, onSave, onCance
               value={form.first_name}
               onChange={e => updateField('first_name', e.target.value)}
               className={inputClass}
-              required
+              required={!isPendingRole}
             />
           </Field>
 
@@ -72,7 +79,7 @@ export default function MemberEditPanel({ member, saving, error, onSave, onCance
               value={form.last_name}
               onChange={e => updateField('last_name', e.target.value)}
               className={inputClass}
-              required
+              required={!isPendingRole}
             />
           </Field>
 
@@ -81,7 +88,7 @@ export default function MemberEditPanel({ member, saving, error, onSave, onCance
               value={form.school}
               onChange={e => updateField('school', e.target.value)}
               className={inputClass}
-              required
+              required={!isPendingRole}
             >
               <option value="">Select school</option>
               {SCHOOLS.map(school => (
@@ -95,7 +102,7 @@ export default function MemberEditPanel({ member, saving, error, onSave, onCance
               value={form.cohort}
               onChange={e => updateField('cohort', e.target.value)}
               className={inputClass}
-              required
+              required={!isPendingRole}
             >
               <option value="">Select cohort</option>
               {cohortOptions.map(opt => (
@@ -107,14 +114,46 @@ export default function MemberEditPanel({ member, saving, error, onSave, onCance
           <Field label="Role">
             <select
               value={form.role}
-              onChange={e => updateField('role', e.target.value)}
+              onChange={e => {
+                const role = e.target.value
+                setForm(prev => ({
+                  ...prev,
+                  role,
+                  executive_title:
+                    role === ROLES.EXECUTIVE || role === ROLES.ADMIN
+                      ? prev.executive_title
+                      : '',
+                }))
+              }}
               className={inputClass}
             >
               {ROLE_OPTIONS.map(opt => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
+            {form.role === ROLES.PENDING && (
+              <p className="mt-1.5 text-xs text-text-hint">
+                Returns this person to the approval queue. Their Our Team position is cleared.
+              </p>
+            )}
           </Field>
+
+          {(form.role === ROLES.EXECUTIVE || form.role === ROLES.ADMIN) && (
+            <Field label="Our Team position">
+              <select
+                value={form.executive_title}
+                onChange={e => updateField('executive_title', e.target.value)}
+                className={inputClass}
+              >
+                {TITLE_OPTIONS.map(opt => (
+                  <option key={opt.value || 'none'} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+              <p className="mt-1.5 text-xs text-text-hint">
+                Shown on About → Our Team for this member&apos;s school. One person per position per school.
+              </p>
+            </Field>
+          )}
 
           <Field label="Status">
             <select

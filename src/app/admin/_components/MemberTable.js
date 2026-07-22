@@ -1,9 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import UserAvatar from '@/components/common/UserAvatar'
 import { cohortLabel } from '@/utils/cohort'
 import { isPendingApplicant } from '@/services/adminService'
+import {
+  compareNumberLike,
+  compareText,
+  sortIndicator,
+  toggleSort,
+} from '@/utils/memberSort'
 
 function formatStatus(status) {
   if (!status || status === 'student') return 'Student'
@@ -22,6 +28,61 @@ function formatDate(str) {
   return new Date(str).toLocaleDateString('en-CA', { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
+function memberName(member) {
+  return [member.firstName, member.lastName].filter(Boolean).join(' ')
+}
+
+function compareMembers(a, b, key, dir) {
+  let result = 0
+
+  switch (key) {
+    case 'name':
+      result = compareText(memberName(a), memberName(b))
+      break
+    case 'email':
+      result = compareText(a.email, b.email)
+      break
+    case 'school':
+      result = compareText(a.school, b.school)
+      break
+    case 'cohort':
+      result = compareNumberLike(a.cohort, b.cohort)
+      break
+    case 'role':
+      result = compareText(formatRole(a.role), formatRole(b.role))
+        || compareText(a.executiveTitle, b.executiveTitle)
+      break
+    case 'status':
+      result = compareText(formatStatus(a.status), formatStatus(b.status))
+      break
+    case 'createdAt':
+      result = new Date(a.createdAt || 0) - new Date(b.createdAt || 0)
+      break
+    default:
+      result = 0
+  }
+
+  if (result === 0 && key !== 'name') {
+    result = compareText(memberName(a), memberName(b))
+  }
+
+  return dir === 'asc' ? result : -result
+}
+
+function SortHeader({ label, sortKey, activeKey, activeDir, onSort, className = '' }) {
+  return (
+    <th className={`py-2.5 px-3 font-medium ${className}`}>
+      <button
+        type="button"
+        onClick={() => onSort(sortKey)}
+        className="text-left hover:text-text-primary transition-colors"
+      >
+        {label}{sortIndicator(activeKey, activeDir, sortKey)}
+      </button>
+    </th>
+  )
+}
+
 export default function MemberTable({
   members,
   selectedId,
@@ -32,7 +93,25 @@ export default function MemberTable({
   onReject,
 }) {
   const [rejectTarget, setRejectTarget] = useState(null)
+  const [sortKey, setSortKey] = useState('name')
+  const [sortDir, setSortDir] = useState('asc')
   const pendingCount = members.filter(isPendingApplicant).length
+
+  const sortedMembers = useMemo(() => {
+    return [...members].sort((a, b) => {
+      // Keep pending applicants pinned to the top regardless of column sort
+      const aPending = isPendingApplicant(a)
+      const bPending = isPendingApplicant(b)
+      if (aPending !== bPending) return aPending ? -1 : 1
+      return compareMembers(a, b, sortKey, sortDir)
+    })
+  }, [members, sortKey, sortDir])
+
+  function handleSort(key) {
+    const next = toggleSort(sortKey, sortDir, key)
+    setSortKey(next.key)
+    setSortDir(next.dir)
+  }
 
   return (
     <>
@@ -47,7 +126,7 @@ export default function MemberTable({
             )}
           </p>
           {isAdmin && (
-            <p className="text-xs text-text-hint font-inter hidden sm:block">Click a row to edit</p>
+            <p className="text-xs text-text-hint font-inter hidden sm:block">Click a name to edit · click headers to sort</p>
           )}
         </div>
 
@@ -55,24 +134,24 @@ export default function MemberTable({
           <table className="w-full border-collapse text-sm font-inter">
             <thead className="sticky top-0 z-10 bg-bg-layer1">
               <tr className="border-b border-border text-left text-xs text-text-hint">
-                <th className="py-2.5 px-3 font-medium w-36">Member</th>
-                <th className="py-2.5 px-3 font-medium">Email</th>
-                <th className="py-2.5 px-3 font-medium hidden md:table-cell">School</th>
-                <th className="py-2.5 px-3 font-medium hidden lg:table-cell">Cohort</th>
-                <th className="py-2.5 px-3 font-medium w-24">Role</th>
-                <th className="py-2.5 px-3 font-medium hidden sm:table-cell w-24">Status</th>
-                <th className="py-2.5 px-3 font-medium hidden xl:table-cell w-28">Applied</th>
+                <SortHeader label="Member" sortKey="name" activeKey={sortKey} activeDir={sortDir} onSort={handleSort} className="w-36" />
+                <SortHeader label="Email" sortKey="email" activeKey={sortKey} activeDir={sortDir} onSort={handleSort} />
+                <SortHeader label="School" sortKey="school" activeKey={sortKey} activeDir={sortDir} onSort={handleSort} className="hidden md:table-cell" />
+                <SortHeader label="Cohort" sortKey="cohort" activeKey={sortKey} activeDir={sortDir} onSort={handleSort} className="w-28" />
+                <SortHeader label="Role" sortKey="role" activeKey={sortKey} activeDir={sortDir} onSort={handleSort} className="w-24" />
+                <SortHeader label="Status" sortKey="status" activeKey={sortKey} activeDir={sortDir} onSort={handleSort} className="hidden sm:table-cell w-24" />
+                <SortHeader label="Applied" sortKey="createdAt" activeKey={sortKey} activeDir={sortDir} onSort={handleSort} className="hidden xl:table-cell w-28" />
                 <th className="py-2.5 px-3 font-medium w-40 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {members.length === 0 ? (
+              {sortedMembers.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="py-16 text-center text-text-hint">
                     No members found.
                   </td>
                 </tr>
-              ) : members.map(member => {
+              ) : sortedMembers.map(member => {
                 const pending = isPendingApplicant(member)
                 const isSelected = selectedId === member.id
                 const isLoading = actionLoadingId === member.id
@@ -80,11 +159,8 @@ export default function MemberTable({
                 return (
                   <tr
                     key={member.id}
-                    onClick={() => isAdmin && !pending && onSelect(member)}
                     className={`border-b border-border transition-colors ${
                       pending ? 'bg-warning/5' : ''
-                    } ${
-                      isAdmin && !pending ? 'cursor-pointer hover:bg-bg-layer1' : ''
                     } ${isSelected ? 'bg-link-bg/40' : ''}`}
                   >
                     <td className="py-2.5 px-3">
@@ -94,17 +170,32 @@ export default function MemberTable({
                           firstName={member.firstName}
                           role={member.role}
                         />
-                        <span className="text-text-primary truncate">
-                          {[member.firstName, member.lastName].filter(Boolean).join(' ') || '—'}
-                        </span>
+                        {isAdmin && !pending ? (
+                          <button
+                            type="button"
+                            onClick={() => onSelect(member)}
+                            className="text-text-primary truncate text-left hover:text-link hover:underline transition-colors"
+                          >
+                            {memberName(member) || '—'}
+                          </button>
+                        ) : (
+                          <span className="text-text-primary truncate">
+                            {memberName(member) || '—'}
+                          </span>
+                        )}
                       </div>
                     </td>
                     <td className="py-2.5 px-3 text-text-secondary truncate max-w-[180px]">{member.email ?? '—'}</td>
                     <td className="py-2.5 px-3 text-text-secondary hidden md:table-cell">{member.school ?? '—'}</td>
-                    <td className="py-2.5 px-3 text-text-secondary hidden lg:table-cell">
+                    <td className="py-2.5 px-3 text-text-secondary">
                       {member.cohort ? cohortLabel(member.cohort) : '—'}
                     </td>
-                    <td className="py-2.5 px-3 text-text-primary">{formatRole(member.role)}</td>
+                    <td className="py-2.5 px-3 text-text-primary">
+                      <span>{formatRole(member.role)}</span>
+                      {member.executiveTitle && (
+                        <span className="block text-xs text-text-hint mt-0.5">{member.executiveTitle}</span>
+                      )}
+                    </td>
                     <td className="py-2.5 px-3 text-text-secondary hidden sm:table-cell">{formatStatus(member.status)}</td>
                     <td className="py-2.5 px-3 text-text-hint hidden xl:table-cell">{formatDate(member.createdAt)}</td>
                     <td className="py-2.5 px-3">
