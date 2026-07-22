@@ -31,17 +31,21 @@ export default function HomePage() {
   return (
     <main className="min-h-screen bg-bg-base">
 
-      {/* Hero — full width, no padding */}
-      <section className="relative">
-        <Image
-          src={src}
-          alt="group photo of codeXperts"
-          width={1920}
-          height={1080}
-          className="object-cover object-[0%_60%] w-full h-[50vh] md:h-[70vh]"
-          priority
-        />
-        <HeroImageEditor onUpdate={setHeroUrl} />
+      {/* Hero — fixed aspect ratio with page gutters so crop stays consistent */}
+      <section className="w-full bg-bg-base pt-4 md:pt-6">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="relative w-full aspect-[16/7] overflow-hidden bg-bg-layer1">
+            <Image
+              src={src}
+              alt="group photo of codeXperts"
+              fill
+              sizes="(max-width: 1152px) 100vw, 1152px"
+              className="object-cover object-center"
+              priority
+            />
+            <HeroImageEditor onUpdate={setHeroUrl} />
+          </div>
+        </div>
       </section>
 
       {/* Social Feed — full width bg-bg-base, inner container matches footer */}

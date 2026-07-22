@@ -7,9 +7,7 @@ import { canAccessAdminRoutes } from '@/utils/constants'
 import { uploadImage } from '@/services/cloudinaryService'
 import { supabase } from '@/lib/supabase'
 import { IconEdit } from '@/components/ui/Icons'
-
-// Hero aspect ratio: matches w-full h-[70vh] on desktop
-const HERO_ASPECT = 16 / 7
+import { HERO_ASPECT } from '@/lib/heroImage'
 
 async function getCroppedBlob(imageSrc, pixelCrop) {
   const res = await fetch(imageSrc)
