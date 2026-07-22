@@ -6,6 +6,11 @@ import Markdown from 'react-markdown'
 
 import { IconEdit, IconTrash, IconNew } from '@/components/ui/Icons'
 import { sanitizeMarkdownUrl } from '@/utils/sanitizeMarkdownUrl'
+import {
+  ANNOUNCEMENT_CONTENT_MAX,
+  ANNOUNCEMENT_TITLE_MAX,
+  getAnnouncementLengthError,
+} from '@/utils/announcementLimits'
 
 const MarkdownCodeEditor = dynamic(() => import('./_editor'), { ssr: false })
 
@@ -100,16 +105,25 @@ function EditorTabs({ activeTab, onTabChange }) {
 
 export function PostForm({ form, onChange, onSubmit, onCancel, submitting, editMode = false, error = '' }) {
   const [tab, setTab] = useState('Write')
+  const lengthError = getAnnouncementLengthError(form.title, form.content)
+  const displayError = error || lengthError
+  const overLimit = Boolean(lengthError)
 
   return (
     <div className="flex flex-col gap-4">
-      <input
-        type="text"
-        placeholder="Title"
-        value={form.title}
-        onChange={e => onChange(prev => ({ ...prev, title: e.target.value }))}
-        className="w-full border border-border rounded-md px-3 py-2 text-sm font-inter text-text-primary bg-white focus:outline-none focus:border-border-strong"
-      />
+      <div>
+        <input
+          type="text"
+          placeholder="Title"
+          value={form.title}
+          onChange={e => onChange(prev => ({ ...prev, title: e.target.value }))}
+          maxLength={ANNOUNCEMENT_TITLE_MAX}
+          className="w-full border border-border rounded-md px-3 py-2 text-sm font-inter text-text-primary bg-white focus:outline-none focus:border-border-strong"
+        />
+        <p className="mt-1 text-xs text-text-hint font-inter text-right">
+          {form.title.length}/{ANNOUNCEMENT_TITLE_MAX}
+        </p>
+      </div>
 
       <div className="border border-border rounded-md overflow-hidden">
         <EditorTabs activeTab={tab} onTabChange={setTab} />
@@ -131,9 +145,12 @@ export function PostForm({ form, onChange, onSubmit, onCancel, submitting, editM
           </div>
         )}
       </div>
+      <p className="text-xs text-text-hint font-inter text-right -mt-2">
+        {form.content.length}/{ANNOUNCEMENT_CONTENT_MAX}
+      </p>
 
-      {error && (
-        <p className="text-sm text-error font-inter">{error}</p>
+      {displayError && (
+        <p className="text-sm text-error font-inter">{displayError}</p>
       )}
 
       <div className="flex gap-3 justify-end">
@@ -145,7 +162,7 @@ export function PostForm({ form, onChange, onSubmit, onCancel, submitting, editM
         </button>
         <button
           onClick={onSubmit}
-          disabled={!form.title.trim() || submitting}
+          disabled={!form.title.trim() || submitting || overLimit}
           className="px-5 py-2 bg-accent text-white rounded-md text-sm font-medium font-inter hover:bg-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {submitting ? (editMode ? 'Saving...' : 'Publishing...') : (editMode ? 'Save' : 'Publish')}
