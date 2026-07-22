@@ -5,11 +5,16 @@ import dynamic from 'next/dynamic'
 import Markdown from 'react-markdown'
 
 import { IconEdit, IconTrash, IconNew } from '@/components/ui/Icons'
+import { sanitizeMarkdownUrl } from '@/utils/sanitizeMarkdownUrl'
 
 const MarkdownCodeEditor = dynamic(() => import('./_editor'), { ssr: false })
 
 export function formatDate(str) {
   return new Date(str).toLocaleDateString('en-CA', { year: 'numeric', month: 'short', day: 'numeric' })
+}
+
+function safeUrlTransform(url) {
+  return sanitizeMarkdownUrl(url) ?? ''
 }
 
 const mdComponents = {
@@ -22,8 +27,20 @@ const mdComponents = {
   li: ({ children }) => <li className="mb-1">{children}</li>,
   strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
   em: ({ children }) => <em className="italic">{children}</em>,
-  a: ({ href, children }) => <a href={href} className="text-link hover:underline" target="_blank" rel="noopener noreferrer">{children}</a>,
-  img: ({ src, alt }) => <img src={src} alt={alt} className="max-w-full rounded-md my-4" />,
+  a: ({ href, children }) => {
+    const safeHref = sanitizeMarkdownUrl(href)
+    if (!safeHref) return <span>{children}</span>
+    return (
+      <a href={safeHref} className="text-link hover:underline" target="_blank" rel="noopener noreferrer">
+        {children}
+      </a>
+    )
+  },
+  img: ({ src, alt }) => {
+    const safeSrc = sanitizeMarkdownUrl(src)
+    if (!safeSrc) return null
+    return <img src={safeSrc} alt={alt ?? ''} className="max-w-full rounded-md my-4" />
+  },
   blockquote: ({ children }) => <blockquote className="border-l-4 border-border pl-4 italic text-text-secondary my-4">{children}</blockquote>,
   code: ({ children, className }) => {
     const isBlock = Boolean(className?.includes('language-'))
@@ -32,6 +49,14 @@ const mdComponents = {
       : <code className="bg-bg-layer1 rounded px-1 py-0.5 font-mono text-sm">{children}</code>
   },
   hr: () => <hr className="border-border my-6" />,
+}
+
+export function AnnouncementMarkdown({ children }) {
+  return (
+    <Markdown components={mdComponents} urlTransform={safeUrlTransform}>
+      {children}
+    </Markdown>
+  )
 }
 
 export function PageHeader({ isAdmin, onNew }) {
@@ -99,7 +124,7 @@ export function PostForm({ form, onChange, onSubmit, onCancel, submitting, editM
         ) : (
           <div className="min-h-[360px] bg-white px-6 py-4">
             {form.content.trim() ? (
-              <Markdown components={mdComponents}>{form.content}</Markdown>
+              <AnnouncementMarkdown>{form.content}</AnnouncementMarkdown>
             ) : (
               <p className="text-text-hint font-inter text-sm italic">Nothing to preview.</p>
             )}
@@ -163,7 +188,7 @@ export function PostContent({ post }) {
         </p>
         <div className="border-t border-border mb-8" />
         <div>
-          <Markdown components={mdComponents}>{post.content}</Markdown>
+          <AnnouncementMarkdown>{post.content}</AnnouncementMarkdown>
         </div>
       </div>
     </div>
