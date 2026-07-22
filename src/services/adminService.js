@@ -39,6 +39,7 @@ function mapMember(row) {
     role: row.role,
     applicationStatus: row.application_status,
     createdAt: row.created_at,
+    executiveTitle: row.executive_title ?? null,
   }
 }
 
@@ -84,5 +85,6 @@ export function memberToForm(member) {
     role: member.role ?? 'member',
     status,
     phone: member.phone ?? '',
+    executive_title: member.executiveTitle ?? '',
   }
 }

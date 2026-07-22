@@ -4,7 +4,76 @@ import MemberCard from '@/components/members/MemberCard'
 import { useEffect, useState, useMemo } from 'react'
 import { fetchMembers } from '@/services/membersService'
 import { cohortLabel } from '@/utils/cohort'
+import { compareNumberLike, compareText } from '@/utils/memberSort'
 
+const SORT_OPTIONS = [
+  { value: 'name-asc', label: 'Name(↑)' },
+  { value: 'name-desc', label: 'Name(↓)' },
+  { value: 'school-asc', label: 'School(↑)' },
+  { value: 'school-desc', label: 'School(↓)' },
+  { value: 'cohort-asc', label: 'Cohort(↑)' },
+  { value: 'cohort-desc', label: 'Cohort(↓)' },
+  { value: 'company-asc', label: 'Company(↑)' },
+  { value: 'company-desc', label: 'Company(↓)' },
+  { value: 'role-asc', label: 'Role(↑)' },
+  { value: 'role-desc', label: 'Role(↓)' },
+]
+
+function memberName(member) {
+  return [member.firstName, member.lastName].filter(Boolean).join(' ')
+}
+
+function formatRole(role) {
+  if (role === 'executive' || role === 'admin') return 'Executive'
+  return 'Member'
+}
+
+function hasCompany(member) {
+  return Boolean(member.company?.trim())
+}
+
+function matchesStatus(memberStatus, filter) {
+  if (!filter) return true
+  if (filter === 'student') return memberStatus === 'student'
+  return memberStatus === 'graduate' || memberStatus === 'graduated'
+}
+
+function compareBySort(a, b, sortValue) {
+  const [key, dir] = sortValue.split('-')
+
+  if (key === 'company') {
+    const aHas = hasCompany(a)
+    const bHas = hasCompany(b)
+    if (aHas !== bHas) return aHas ? -1 : 1
+    if (!aHas) return compareText(memberName(a), memberName(b))
+    const companyCmp = compareText(a.company, b.company)
+    if (companyCmp !== 0) return dir === 'asc' ? companyCmp : -companyCmp
+    return compareText(memberName(a), memberName(b))
+  }
+
+  let result = 0
+  switch (key) {
+    case 'school':
+      result = compareText(a.school, b.school)
+      break
+    case 'cohort':
+      result = compareNumberLike(a.cohort, b.cohort)
+      break
+    case 'role':
+      result = compareText(formatRole(a.role), formatRole(b.role))
+      break
+    case 'name':
+    default:
+      result = compareText(memberName(a), memberName(b))
+      break
+  }
+
+  if (result === 0 && key !== 'name') {
+    result = compareText(memberName(a), memberName(b))
+  }
+
+  return dir === 'asc' ? result : -result
+}
 
 export default function MembersPage() {
   const [members, setMembers] = useState([])
@@ -14,6 +83,8 @@ export default function MembersPage() {
   const [school, setSchool] = useState('')
   const [status, setStatus] = useState('')
   const [role, setRole] = useState('')
+  const [company, setCompany] = useState('')
+  const [sort, setSort] = useState('name-asc')
 
   useEffect(() => {
     let cancelled = false
@@ -36,22 +107,37 @@ export default function MembersPage() {
     return nums.sort((a, b) => Number(a) - Number(b))
   }, [members])
 
-  const filteredMembers = members.filter((m) => {
-    if (cohort && m.cohort !== cohort) return false
-    if (school && m.school !== school) return false
-    if (status && m.status !== status) return false
-    if (role) {
-      const isExec = m.role === 'executive' || m.role === 'admin'
-      if (role === 'executive' && !isExec) return false
-      if (role === 'member' && m.role !== 'member') return false
-    }
-    return true
-  })
+  const companyOptions = useMemo(() => {
+    const names = [...new Set(members.map(m => m.company?.trim()).filter(Boolean))]
+    return names.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
+  }, [members])
+
+  const filteredMembers = useMemo(() => {
+    const filtered = members.filter((m) => {
+      if (cohort && m.cohort !== cohort) return false
+      if (school && m.school !== school) return false
+      if (!matchesStatus(m.status, status)) return false
+      if (role) {
+        const isExec = m.role === 'executive' || m.role === 'admin'
+        if (role === 'executive' && !isExec) return false
+        if (role === 'member' && m.role !== 'member') return false
+      }
+      if (company === '__none__') {
+        if (hasCompany(m)) return false
+      } else if (company && m.company?.trim() !== company) {
+        return false
+      }
+      return true
+    })
+
+    return [...filtered].sort((a, b) => compareBySort(a, b, sort))
+  }, [members, cohort, school, status, role, company, sort])
+
+  const selectClass = 'border border-border-strong rounded-md px-3 py-2 text-sm text-text-primary bg-bg-base focus:outline-none focus:ring-2 focus:ring-border'
 
   return (
     <RoleGuard>
       <main className="min-h-screen">
-        {/*HEADER SECTION*/}
         <section className="bg-bg-base py-8 px-6">
           <div className="max-w-6xl mx-auto">
             <h1 className="font-montserrat text-4xl font-bold text-text-primary">
@@ -63,45 +149,53 @@ export default function MembersPage() {
           </div>
         </section>
 
-        {/*FILTER ROW*/}
         <section className="bg-bg-base border-b border-border py-4 px-6">
           <div className="max-w-6xl mx-auto flex flex-row gap-3 flex-wrap">
-            <select className="border border-border-strong rounded-md px-3 py-2 text-sm text-text-primary bg-bg-base focus:outline-none focus:ring-2 focus:ring-border"
-            value={cohort} onChange={(e) => setCohort(e.target.value)}>
+            <select className={selectClass} value={cohort} onChange={(e) => setCohort(e.target.value)}>
               <option value="">All Cohorts</option>
               {cohortOptions.map(n => (
                 <option key={n} value={n}>{cohortLabel(n)}</option>
               ))}
             </select>
 
-            <select className="border border-border-strong rounded-md px-3 py-2 text-sm text-text-primary bg-bg-base focus:outline-none focus:ring-2 focus:ring-border"
-            value={school} onChange={(e) => setSchool(e.target.value)}>
+            <select className={selectClass} value={school} onChange={(e) => setSchool(e.target.value)}>
               <option value="">All Schools</option>
               <option value="Seneca College">Seneca College</option>
               <option value="York University">York University</option>
             </select>
 
-            <select className="border border-border-strong rounded-md px-3 py-2 text-sm text-text-primary bg-bg-base focus:outline-none focus:ring-2 focus:ring-border"
-            value={status} onChange={(e) => setStatus(e.target.value)}>
+            <select className={selectClass} value={status} onChange={(e) => setStatus(e.target.value)}>
               <option value="">All Status</option>
               <option value="student">Student</option>
-              <option value="graduated">Graduate</option>
+              <option value="graduate">Graduate</option>
             </select>
 
-            <select className="border border-border-strong rounded-md px-3 py-2 text-sm text-text-primary bg-bg-base focus:outline-none focus:ring-2 focus:ring-border"
-            value={role} onChange={(e) => setRole(e.target.value)}>
+            <select className={selectClass} value={role} onChange={(e) => setRole(e.target.value)}>
               <option value="">All Roles</option>
               <option value="member">Member</option>
               <option value="executive">Executive</option>
             </select>
+
+            <select className={selectClass} value={company} onChange={(e) => setCompany(e.target.value)}>
+              <option value="">All Companies</option>
+              <option value="__none__">No company</option>
+              {companyOptions.map(name => (
+                <option key={name} value={name}>{name}</option>
+              ))}
+            </select>
+
+            <select className={selectClass} value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Sort members">
+              {SORT_OPTIONS.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
           </div>
         </section>
 
-        {/*MEMBER GRID*/}
         <section className="bg-bg-base py-8 px-6">
           <div className="max-w-6xl mx-auto">
             {loading && <p className="text-text-secondary">Loading members…</p>}
-            {error && <p className="text-accent">Couldn't load members. Try refreshing.</p>}
+            {error && <p className="text-accent">Couldn&apos;t load members. Try refreshing.</p>}
 
             {!loading && !error && filteredMembers.length === 0 && (
               <p className="text-text-secondary">No members yet.</p>
