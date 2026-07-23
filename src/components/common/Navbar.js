@@ -265,16 +265,16 @@ export default function Navbar() {
             {socialIconsRow}
             <div className="w-px h-5 bg-border mx-1" />
             {user ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 xl:gap-2 shrink-0">
                 <Link href={profileHref}><UserChip user={user} profile={profile} /></Link>
                 <button type="button" onClick={signOut}
-                  className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors">
+                  className="shrink-0 whitespace-nowrap px-2.5 xl:px-4 py-1.5 rounded-md text-xs xl:text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors">
                   Log out
                 </button>
               </div>
             ) : (
               <button type="button" onClick={handleLogIn} disabled={loggingIn}
-                className="px-4 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
+                className="shrink-0 whitespace-nowrap px-2.5 xl:px-4 py-1.5 rounded-md text-xs xl:text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
                 {loggingIn ? 'Redirecting…' : 'Get Started'}
               </button>
             )}

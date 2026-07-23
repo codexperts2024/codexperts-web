@@ -13,6 +13,24 @@ export const FILE_FORMAT = {
   PDF: 'pdf',
 }
 
+export const MAX_SAMPLE_TESTS = 10
+
+export function emptySamplePair() {
+  return { stdin: '', expected_stdout: '' }
+}
+
+/** Keep up to 10 pairs that have any non-whitespace content. */
+export function normalizeSampleTests(samples) {
+  if (!Array.isArray(samples)) return []
+  return samples
+    .slice(0, MAX_SAMPLE_TESTS)
+    .map((s) => ({
+      stdin: String(s?.stdin ?? ''),
+      expected_stdout: String(s?.expected_stdout ?? ''),
+    }))
+    .filter((s) => s.stdin.trim() !== '' || s.expected_stdout.trim() !== '')
+}
+
 const SELECT_FIELDS = '*'
 
 function mapProblem(row) {
@@ -27,6 +45,7 @@ function mapProblem(row) {
     file_format: row.file_format,
     file_url: row.file_url,
     source_file_url: row.source_file_url ?? null,
+    sample_tests: normalizeSampleTests(row.sample_tests),
     created_at: row.created_at,
     created_by: row.created_by,
   }
@@ -77,6 +96,16 @@ export async function fetchProblems(schoolFilter) {
   return (data ?? []).map(mapProblem)
 }
 
+export async function fetchProblemById(id) {
+  const { data, error } = await supabase
+    .from('problems')
+    .select(SELECT_FIELDS)
+    .eq('id', id)
+    .single()
+  if (error) throw error
+  return mapProblem(data)
+}
+
 export async function createProblem({
   title,
   description = '',
@@ -87,6 +116,7 @@ export async function createProblem({
   fileFormat = null,
   fileUrl = null,
   sourceFileUrl = null,
+  sampleTests = [],
   createdBy,
 }) {
   const { data, error } = await supabase
@@ -101,6 +131,7 @@ export async function createProblem({
       file_format: fileFormat,
       file_url: fileUrl,
       source_file_url: sourceFileUrl,
+      sample_tests: normalizeSampleTests(sampleTests),
       created_by: createdBy ?? null,
     })
     .select(SELECT_FIELDS)
@@ -121,6 +152,9 @@ export async function updateProblem(id, fields) {
   if (fields.fileFormat !== undefined) payload.file_format = fields.fileFormat
   if (fields.fileUrl !== undefined) payload.file_url = fields.fileUrl
   if (fields.sourceFileUrl !== undefined) payload.source_file_url = fields.sourceFileUrl
+  if (fields.sampleTests !== undefined) {
+    payload.sample_tests = normalizeSampleTests(fields.sampleTests)
+  }
 
   const { data, error } = await supabase
     .from('problems')

@@ -4,16 +4,20 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { Upload } from 'lucide-react'
+import { Plus, Upload, X } from 'lucide-react'
+
+const PdfViewer = dynamic(() => import('@/components/problems/PdfViewer'), { ssr: false })
 import { uploadImage } from '@/services/cloudinaryService'
 import { resolveMarkdownWithAssets, pickMarkdownFile, countUnresolvedImageRefs, prepareMarkdownForDisplay, buildPendingImageMap, guessTitleFromImport, guessTitleFromFilename, applyLocalImagesForPreview } from '@/utils/markdownImport'
 import { extractFilesFromZip, isZipFile } from '@/utils/zipImport'
 import {
   CONTENT_TYPE,
   FILE_FORMAT,
+  MAX_SAMPLE_TESTS,
   detectProblemFileType,
   downloadProblemDocument,
-  getDocumentSignedUrl,
+  emptySamplePair,
+  normalizeSampleTests,
   previewDocxAsPdf,
 } from '@/services/problemsService'
 
@@ -72,10 +76,12 @@ export function emptyProblemForm() {
     sourceFileUrl: null,
     documentName: null,
     pendingImageFiles: [],
+    sampleTests: [emptySamplePair()],
   }
 }
 
 export function problemToForm(problem) {
+  const samples = normalizeSampleTests(problem.sample_tests)
   return {
     title: problem.title ?? '',
     week: problem.week != null ? String(problem.week) : '',
@@ -89,6 +95,7 @@ export function problemToForm(problem) {
     sourceFileUrl: problem.source_file_url ?? null,
     documentName: problem.file_url ? problem.file_url.split('/').pop() : null,
     pendingImageFiles: [],
+    sampleTests: samples.length > 0 ? samples : [emptySamplePair()],
   }
 }
 
@@ -148,7 +155,14 @@ function MarkdownBody({ children, pendingImageMap }) {
   )
 }
 
-export function DocumentViewer({ storagePath, fileFormat, accessToken, className = '' }) {
+export function DocumentViewer({
+  storagePath,
+  fileFormat,
+  accessToken,
+  className = '',
+  fill = false,
+  title = 'Problem document',
+}) {
   const containerRef = useRef(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -163,6 +177,7 @@ export function DocumentViewer({ storagePath, fileFormat, accessToken, className
     }
 
     let cancelled = false
+    let objectUrl = ''
 
     async function load() {
       setLoading(true)
@@ -171,8 +186,9 @@ export function DocumentViewer({ storagePath, fileFormat, accessToken, className
       setDocxBuffer(null)
       try {
         if (isPdfStorage) {
-          const url = await getDocumentSignedUrl(storagePath, accessToken)
-          if (!cancelled) setPdfUrl(url)
+          const blob = await downloadProblemDocument(storagePath, accessToken)
+          objectUrl = URL.createObjectURL(blob)
+          if (!cancelled) setPdfUrl(objectUrl)
         } else if (fileFormat === FILE_FORMAT.DOCX) {
           const blob = await downloadProblemDocument(storagePath, accessToken)
           if (!cancelled) setDocxBuffer(await blob.arrayBuffer())
@@ -185,7 +201,10 @@ export function DocumentViewer({ storagePath, fileFormat, accessToken, className
     }
 
     load()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
+    }
   }, [storagePath, fileFormat, accessToken, isPdfStorage])
 
   useEffect(() => {
@@ -213,10 +232,11 @@ export function DocumentViewer({ storagePath, fileFormat, accessToken, className
 
   if (isPdfStorage && pdfUrl) {
     return (
-      <iframe
-        title="Problem document"
-        src={pdfUrl}
-        className={`w-full min-h-[70vh] border border-border rounded-md bg-bg-base ${className}`}
+      <PdfViewer
+        url={pdfUrl}
+        title={title}
+        fill={fill}
+        className={className}
       />
     )
   }
@@ -224,7 +244,9 @@ export function DocumentViewer({ storagePath, fileFormat, accessToken, className
   return (
     <div
       ref={containerRef}
-      className={`overflow-x-auto border border-border rounded-md bg-bg-base p-2 sm:p-4 min-h-[50vh] ${className}`}
+      className={`overflow-x-auto border border-border rounded-md bg-bg-base p-2 sm:p-4 ${
+        fill ? 'h-full min-h-0' : 'min-h-[50vh]'
+      } ${className}`}
     />
   )
 }
@@ -282,10 +304,10 @@ function PendingDocumentPreview({ file, fileFormat, accessToken }) {
 
   if (pdfUrl) {
     return (
-      <iframe
+      <PdfViewer
+        url={pdfUrl}
         title="Document preview"
-        src={pdfUrl}
-        className="w-full min-h-[50vh] border border-border rounded-md bg-bg-base"
+        className="w-full"
       />
     )
   }
@@ -639,6 +661,84 @@ export function ProblemForm({ form, onChange, onSubmit, onCancel, submitting, ed
         <p className="text-sm font-inter text-accent">{fileError}</p>
       )}
 
+      <div className="border border-border rounded-md bg-bg-base p-4 space-y-3">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="font-inter text-sm font-medium text-text-primary">Sample tests</p>
+            <p className="font-inter text-xs text-text-secondary mt-1">
+              Used on Solutions Run. Up to {MAX_SAMPLE_TESTS} pairs.
+            </p>
+          </div>
+          <button
+            type="button"
+            disabled={(form.sampleTests?.length ?? 0) >= MAX_SAMPLE_TESTS}
+            onClick={() => onChange((prev) => ({
+              ...prev,
+              sampleTests: [...(prev.sampleTests ?? [emptySamplePair()]), emptySamplePair()]
+                .slice(0, MAX_SAMPLE_TESTS),
+            }))}
+            className="inline-flex items-center gap-1 rounded-md border border-border px-2.5 py-1.5 font-inter text-sm text-text-primary hover:bg-bg-surface disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <Plus size={14} />
+            Add
+          </button>
+        </div>
+
+        {(form.sampleTests?.length ? form.sampleTests : [emptySamplePair()]).map((sample, index) => (
+          <div key={index} className="space-y-2 border-t border-border pt-3 first:border-t-0 first:pt-0">
+            <div className="flex items-center justify-between gap-2">
+              <p className="font-inter text-xs font-medium text-text-secondary">
+                Sample
+                {' '}
+                {index + 1}
+              </p>
+              {(form.sampleTests?.length ?? 0) > 1 && (
+                <button
+                  type="button"
+                  onClick={() => onChange((prev) => {
+                    const next = [...(prev.sampleTests ?? [])]
+                    next.splice(index, 1)
+                    return {
+                      ...prev,
+                      sampleTests: next.length > 0 ? next : [emptySamplePair()],
+                    }
+                  })}
+                  className="inline-flex items-center gap-1 font-inter text-xs text-text-secondary hover:text-accent"
+                  aria-label={`Remove sample ${index + 1}`}
+                >
+                  <X size={14} />
+                  Remove
+                </button>
+              )}
+            </div>
+            <input
+              type="text"
+              value={sample.stdin}
+              onChange={(e) => onChange((prev) => {
+                const next = [...(prev.sampleTests?.length ? prev.sampleTests : [emptySamplePair()])]
+                next[index] = { ...next[index], stdin: e.target.value }
+                return { ...prev, sampleTests: next }
+              })}
+              spellCheck={false}
+              placeholder={`Sample Input ${index + 1}`}
+              className="w-full border border-border rounded-md px-3 py-2 font-mono text-sm text-text-primary bg-bg-base focus:outline-none focus:border-border-strong"
+            />
+            <input
+              type="text"
+              value={sample.expected_stdout}
+              onChange={(e) => onChange((prev) => {
+                const next = [...(prev.sampleTests?.length ? prev.sampleTests : [emptySamplePair()])]
+                next[index] = { ...next[index], expected_stdout: e.target.value }
+                return { ...prev, sampleTests: next }
+              })}
+              spellCheck={false}
+              placeholder={`Sample Output ${index + 1}`}
+              className="w-full border border-border rounded-md px-3 py-2 font-mono text-sm text-text-primary bg-bg-base focus:outline-none focus:border-border-strong"
+            />
+          </div>
+        ))}
+      </div>
+
       <input
         ref={fileInputRef}
         type="file"
@@ -668,23 +768,27 @@ export function ProblemForm({ form, onChange, onSubmit, onCancel, submitting, ed
   )
 }
 
-export function ProblemBody({ problem, accessToken }) {
+export function ProblemBody({ problem, accessToken, fill = false }) {
   if (problem.content_type === CONTENT_TYPE.DOCUMENT && problem.file_url) {
     return (
       <DocumentViewer
         storagePath={problem.file_url}
         fileFormat={problem.file_format}
         accessToken={accessToken}
-        className="mb-8"
+        fill={fill}
+        title={problem.title || 'Problem document'}
+        className={fill ? 'h-full min-h-0' : 'mb-8'}
       />
     )
   }
 
   return (
-    <div className="font-inter text-base text-text-primary leading-[1.7] prose max-w-none mb-8
+    <div className={`font-inter text-base text-text-primary leading-[1.7] prose max-w-none
       prose-headings:font-montserrat prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg
       prose-code:font-mono prose-code:text-sm prose-code:bg-bg-elevated prose-code:px-1 prose-code:py-0.5 prose-code:rounded
-      prose-pre:bg-bg-elevated prose-pre:p-4 prose-pre:rounded-lg prose-pre:font-mono prose-pre:text-sm">
+      prose-pre:bg-bg-elevated prose-pre:p-4 prose-pre:rounded-lg prose-pre:font-mono prose-pre:text-sm ${
+        fill ? 'h-full min-h-0' : 'mb-8'
+      }`}>
       <MarkdownBody>{problem.description || '_No content._'}</MarkdownBody>
     </div>
   )

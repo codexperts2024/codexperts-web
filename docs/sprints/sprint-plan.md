@@ -14,7 +14,7 @@
 | Kai | `naik26m3` | Frontend |
 | Andra | `kazzledazz` | Frontend / Backend (Supabase) |
 | Gary | `GarySkywalker-droid` | Backend (Supabase / DB & Auth) |
-| Dave | `SystemProgrammerWizzard` | Backend (FastAPI / Railway / Deployment) / Frontend |
+| Dave | `SystemProgrammerWizzard` | Backend (FastAPI / Heroku / Deployment) / Frontend |
 
 > **FS** = Full Stack task — requires both FE and BE collaboration
 
