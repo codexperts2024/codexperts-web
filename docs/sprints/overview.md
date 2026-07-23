@@ -31,7 +31,7 @@ Public (Unauthenticated)
 | **Kai** | Frontend (CSS) |
 | **Andra** | Frontend (CSS) |
 | **Gary** | Backend (Supabase / DB) |
-| **Dave** | Backend (FastAPI / Railway / Deployment) |
+| **Dave** | Backend (FastAPI / Heroku / Deployment) |
 
 **Onboarding flow:**
 ```
@@ -171,10 +171,10 @@ Central management dashboard for admins and executives.
 | Layer | Technology | Platform |
 |-------|-----------|----------|
 | Frontend | Next.js 15 + React + Tailwind CSS | Vercel |
-| Backend | FastAPI (Python) | Railway |
+| Backend | FastAPI (Python) | Heroku |
 | Database & Auth | Supabase (PostgreSQL + Google OAuth) | Managed |
 | Code Editor | Monaco Editor | In-browser |
-| Code Execution | Piston API (via FastAPI proxy) | External |
+| Code Execution | Judge0 CE (RapidAPI) via FastAPI `/execute` | External |
 | Social Feed | Elfsight embed (Instagram) | External |
 | Schedule | Google Calendar embed | External |
 

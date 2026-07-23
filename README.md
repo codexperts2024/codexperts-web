@@ -94,7 +94,7 @@ Frontend (Next.js — Vercel)
 │
 └── FastAPI (Heroku)
     ├── /health            → service health check
-    ├── /execute           → proxy to Piston API (code execution)
+    ├── /execute           → proxy to Judge0 CE (RapidAPI) for code execution
     └── /attendance/verify → QR token validation
 ```
 
@@ -470,17 +470,19 @@ codexperts-web/
 │   └── utils/               # Helper functions, constants
 ├── docs/
 │   ├── design/              # Design system, sitemap, page-level specs
-│   ├── guidelines/          # code-conventions.md, git-workflow.md
+│   ├── guidelines/          # code-conventions, git-workflow, judge0-rapidapi-setup
 │   ├── meeting-notes/       # Sprint meeting records
 │   ├── sprints/             # Sprint plan + weekly specs
 │   └── schema/              # Database schema definitions
 ├── backend/
 │   ├── main.py              # FastAPI entry point
+│   ├── auth.py              # Supabase JWT + member+ role gate
+│   ├── services/            # Judge0 RapidAPI code-execution client
 │   ├── Procfile             # Heroku web process
 │   ├── .profile.d/          # Optional dyno env (LibreOffice via Heroku buildpack)
 │   ├── requirements.txt
 │   ├── .env.example
-│   └── routers/             # documents (DOCX→PDF), future execute/attendance
+│   └── routers/             # documents (DOCX→PDF), execute (Piston proxy)
 ├── scripts/
 │   └── sprint-report.js     # CLI tool — GitHub Issue contribution report per member
 ├── package.json
