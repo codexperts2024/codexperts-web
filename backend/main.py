@@ -1,7 +1,10 @@
 import os
 
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+load_dotenv()
 
 app = FastAPI(title="codeXperts API")
 
@@ -34,11 +37,12 @@ app.add_middleware(
 def health():
     return {"status": "ok"}
 
-from routers import documents
+from routers import documents, execute, submissions
 
 app.include_router(documents.router)
+app.include_router(execute.router)
+app.include_router(submissions.router)
 
 # Routers added in later sprints:
-# from routers import execute, attendance
-# app.include_router(execute.router)     # W3: /execute
+# from routers import attendance
 # app.include_router(attendance.router)  # W4: /attendance/verify

@@ -1,3 +1,4 @@
-# Route modules added in later sprints:
-# execute.py   — W3: POST /execute (Piston API proxy)
-# attendance.py — W4: POST /attendance/verify (QR check-in)
+# Route modules:
+# execute.py     — POST /execute (Judge0 RapidAPI proxy)
+# submissions.py — POST /submissions (Supabase upsert)
+# attendance.py  — W4: POST /attendance/verify (QR check-in)

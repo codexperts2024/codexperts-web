@@ -77,6 +77,16 @@ export async function fetchProblems(schoolFilter) {
   return (data ?? []).map(mapProblem)
 }
 
+export async function fetchProblemById(id) {
+  const { data, error } = await supabase
+    .from('problems')
+    .select(SELECT_FIELDS)
+    .eq('id', id)
+    .single()
+  if (error) throw error
+  return mapProblem(data)
+}
+
 export async function createProblem({
   title,
   description = '',

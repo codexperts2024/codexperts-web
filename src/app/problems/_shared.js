@@ -5,6 +5,8 @@ import dynamic from 'next/dynamic'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { Upload } from 'lucide-react'
+
+const PdfViewer = dynamic(() => import('@/components/problems/PdfViewer'), { ssr: false })
 import { uploadImage } from '@/services/cloudinaryService'
 import { resolveMarkdownWithAssets, pickMarkdownFile, countUnresolvedImageRefs, prepareMarkdownForDisplay, buildPendingImageMap, guessTitleFromImport, guessTitleFromFilename, applyLocalImagesForPreview } from '@/utils/markdownImport'
 import { extractFilesFromZip, isZipFile } from '@/utils/zipImport'
@@ -13,7 +15,6 @@ import {
   FILE_FORMAT,
   detectProblemFileType,
   downloadProblemDocument,
-  getDocumentSignedUrl,
   previewDocxAsPdf,
 } from '@/services/problemsService'
 
@@ -148,7 +149,14 @@ function MarkdownBody({ children, pendingImageMap }) {
   )
 }
 
-export function DocumentViewer({ storagePath, fileFormat, accessToken, className = '' }) {
+export function DocumentViewer({
+  storagePath,
+  fileFormat,
+  accessToken,
+  className = '',
+  fill = false,
+  title = 'Problem document',
+}) {
   const containerRef = useRef(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -163,6 +171,7 @@ export function DocumentViewer({ storagePath, fileFormat, accessToken, className
     }
 
     let cancelled = false
+    let objectUrl = ''
 
     async function load() {
       setLoading(true)
@@ -171,8 +180,9 @@ export function DocumentViewer({ storagePath, fileFormat, accessToken, className
       setDocxBuffer(null)
       try {
         if (isPdfStorage) {
-          const url = await getDocumentSignedUrl(storagePath, accessToken)
-          if (!cancelled) setPdfUrl(url)
+          const blob = await downloadProblemDocument(storagePath, accessToken)
+          objectUrl = URL.createObjectURL(blob)
+          if (!cancelled) setPdfUrl(objectUrl)
         } else if (fileFormat === FILE_FORMAT.DOCX) {
           const blob = await downloadProblemDocument(storagePath, accessToken)
           if (!cancelled) setDocxBuffer(await blob.arrayBuffer())
@@ -185,7 +195,10 @@ export function DocumentViewer({ storagePath, fileFormat, accessToken, className
     }
 
     load()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
+    }
   }, [storagePath, fileFormat, accessToken, isPdfStorage])
 
   useEffect(() => {
@@ -213,10 +226,11 @@ export function DocumentViewer({ storagePath, fileFormat, accessToken, className
 
   if (isPdfStorage && pdfUrl) {
     return (
-      <iframe
-        title="Problem document"
-        src={pdfUrl}
-        className={`w-full min-h-[70vh] border border-border rounded-md bg-bg-base ${className}`}
+      <PdfViewer
+        url={pdfUrl}
+        title={title}
+        fill={fill}
+        className={className}
       />
     )
   }
@@ -224,7 +238,9 @@ export function DocumentViewer({ storagePath, fileFormat, accessToken, className
   return (
     <div
       ref={containerRef}
-      className={`overflow-x-auto border border-border rounded-md bg-bg-base p-2 sm:p-4 min-h-[50vh] ${className}`}
+      className={`overflow-x-auto border border-border rounded-md bg-bg-base p-2 sm:p-4 ${
+        fill ? 'h-full min-h-0' : 'min-h-[50vh]'
+      } ${className}`}
     />
   )
 }
@@ -282,10 +298,10 @@ function PendingDocumentPreview({ file, fileFormat, accessToken }) {
 
   if (pdfUrl) {
     return (
-      <iframe
+      <PdfViewer
+        url={pdfUrl}
         title="Document preview"
-        src={pdfUrl}
-        className="w-full min-h-[50vh] border border-border rounded-md bg-bg-base"
+        className="w-full"
       />
     )
   }
@@ -668,23 +684,27 @@ export function ProblemForm({ form, onChange, onSubmit, onCancel, submitting, ed
   )
 }
 
-export function ProblemBody({ problem, accessToken }) {
+export function ProblemBody({ problem, accessToken, fill = false }) {
   if (problem.content_type === CONTENT_TYPE.DOCUMENT && problem.file_url) {
     return (
       <DocumentViewer
         storagePath={problem.file_url}
         fileFormat={problem.file_format}
         accessToken={accessToken}
-        className="mb-8"
+        fill={fill}
+        title={problem.title || 'Problem document'}
+        className={fill ? 'h-full min-h-0' : 'mb-8'}
       />
     )
   }
 
   return (
-    <div className="font-inter text-base text-text-primary leading-[1.7] prose max-w-none mb-8
+    <div className={`font-inter text-base text-text-primary leading-[1.7] prose max-w-none
       prose-headings:font-montserrat prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg
       prose-code:font-mono prose-code:text-sm prose-code:bg-bg-elevated prose-code:px-1 prose-code:py-0.5 prose-code:rounded
-      prose-pre:bg-bg-elevated prose-pre:p-4 prose-pre:rounded-lg prose-pre:font-mono prose-pre:text-sm">
+      prose-pre:bg-bg-elevated prose-pre:p-4 prose-pre:rounded-lg prose-pre:font-mono prose-pre:text-sm ${
+        fill ? 'h-full min-h-0' : 'mb-8'
+      }`}>
       <MarkdownBody>{problem.description || '_No content._'}</MarkdownBody>
     </div>
   )

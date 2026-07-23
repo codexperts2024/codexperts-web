@@ -141,7 +141,7 @@ function PostView({
               <ProblemBody problem={problem} accessToken={accessToken} />
 
               <button
-                onClick={() => router.push(`/solutions?problem=${problem.id}`)}
+                onClick={() => router.push(`/solutions/${problem.id}`)}
                 className="w-full py-3 rounded-md bg-accent hover:bg-accent-hover text-white font-inter font-medium text-sm flex items-center justify-center gap-2 transition-colors"
               >
                 <PenLine size={14} />

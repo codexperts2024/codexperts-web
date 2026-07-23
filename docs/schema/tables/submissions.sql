@@ -6,5 +6,6 @@ CREATE TABLE submissions (
   code TEXT NOT NULL,
   language TEXT NOT NULL,
   ai_feedback TEXT,
-  created_at TIMESTAMP DEFAULT NOW()
+  created_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE (profile_id, problem_id)
 );
