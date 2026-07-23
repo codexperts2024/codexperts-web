@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@codemirror/lang-markdown": "^6.5.0",
+    "@monaco-editor/react": "^4.7.0",
     "@supabase/supabase-js": "^2.101.1",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",

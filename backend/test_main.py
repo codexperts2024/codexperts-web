@@ -259,3 +259,90 @@ def test_execute_daily_limit(authed_client, monkeypatch):
 
     assert limited.status_code == 429
     assert "Daily execute limit" in limited.json()["detail"]
+
+
+def test_submissions_requires_auth():
+    response = client.post(
+        "/submissions",
+        json={"problem_id": 1, "language": "python", "code": "print(1)"},
+    )
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Unauthorized"
+
+
+def test_submissions_unsupported_language(authed_client):
+    response = authed_client.post(
+        "/submissions",
+        json={"problem_id": 1, "language": "ruby", "code": "puts 1"},
+    )
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Language not supported"
+
+
+def test_submissions_code_too_large(authed_client):
+    huge = "x" * (judge0.MAX_CODE_BYTES + 1)
+    response = authed_client.post(
+        "/submissions",
+        json={"problem_id": 1, "language": "python", "code": huge},
+    )
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Code size limit exceeded"
+
+
+def test_submissions_problem_not_found(authed_client):
+    problem_response = MagicMock()
+    problem_response.status_code = 200
+    problem_response.json.return_value = []
+
+    with patch("services.submissions.rest_client") as mock_rest:
+        mock_client = MagicMock()
+        mock_client.__enter__.return_value = mock_client
+        mock_client.__exit__.return_value = False
+        mock_client.get.return_value = problem_response
+        mock_rest.return_value = mock_client
+
+        response = authed_client.post(
+            "/submissions",
+            json={"problem_id": 999, "language": "python", "code": "print(1)"},
+        )
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Problem not found"
+
+
+def test_submissions_upsert_success(authed_client, monkeypatch):
+    monkeypatch.setenv("SUPABASE_URL", "https://example.supabase.co")
+    monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "service-key")
+
+    problem_response = MagicMock()
+    problem_response.status_code = 200
+    problem_response.json.return_value = [{"id": 1}]
+
+    upsert_response = MagicMock()
+    upsert_response.status_code = 201
+    upsert_response.json.return_value = [
+        {
+            "id": 42,
+            "updated_at": "2026-07-23T12:00:00+00:00",
+            "created_at": "2026-07-23T11:00:00+00:00",
+        }
+    ]
+
+    with patch("services.submissions.rest_client") as mock_rest:
+        mock_client = MagicMock()
+        mock_client.__enter__.return_value = mock_client
+        mock_client.__exit__.return_value = False
+        mock_client.get.return_value = problem_response
+        mock_client.post.return_value = upsert_response
+        mock_rest.return_value = mock_client
+
+        response = authed_client.post(
+            "/submissions",
+            json={"problem_id": 1, "language": "python", "code": "print(1)"},
+        )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["message"] == "Solution submitted!"
+    assert body["submission_id"] == 42
+    assert body["submitted_at"] == "2026-07-23T12:00:00+00:00"

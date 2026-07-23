@@ -37,6 +37,7 @@ The **codeXperts Club** official website — a members-only platform for a codin
 |---------|-------------|
 | **Google OAuth + RBAC** | 4-tier role system (Public → Member → Executive → Admin) with Supabase RLS enforcement |
 | **Coding Problems** | Weekly problems on `/problems` (markdown editor or Word/PDF document mode); exec/admin CRUD; members read-only |
+| **Solutions Workspace** | `/solutions` list + `/solutions/:id` Monaco editor; Run via Judge0, Submit upsert, Community accordion viewer |
 | **QR Attendance** | Admin generates a session token → members scan to check in → auto-expires |
 | **Schedule Page** | Google Calendar API integration — synced events with subscribe/download for members |
 | **Member Directory** | Filterable profile cards with cohort, school, role badges, and per-field visibility controls |
@@ -95,6 +96,7 @@ Frontend (Next.js — Vercel)
 └── FastAPI (Heroku)
     ├── /health            → service health check
     ├── /execute           → proxy to Judge0 CE (RapidAPI) for code execution
+    ├── /submissions       → upsert member solutions to Supabase
     └── /attendance/verify → QR token validation
 ```
 

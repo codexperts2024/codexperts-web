@@ -25,8 +25,10 @@ EXECUTION_TIMEOUT_SECONDS = 10.0
 SUPPORTED_LANGUAGES: dict[str, int] = {
     "python": 100,  # Python 3.12.5
     "java": 91,  # Java (JDK 17.0.6)
+    "c": 103,  # C (GCC 14.1.0)
     "cpp": 105,  # C++ (GCC 14.1.0)
     "javascript": 93,  # JavaScript (Node.js 18.15.0)
+    "typescript": 101,  # TypeScript 5.6.2
 }
 
 # Judge0 status.id reference: 3 = Accepted
