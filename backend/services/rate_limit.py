@@ -26,19 +26,23 @@ def _today_utc() -> str:
     return datetime.now(timezone.utc).date().isoformat()
 
 
-def check_and_increment(user_id: str) -> int:
-    """Increment the user's daily counter. Returns remaining quota after this call.
+def check_and_increment(user_id: str, amount: int = 1) -> int:
+    """Increment the user's daily counter by ``amount``.
 
-    Raises DailyLimitExceededError when the limit is already reached.
+    Returns remaining quota after this call.
+    Raises DailyLimitExceededError when the limit would be exceeded.
     """
+    if amount < 1:
+        raise ValueError("amount must be >= 1")
+
     key = (user_id, _today_utc())
     with _lock:
         used = _counts.get(key, 0)
-        if used >= DAILY_EXECUTE_LIMIT:
+        if used + amount > DAILY_EXECUTE_LIMIT:
             raise DailyLimitExceededError(
                 f"Daily execute limit of {DAILY_EXECUTE_LIMIT} reached"
             )
-        used += 1
+        used += amount
         _counts[key] = used
         return DAILY_EXECUTE_LIMIT - used
 

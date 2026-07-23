@@ -346,3 +346,89 @@ def test_submissions_upsert_success(authed_client, monkeypatch):
     assert body["message"] == "Solution submitted!"
     assert body["submission_id"] == 42
     assert body["submitted_at"] == "2026-07-23T12:00:00+00:00"
+
+
+def test_normalize_stdout_trims_lines():
+    from services.samples import normalize_stdout, outputs_match, parse_sample_tests
+
+    assert normalize_stdout("a  \n b \n\n") == "a\n b"
+    assert outputs_match("4 1\n", "4 1")
+    assert parse_sample_tests([
+        {"stdin": "a 1", "expected_stdout": "4 1"},
+        {"stdin": "  ", "expected_stdout": ""},
+        {"stdin": "b 0", "expected_stdout": "8 8"},
+    ]) == [
+        {"stdin": "a 1", "expected_stdout": "4 1"},
+        {"stdin": "b 0", "expected_stdout": "8 8"},
+    ]
+
+
+def test_execute_samples_success(authed_client, monkeypatch):
+    monkeypatch.setenv("SUPABASE_URL", "https://example.supabase.co")
+    monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "service-key")
+
+    problem_response = MagicMock()
+    problem_response.status_code = 200
+    problem_response.json.return_value = [{
+        "sample_tests": [
+            {"stdin": "a 1 5 6", "expected_stdout": "4 1"},
+            {"stdin": "b 0", "expected_stdout": "8 8"},
+        ],
+    }]
+
+    mock_run = MagicMock()
+    mock_run.stdout = "4 1\n"
+    mock_run.stderr = ""
+    mock_run.runtime = 0.01
+    mock_run.exit_code = 0
+
+    mock_run_fail = MagicMock()
+    mock_run_fail.stdout = "0 0\n"
+    mock_run_fail.stderr = ""
+    mock_run_fail.runtime = 0.02
+    mock_run_fail.exit_code = 0
+
+    with patch("routers.execute_samples.rest_client") as mock_rest, \
+            patch("services.judge0.execute_code", side_effect=[mock_run, mock_run_fail]) as mock_exec:
+        mock_client = MagicMock()
+        mock_client.__enter__.return_value = mock_client
+        mock_client.__exit__.return_value = False
+        mock_client.get.return_value = problem_response
+        mock_rest.return_value = mock_client
+
+        response = authed_client.post(
+            "/execute/samples",
+            json={"problem_id": 5, "language": "python", "code": "print(1)"},
+        )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["passed"] == 1
+    assert body["total"] == 2
+    assert body["results"][0]["passed"] is True
+    assert body["results"][1]["passed"] is False
+    assert mock_exec.call_count == 2
+
+
+def test_execute_samples_no_samples(authed_client, monkeypatch):
+    monkeypatch.setenv("SUPABASE_URL", "https://example.supabase.co")
+    monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "service-key")
+
+    problem_response = MagicMock()
+    problem_response.status_code = 200
+    problem_response.json.return_value = [{"sample_tests": []}]
+
+    with patch("routers.execute_samples.rest_client") as mock_rest:
+        mock_client = MagicMock()
+        mock_client.__enter__.return_value = mock_client
+        mock_client.__exit__.return_value = False
+        mock_client.get.return_value = problem_response
+        mock_rest.return_value = mock_client
+
+        response = authed_client.post(
+            "/execute/samples",
+            json={"problem_id": 5, "language": "python", "code": "print(1)"},
+        )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "No sample tests configured for this problem"

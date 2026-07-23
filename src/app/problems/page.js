@@ -477,6 +477,7 @@ function ProblemsContent() {
           dueDate,
           school,
           contentType: CONTENT_TYPE.DOCUMENT,
+          sampleTests: form.sampleTests,
           createdBy: user?.id,
         })
         createdId = row.id
@@ -486,6 +487,7 @@ function ProblemsContent() {
           sourceFileUrl: sourcePath,
           fileFormat,
           contentType: CONTENT_TYPE.DOCUMENT,
+          sampleTests: form.sampleTests,
         })
         cancelForm()
         await loadProblems()
@@ -502,6 +504,7 @@ function ProblemsContent() {
         dueDate,
         school,
         contentType: CONTENT_TYPE.MARKDOWN,
+        sampleTests: form.sampleTests,
         createdBy: user?.id,
       })
       cancelForm()
@@ -550,6 +553,7 @@ function ProblemsContent() {
           sourceFileUrl,
           fileFormat,
           description: '',
+          sampleTests: form.sampleTests,
         })
       } else {
         if (existing?.content_type === CONTENT_TYPE.DOCUMENT) {
@@ -567,6 +571,7 @@ function ProblemsContent() {
           fileFormat: null,
           fileUrl: null,
           sourceFileUrl: null,
+          sampleTests: form.sampleTests,
         })
       }
 

@@ -21,6 +21,18 @@ export async function executeCode({ accessToken, language, code, stdin = '' }) {
   })
 }
 
+export async function executeSamples({ accessToken, problemId, language, code }) {
+  return backendFetch('/execute/samples', {
+    accessToken,
+    method: 'POST',
+    body: {
+      problem_id: problemId,
+      language,
+      code,
+    },
+  })
+}
+
 export async function submitSolution({ accessToken, problemId, language, code }) {
   return backendFetch('/submissions', {
     accessToken,
