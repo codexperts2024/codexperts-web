@@ -37,10 +37,11 @@ app.add_middleware(
 def health():
     return {"status": "ok"}
 
-from routers import documents, execute, submissions
+from routers import documents, execute, execute_samples, submissions
 
 app.include_router(documents.router)
 app.include_router(execute.router)
+app.include_router(execute_samples.router)
 app.include_router(submissions.router)
 
 # Routers added in later sprints:

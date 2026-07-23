@@ -16,9 +16,11 @@ import {
 import {
   SOLUTION_LANGUAGES,
   executeCode,
+  executeSamples,
   languageLabel,
   submitSolution,
 } from '@/services/solutionService'
+import { normalizeSampleTests } from '@/services/problemsService'
 
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), { ssr: false })
 
@@ -196,18 +198,36 @@ function SolutionWorkspace() {
     setRunning(true)
     setOutput({ pending: true })
     try {
-      const result = await executeCode({
-        accessToken,
-        language,
-        code,
-      })
-      setOutput({
-        pending: false,
-        stdout: result.stdout || '',
-        stderr: result.stderr || '',
-        runtime: result.runtime,
-        exitCode: result.exit_code,
-      })
+      const samples = normalizeSampleTests(problem?.sample_tests)
+      if (samples.length > 0) {
+        const result = await executeSamples({
+          accessToken,
+          problemId,
+          language,
+          code,
+        })
+        setOutput({
+          pending: false,
+          mode: 'samples',
+          passed: result.passed,
+          total: result.total,
+          results: result.results || [],
+        })
+      } else {
+        const result = await executeCode({
+          accessToken,
+          language,
+          code,
+        })
+        setOutput({
+          pending: false,
+          mode: 'raw',
+          stdout: result.stdout || '',
+          stderr: result.stderr || '',
+          runtime: result.runtime,
+          exitCode: result.exit_code,
+        })
+      }
     } catch (err) {
       setOutput(null)
       setError(err.message || 'Run failed')
@@ -478,16 +498,66 @@ function SolutionWorkspace() {
                 </div>
 
                 {output && (
-                  <div className="bg-bg-surface rounded-md p-4 shrink-0 max-h-40 overflow-y-auto">
-                    <p className="font-inter text-sm font-medium text-text-primary mb-2">Output</p>
-                    <pre className="font-mono text-[13px] text-text-primary whitespace-pre-wrap break-words">
-                      {output.pending && '> Running...\n'}
-                      {!output.pending && output.stdout ? `${output.stdout}` : ''}
-                      {!output.pending && output.stderr ? `\n${output.stderr}` : ''}
-                      {!output.pending && typeof output.runtime === 'number'
-                        ? `\nRuntime: ${output.runtime}s`
-                        : ''}
-                    </pre>
+                  <div className="bg-bg-surface rounded-md p-4 shrink-0 max-h-64 overflow-y-auto">
+                    {output.pending && (
+                      <>
+                        <p className="font-inter text-sm font-medium text-text-primary mb-2">Output</p>
+                        <pre className="font-mono text-[13px] text-text-primary">{'> Running...\n'}</pre>
+                      </>
+                    )}
+                    {!output.pending && output.mode === 'samples' && (
+                      <div className="space-y-3">
+                        <p className="font-inter text-sm font-medium text-text-primary">
+                          Samples
+                          {' '}
+                          {output.passed}
+                          /
+                          {output.total}
+                          {' '}
+                          passed
+                        </p>
+                        {(output.results || []).map((row) => (
+                          <div key={row.index} className="border border-border rounded-md bg-bg-base p-3 space-y-1">
+                            <p className={`font-inter text-sm font-medium ${
+                              row.passed ? 'text-success' : 'text-accent'
+                            }`}
+                            >
+                              Sample
+                              {' '}
+                              {row.index}
+                              {': '}
+                              {row.passed ? 'Pass' : 'Fail'}
+                            </p>
+                            {!row.passed && (
+                              <pre className="font-mono text-[12px] text-text-primary whitespace-pre-wrap break-words">
+                                {`expected:\n${row.expected_stdout || '(empty)'}\n\ngot:\n${row.stdout || '(empty)'}`}
+                                {row.stderr ? `\n\nstderr:\n${row.stderr}` : ''}
+                              </pre>
+                            )}
+                            {row.passed && typeof row.runtime === 'number' && (
+                              <p className="font-inter text-xs text-text-secondary">
+                                Runtime:
+                                {' '}
+                                {row.runtime}
+                                s
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {!output.pending && output.mode !== 'samples' && (
+                      <>
+                        <p className="font-inter text-sm font-medium text-text-primary mb-2">Output</p>
+                        <pre className="font-mono text-[13px] text-text-primary whitespace-pre-wrap break-words">
+                          {output.stdout ? `${output.stdout}` : ''}
+                          {output.stderr ? `\n${output.stderr}` : ''}
+                          {typeof output.runtime === 'number'
+                            ? `\nRuntime: ${output.runtime}s`
+                            : ''}
+                        </pre>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
