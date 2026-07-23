@@ -4,23 +4,24 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { ChevronDown, ChevronUp, Columns2, Loader2, Rows2 } from 'lucide-react'
+import { BookOpen, ChevronDown, ChevronUp, Columns2, Loader2, Rows2 } from 'lucide-react'
 import RoleGuard from '@/components/auth/RoleGuard'
 import { useAuth } from '@/hooks/useAuth'
 import { ProblemBody } from '@/app/problems/_shared'
-import { fetchProblemById } from '@/services/problemsService'
+import { fetchProblemById, normalizeSampleTests } from '@/services/problemsService'
 import {
   fetchCommunitySubmissions,
   fetchOwnSubmission,
 } from '@/services/submissionsService'
 import {
+  LANGUAGE_DOCS,
   SOLUTION_LANGUAGES,
+  evaluateSolution,
   executeCode,
   executeSamples,
   languageLabel,
   submitSolution,
 } from '@/services/solutionService'
-import { normalizeSampleTests } from '@/services/problemsService'
 
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), { ssr: false })
 
@@ -76,6 +77,10 @@ function SolutionWorkspace() {
   const [language, setLanguage] = useState('python')
   const [code, setCode] = useState(STARTER.python)
   const [output, setOutput] = useState(null)
+  const [customInput, setCustomInput] = useState('')
+  const [samplesAllPassed, setSamplesAllPassed] = useState(false)
+  const [evaluation, setEvaluation] = useState(null)
+  const [evaluating, setEvaluating] = useState(false)
   const [running, setRunning] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [statusMessage, setStatusMessage] = useState('')
@@ -185,6 +190,8 @@ function SolutionWorkspace() {
   }
   function handleLanguageChange(next) {
     setLanguage(next)
+    setSamplesAllPassed(false)
+    setEvaluation(null)
     setCode((prev) => {
       const isStarter = Object.values(STARTER).includes(prev)
       if (!prev.trim() || isStarter) return STARTER[next] || ''
@@ -195,10 +202,16 @@ function SolutionWorkspace() {
   async function handleRun() {
     setStatusMessage('')
     setError('')
+    setEvaluation(null)
+    setSamplesAllPassed(false)
     setRunning(true)
     setOutput({ pending: true })
     try {
       const samples = normalizeSampleTests(problem?.sample_tests)
+      const hasCustom = customInput.trim() !== ''
+      let sampleBlock = null
+      let customBlock = null
+
       if (samples.length > 0) {
         const result = await executeSamples({
           accessToken,
@@ -206,18 +219,37 @@ function SolutionWorkspace() {
           language,
           code,
         })
-        setOutput({
-          pending: false,
-          mode: 'samples',
+        sampleBlock = {
           passed: result.passed,
           total: result.total,
           results: result.results || [],
-        })
-      } else {
+        }
+        setSamplesAllPassed(
+          result.total > 0 && result.passed === result.total,
+        )
+      }
+
+      if (hasCustom) {
         const result = await executeCode({
           accessToken,
           language,
           code,
+          stdin: customInput,
+        })
+        customBlock = {
+          stdout: result.stdout || '',
+          stderr: result.stderr || '',
+          runtime: result.runtime,
+          exitCode: result.exit_code,
+        }
+      }
+
+      if (!sampleBlock && !customBlock) {
+        const result = await executeCode({
+          accessToken,
+          language,
+          code,
+          stdin: '',
         })
         setOutput({
           pending: false,
@@ -227,12 +259,50 @@ function SolutionWorkspace() {
           runtime: result.runtime,
           exitCode: result.exit_code,
         })
+        return
       }
+
+      setOutput({
+        pending: false,
+        mode: sampleBlock ? 'samples' : 'custom',
+        samples: sampleBlock,
+        custom: customBlock,
+        // legacy fields for samples-only rendering helpers
+        passed: sampleBlock?.passed,
+        total: sampleBlock?.total,
+        results: sampleBlock?.results,
+      })
     } catch (err) {
       setOutput(null)
+      setSamplesAllPassed(false)
       setError(err.message || 'Run failed')
     } finally {
       setRunning(false)
+    }
+  }
+
+  async function handleEvaluate() {
+    setStatusMessage('')
+    setError('')
+    if (!samplesAllPassed) {
+      setError('All sample tests must pass before Evaluate')
+      return
+    }
+    setEvaluating(true)
+    setEvaluation(null)
+    try {
+      const result = await evaluateSolution({
+        accessToken,
+        problemId,
+        language,
+        code,
+        samplesPassed: true,
+      })
+      setEvaluation(result)
+    } catch (err) {
+      setError(err.message || 'Evaluate failed')
+    } finally {
+      setEvaluating(false)
     }
   }
 
@@ -457,7 +527,11 @@ function SolutionWorkspace() {
                     language={monacoLanguage}
                     theme="vs-dark"
                     value={code}
-                    onChange={(value) => setCode(value ?? '')}
+                    onChange={(value) => {
+                      setCode(value ?? '')
+                      setSamplesAllPassed(false)
+                      setEvaluation(null)
+                    }}
                     options={{
                       minimap: { enabled: false },
                       fontSize: 14,
@@ -468,7 +542,21 @@ function SolutionWorkspace() {
                   />
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-3 shrink-0">
+                <label className="block shrink-0 space-y-1">
+                  <span className="font-inter text-xs text-text-secondary">
+                    Custom input (optional)
+                  </span>
+                  <textarea
+                    value={customInput}
+                    onChange={(e) => setCustomInput(e.target.value)}
+                    rows={3}
+                    spellCheck={false}
+                    placeholder="Leave empty to check samples only. If filled, also runs with this stdin (raw output, no Pass/Fail)."
+                    className="w-full border border-border rounded-md px-3 py-2 font-mono text-sm text-text-primary bg-bg-base focus:outline-none focus:border-border-strong"
+                  />
+                </label>
+
+                <div className="flex flex-col sm:flex-row gap-3 shrink-0 flex-wrap">
                   <button
                     type="button"
                     onClick={handleRun}
@@ -480,11 +568,17 @@ function SolutionWorkspace() {
                   </button>
                   <button
                     type="button"
-                    disabled
-                    title="Evaluate is deferred to a later release"
-                    className="inline-flex items-center justify-center rounded-md px-4 py-2 font-inter text-sm font-medium border border-border-strong text-text-hint cursor-not-allowed"
+                    onClick={handleEvaluate}
+                    disabled={evaluating || !accessToken || !samplesAllPassed}
+                    title={
+                      samplesAllPassed
+                        ? 'Quality feedback after all samples pass'
+                        : 'All sample tests must pass before Evaluate'
+                    }
+                    className="inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 font-inter text-sm font-medium border border-border-strong text-text-primary hover:bg-bg-surface disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    Evaluate
+                    {evaluating && <Loader2 size={16} className="animate-spin" />}
+                    {evaluating ? 'Evaluating…' : 'Evaluate'}
                   </button>
                   <button
                     type="button"
@@ -495,28 +589,39 @@ function SolutionWorkspace() {
                     {submitting && <Loader2 size={16} className="animate-spin" />}
                     {submitting ? 'Submitting…' : 'Submit'}
                   </button>
+                  {LANGUAGE_DOCS[language] && (
+                    <a
+                      href={LANGUAGE_DOCS[language].href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 font-inter text-sm font-medium border border-border-strong text-text-secondary hover:bg-bg-surface"
+                    >
+                      <BookOpen size={16} />
+                      Docs
+                    </a>
+                  )}
                 </div>
 
                 {output && (
-                  <div className="bg-bg-surface rounded-md p-4 shrink-0 max-h-64 overflow-y-auto">
+                  <div className="bg-bg-surface rounded-md p-4 shrink-0 max-h-72 overflow-y-auto space-y-4">
                     {output.pending && (
                       <>
                         <p className="font-inter text-sm font-medium text-text-primary mb-2">Output</p>
                         <pre className="font-mono text-[13px] text-text-primary">{'> Running...\n'}</pre>
                       </>
                     )}
-                    {!output.pending && output.mode === 'samples' && (
+                    {!output.pending && output.samples && (
                       <div className="space-y-3">
                         <p className="font-inter text-sm font-medium text-text-primary">
                           Samples
                           {' '}
-                          {output.passed}
+                          {output.samples.passed}
                           /
-                          {output.total}
+                          {output.samples.total}
                           {' '}
                           passed
                         </p>
-                        {(output.results || []).map((row) => (
+                        {(output.samples.results || []).map((row) => (
                           <div key={row.index} className="border border-border rounded-md bg-bg-base p-3 space-y-1">
                             <p className={`font-inter text-sm font-medium ${
                               row.passed ? 'text-success' : 'text-accent'
@@ -546,7 +651,25 @@ function SolutionWorkspace() {
                         ))}
                       </div>
                     )}
-                    {!output.pending && output.mode !== 'samples' && (
+                    {!output.pending && output.custom && (
+                      <div className="space-y-2">
+                        <p className="font-inter text-sm font-medium text-text-primary">
+                          Custom output
+                        </p>
+                        <p className="font-inter text-xs text-text-secondary">
+                          Experimental run only (no Pass/Fail).
+                        </p>
+                        <pre className="font-mono text-[13px] text-text-primary whitespace-pre-wrap break-words bg-bg-base border border-border rounded-md p-3">
+                          {output.custom.stdout ? `${output.custom.stdout}` : ''}
+                          {output.custom.stderr ? `\n${output.custom.stderr}` : ''}
+                          {typeof output.custom.runtime === 'number'
+                            ? `\nRuntime: ${output.custom.runtime}s`
+                            : ''}
+                          {!output.custom.stdout && !output.custom.stderr ? '(empty)' : ''}
+                        </pre>
+                      </div>
+                    )}
+                    {!output.pending && output.mode === 'raw' && (
                       <>
                         <p className="font-inter text-sm font-medium text-text-primary mb-2">Output</p>
                         <pre className="font-mono text-[13px] text-text-primary whitespace-pre-wrap break-words">
@@ -556,8 +679,69 @@ function SolutionWorkspace() {
                             ? `\nRuntime: ${output.runtime}s`
                             : ''}
                         </pre>
+                        {output.stderr && (
+                          <p className="font-inter text-xs text-text-secondary mt-2">
+                            Use the error message and Docs to fix syntax or runtime issues.
+                          </p>
+                        )}
                       </>
                     )}
+                  </div>
+                )}
+
+                {evaluation && (
+                  <div className="bg-bg-surface rounded-md p-4 shrink-0 max-h-72 overflow-y-auto space-y-4 border border-border">
+                    <p className="font-inter text-sm font-medium text-text-primary">Evaluation</p>
+                    {(evaluation.forbidden_hints || []).length > 0 && (
+                      <div className="space-y-2">
+                        <p className="font-inter text-xs font-medium text-text-secondary uppercase tracking-wide">
+                          Style hints (not failures)
+                        </p>
+                        {evaluation.forbidden_hints.map((hint) => (
+                          <div
+                            key={`${hint.rule}-${hint.line}`}
+                            className="rounded-md border border-border bg-bg-base p-3"
+                          >
+                            <p className="font-inter text-sm text-text-primary">
+                              {hint.rule}
+                              {hint.line != null ? ` (line ${hint.line})` : ''}
+                            </p>
+                            <p className="font-inter text-xs text-text-secondary mt-1">
+                              {hint.hint}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div>
+                      <p className="font-inter text-xs font-medium text-text-secondary uppercase tracking-wide mb-1">
+                        Big O (estimate)
+                      </p>
+                      <p className="font-inter text-sm font-medium text-text-primary">
+                        {evaluation.big_o}
+                      </p>
+                      {evaluation.big_o_reason && (
+                        <p className="font-inter text-xs text-text-secondary mt-1">
+                          {evaluation.big_o_reason}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-inter text-xs font-medium text-text-secondary uppercase tracking-wide mb-1">
+                        Duplication
+                      </p>
+                      {(evaluation.duplicates || []).length === 0 ? (
+                        <p className="font-inter text-sm text-text-secondary">None noted.</p>
+                      ) : (
+                        <ul className="list-disc pl-5 space-y-1">
+                          {evaluation.duplicates.map((note) => (
+                            <li key={note} className="font-inter text-sm text-text-primary">
+                              {note}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
