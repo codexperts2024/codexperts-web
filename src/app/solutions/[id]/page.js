@@ -1,12 +1,13 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { Loader2 } from 'lucide-react'
+import { ChevronDown, ChevronUp, Columns2, Loader2, Rows2 } from 'lucide-react'
 import RoleGuard from '@/components/auth/RoleGuard'
 import { useAuth } from '@/hooks/useAuth'
+import { ProblemBody } from '@/app/problems/_shared'
 import { fetchProblemById } from '@/services/problemsService'
 import {
   fetchCommunitySubmissions,
@@ -28,6 +29,13 @@ const STARTER = {
   cpp: '#include <iostream>\nusing namespace std;\n\nint main() {\n    return 0;\n}\n',
   javascript: 'function solution() {\n  \n}\n',
   typescript: 'function solution(): void {\n  \n}\n',
+}
+
+const PROBLEM_SIZE_MIN = 22
+const PROBLEM_SIZE_MAX = 78
+
+function clampProblemSize(value) {
+  return Math.min(PROBLEM_SIZE_MAX, Math.max(PROBLEM_SIZE_MIN, value))
 }
 
 function formatDue(dateStr) {
@@ -74,6 +82,11 @@ function SolutionWorkspace() {
   const [community, setCommunity] = useState([])
   const [expandedId, setExpandedId] = useState(null)
   const [communityLoading, setCommunityLoading] = useState(false)
+  const [problemOpen, setProblemOpen] = useState(true)
+  const [layout, setLayout] = useState('split') // 'split' | 'stack'
+  const [problemSize, setProblemSize] = useState(48) // percent of workspace
+  const workspaceRef = useRef(null)
+  const draggingRef = useRef(false)
 
   const monacoLanguage = useMemo(
     () => SOLUTION_LANGUAGES.find((l) => l.value === language)?.monaco || 'python',
@@ -134,6 +147,40 @@ function SolutionWorkspace() {
     }
   }, [tab, loadCommunity])
 
+  useEffect(() => {
+    function onPointerMove(event) {
+      if (!draggingRef.current || !workspaceRef.current) return
+      const rect = workspaceRef.current.getBoundingClientRect()
+      if (layout === 'split') {
+        const next = ((event.clientX - rect.left) / rect.width) * 100
+        setProblemSize(clampProblemSize(next))
+      } else {
+        const next = ((event.clientY - rect.top) / rect.height) * 100
+        setProblemSize(clampProblemSize(next))
+      }
+    }
+
+    function onPointerUp() {
+      if (!draggingRef.current) return
+      draggingRef.current = false
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+    }
+
+    window.addEventListener('pointermove', onPointerMove)
+    window.addEventListener('pointerup', onPointerUp)
+    return () => {
+      window.removeEventListener('pointermove', onPointerMove)
+      window.removeEventListener('pointerup', onPointerUp)
+    }
+  }, [layout])
+
+  function startResize(event) {
+    event.preventDefault()
+    draggingRef.current = true
+    document.body.style.cursor = layout === 'split' ? 'col-resize' : 'row-resize'
+    document.body.style.userSelect = 'none'
+  }
   function handleLanguageChange(next) {
     setLanguage(next)
     setCode((prev) => {
@@ -261,7 +308,7 @@ function SolutionWorkspace() {
         </div>
       </div>
 
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-8 pb-16">
+      <section className="max-w-[1400px] mx-auto px-4 sm:px-6 py-8 pb-16">
         {error && (
           <p className="font-inter text-sm text-accent mb-4">{error}</p>
         )}
@@ -271,7 +318,45 @@ function SolutionWorkspace() {
 
         {tab === 'mine' && (
           <div className="space-y-4">
-            <div className="flex justify-end">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setProblemOpen((open) => !open)}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 font-inter text-sm text-text-primary hover:bg-bg-surface"
+                >
+                  {problemOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                  {problemOpen ? 'Hide problem' : 'Show problem'}
+                </button>
+                <div className="inline-flex rounded-md border border-border overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setLayout('stack')}
+                    title="Stack vertically"
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 font-inter text-sm ${
+                      layout === 'stack'
+                        ? 'bg-bg-surface text-text-primary'
+                        : 'text-text-secondary hover:bg-bg-surface'
+                    }`}
+                  >
+                    <Rows2 size={16} />
+                    Stack
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLayout('split')}
+                    title="Side by side"
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 font-inter text-sm border-l border-border ${
+                      layout === 'split'
+                        ? 'bg-bg-surface text-text-primary'
+                        : 'text-text-secondary hover:bg-bg-surface'
+                    }`}
+                  >
+                    <Columns2 size={16} />
+                    Split
+                  </button>
+                </div>
+              </div>
               <label className="font-inter text-sm text-text-secondary flex items-center gap-2">
                 Language
                 <select
@@ -286,70 +371,155 @@ function SolutionWorkspace() {
               </label>
             </div>
 
-            <div className="border border-border rounded-md overflow-hidden bg-white">
-              <MonacoEditor
-                height="400px"
-                language={monacoLanguage}
-                theme="vs-dark"
-                value={code}
-                onChange={(value) => setCode(value ?? '')}
-                options={{
-                  minimap: { enabled: false },
-                  fontSize: 14,
-                  fontFamily: 'JetBrains Mono, ui-monospace, monospace',
-                  scrollBeyondLastLine: false,
-                  automaticLayout: true,
-                }}
-              />
-            </div>
+            <div
+              ref={workspaceRef}
+              className={`min-h-[560px] h-[calc(100vh-260px)] ${
+                problemOpen && layout === 'split'
+                  ? 'flex flex-row'
+                  : 'flex flex-col'
+              }`}
+            >
+              {problemOpen && (
+                <>
+                  <aside
+                    className="border border-border rounded-md bg-white flex flex-col min-h-0 min-w-0 overflow-hidden"
+                    style={
+                      layout === 'split'
+                        ? { width: `${problemSize}%`, flexShrink: 0 }
+                        : { height: `${problemSize}%`, flexShrink: 0 }
+                    }
+                  >
+                    <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-bg-surface shrink-0">
+                      <p className="font-inter text-sm font-medium text-text-primary">Problem</p>
+                      <button
+                        type="button"
+                        onClick={() => setProblemOpen(false)}
+                        className="font-inter text-xs text-text-secondary hover:text-text-primary"
+                      >
+                        Collapse
+                      </button>
+                    </div>
+                    <div
+                      className={`flex-1 min-h-0 ${
+                        problem.content_type === 'document' ? 'overflow-hidden' : 'overflow-y-auto'
+                      }`}
+                    >
+                      <ProblemBody problem={problem} accessToken={accessToken} fill />
+                    </div>
+                  </aside>
 
-            <div className="flex flex-col sm:flex-row gap-3">
-              <button
-                type="button"
-                onClick={handleRun}
-                disabled={running || !accessToken}
-                className="inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 font-inter text-sm font-medium bg-accent text-white hover:bg-accent-hover disabled:opacity-60"
-              >
-                {running && <Loader2 size={16} className="animate-spin" />}
-                {running ? 'Running…' : 'Run'}
-              </button>
-              <button
-                type="button"
-                disabled
-                title="Evaluate is deferred to a later release"
-                className="inline-flex items-center justify-center rounded-md px-4 py-2 font-inter text-sm font-medium border border-border-strong text-text-hint cursor-not-allowed"
-              >
-                Evaluate
-              </button>
-              <button
-                type="button"
-                onClick={handleSubmit}
-                disabled={submitting || !accessToken}
-                className="inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 font-inter text-sm font-medium border border-border-strong text-text-primary hover:bg-bg-surface disabled:opacity-60"
-              >
-                {submitting && <Loader2 size={16} className="animate-spin" />}
-                {submitting ? 'Submitting…' : 'Submit'}
-              </button>
-            </div>
+                  <div
+                    role="separator"
+                    aria-orientation={layout === 'split' ? 'vertical' : 'horizontal'}
+                    aria-label="Resize problem panel"
+                    onPointerDown={startResize}
+                    className={
+                      layout === 'split'
+                        ? 'w-2 shrink-0 cursor-col-resize flex items-stretch justify-center group'
+                        : 'h-2 shrink-0 cursor-row-resize flex items-center justify-center group'
+                    }
+                  >
+                    <span
+                      className={
+                        layout === 'split'
+                          ? 'w-0.5 rounded-full bg-border-strong group-hover:bg-accent group-active:bg-accent h-12'
+                          : 'h-0.5 rounded-full bg-border-strong group-hover:bg-accent group-active:bg-accent w-12'
+                      }
+                    />
+                  </div>
+                </>
+              )}
 
-            {output && (
-              <div className="bg-bg-surface rounded-md p-4">
-                <p className="font-inter text-sm font-medium text-text-primary mb-2">Output</p>
-                <pre className="font-mono text-[13px] text-text-primary whitespace-pre-wrap break-words">
-                  {output.pending && '> Running...\n'}
-                  {!output.pending && output.stdout ? `${output.stdout}` : ''}
-                  {!output.pending && output.stderr ? `\n${output.stderr}` : ''}
-                  {!output.pending && typeof output.runtime === 'number'
-                    ? `\nRuntime: ${output.runtime}s`
-                    : ''}
-                </pre>
+              <div className="flex-1 min-w-0 min-h-0 flex flex-col gap-3">
+                <div className="border border-border rounded-md overflow-hidden bg-white flex-1 min-h-[200px]">
+                  <MonacoEditor
+                    height="100%"
+                    language={monacoLanguage}
+                    theme="vs-dark"
+                    value={code}
+                    onChange={(value) => setCode(value ?? '')}
+                    options={{
+                      minimap: { enabled: false },
+                      fontSize: 14,
+                      fontFamily: 'JetBrains Mono, ui-monospace, monospace',
+                      scrollBeyondLastLine: false,
+                      automaticLayout: true,
+                    }}
+                  />
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3 shrink-0">
+                  <button
+                    type="button"
+                    onClick={handleRun}
+                    disabled={running || !accessToken}
+                    className="inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 font-inter text-sm font-medium bg-accent text-white hover:bg-accent-hover disabled:opacity-60"
+                  >
+                    {running && <Loader2 size={16} className="animate-spin" />}
+                    {running ? 'Running…' : 'Run'}
+                  </button>
+                  <button
+                    type="button"
+                    disabled
+                    title="Evaluate is deferred to a later release"
+                    className="inline-flex items-center justify-center rounded-md px-4 py-2 font-inter text-sm font-medium border border-border-strong text-text-hint cursor-not-allowed"
+                  >
+                    Evaluate
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={submitting || !accessToken}
+                    className="inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 font-inter text-sm font-medium border border-border-strong text-text-primary hover:bg-bg-surface disabled:opacity-60"
+                  >
+                    {submitting && <Loader2 size={16} className="animate-spin" />}
+                    {submitting ? 'Submitting…' : 'Submit'}
+                  </button>
+                </div>
+
+                {output && (
+                  <div className="bg-bg-surface rounded-md p-4 shrink-0 max-h-40 overflow-y-auto">
+                    <p className="font-inter text-sm font-medium text-text-primary mb-2">Output</p>
+                    <pre className="font-mono text-[13px] text-text-primary whitespace-pre-wrap break-words">
+                      {output.pending && '> Running...\n'}
+                      {!output.pending && output.stdout ? `${output.stdout}` : ''}
+                      {!output.pending && output.stderr ? `\n${output.stderr}` : ''}
+                      {!output.pending && typeof output.runtime === 'number'
+                        ? `\nRuntime: ${output.runtime}s`
+                        : ''}
+                    </pre>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
         )}
 
         {tab === 'community' && (
-          <div className="space-y-2">
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setProblemOpen((open) => !open)}
+                className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 font-inter text-sm text-text-primary hover:bg-bg-surface"
+              >
+                {problemOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                {problemOpen ? 'Hide problem' : 'Show problem'}
+              </button>
+            </div>
+
+            {problemOpen && (
+              <aside className="border border-border rounded-md bg-white max-h-[40vh] overflow-y-auto">
+                <div className="px-4 py-3 border-b border-border bg-bg-surface sticky top-0">
+                  <p className="font-inter text-sm font-medium text-text-primary">Problem</p>
+                </div>
+                <div className="px-4 py-4">
+                  <ProblemBody problem={problem} accessToken={accessToken} />
+                </div>
+              </aside>
+            )}
+
+            <div className="space-y-2">
             {communityLoading && (
               <p className="font-inter text-sm text-text-secondary">Loading submissions…</p>
             )}
@@ -413,6 +583,7 @@ function SolutionWorkspace() {
                 </div>
               )
             })}
+            </div>
           </div>
         )}
       </section>
