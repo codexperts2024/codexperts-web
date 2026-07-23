@@ -661,12 +661,12 @@ export function ProblemForm({ form, onChange, onSubmit, onCancel, submitting, ed
         <p className="text-sm font-inter text-accent">{fileError}</p>
       )}
 
-      <div className="border border-border rounded-md bg-bg-base p-4 space-y-4">
+      <div className="border border-border rounded-md bg-bg-base p-4 space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="font-inter text-sm font-medium text-text-primary">Sample tests</p>
             <p className="font-inter text-xs text-text-secondary mt-1">
-              Used when members click Run on Solutions. Start with one pair; add up to {MAX_SAMPLE_TESTS}.
+              Used on Solutions Run. Up to {MAX_SAMPLE_TESTS} pairs.
             </p>
           </div>
           <button
@@ -685,9 +685,9 @@ export function ProblemForm({ form, onChange, onSubmit, onCancel, submitting, ed
         </div>
 
         {(form.sampleTests?.length ? form.sampleTests : [emptySamplePair()]).map((sample, index) => (
-          <div key={index} className="space-y-2 border-t border-border pt-4 first:border-t-0 first:pt-0">
+          <div key={index} className="space-y-2 border-t border-border pt-3 first:border-t-0 first:pt-0">
             <div className="flex items-center justify-between gap-2">
-              <p className="font-inter text-sm font-medium text-text-primary">
+              <p className="font-inter text-xs font-medium text-text-secondary">
                 Sample
                 {' '}
                 {index + 1}
@@ -711,42 +711,30 @@ export function ProblemForm({ form, onChange, onSubmit, onCancel, submitting, ed
                 </button>
               )}
             </div>
-            <label className="block space-y-1">
-              <span className="font-inter text-xs text-text-secondary">
-                Sample Input
-                {' '}
-                {index + 1}
-              </span>
-              <textarea
-                value={sample.stdin}
-                onChange={(e) => onChange((prev) => {
-                  const next = [...(prev.sampleTests?.length ? prev.sampleTests : [emptySamplePair()])]
-                  next[index] = { ...next[index], stdin: e.target.value }
-                  return { ...prev, sampleTests: next }
-                })}
-                rows={3}
-                spellCheck={false}
-                className="w-full border border-border rounded-md px-3 py-2 font-mono text-sm text-text-primary bg-bg-base focus:outline-none focus:border-border-strong"
-              />
-            </label>
-            <label className="block space-y-1">
-              <span className="font-inter text-xs text-text-secondary">
-                Sample Output
-                {' '}
-                {index + 1}
-              </span>
-              <textarea
-                value={sample.expected_stdout}
-                onChange={(e) => onChange((prev) => {
-                  const next = [...(prev.sampleTests?.length ? prev.sampleTests : [emptySamplePair()])]
-                  next[index] = { ...next[index], expected_stdout: e.target.value }
-                  return { ...prev, sampleTests: next }
-                })}
-                rows={3}
-                spellCheck={false}
-                className="w-full border border-border rounded-md px-3 py-2 font-mono text-sm text-text-primary bg-bg-base focus:outline-none focus:border-border-strong"
-              />
-            </label>
+            <input
+              type="text"
+              value={sample.stdin}
+              onChange={(e) => onChange((prev) => {
+                const next = [...(prev.sampleTests?.length ? prev.sampleTests : [emptySamplePair()])]
+                next[index] = { ...next[index], stdin: e.target.value }
+                return { ...prev, sampleTests: next }
+              })}
+              spellCheck={false}
+              placeholder={`Sample Input ${index + 1}`}
+              className="w-full border border-border rounded-md px-3 py-2 font-mono text-sm text-text-primary bg-bg-base focus:outline-none focus:border-border-strong"
+            />
+            <input
+              type="text"
+              value={sample.expected_stdout}
+              onChange={(e) => onChange((prev) => {
+                const next = [...(prev.sampleTests?.length ? prev.sampleTests : [emptySamplePair()])]
+                next[index] = { ...next[index], expected_stdout: e.target.value }
+                return { ...prev, sampleTests: next }
+              })}
+              spellCheck={false}
+              placeholder={`Sample Output ${index + 1}`}
+              className="w-full border border-border rounded-md px-3 py-2 font-mono text-sm text-text-primary bg-bg-base focus:outline-none focus:border-border-strong"
+            />
           </div>
         ))}
       </div>

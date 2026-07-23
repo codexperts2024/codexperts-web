@@ -432,3 +432,53 @@ def test_execute_samples_no_samples(authed_client, monkeypatch):
 
     assert response.status_code == 400
     assert response.json()["detail"] == "No sample tests configured for this problem"
+
+
+def test_forbidden_detects_python_sort():
+    from services.forbidden import check_forbidden
+
+    hits = check_forbidden("nums.sort()\nprint(nums)\n", "python")
+    assert any(h.rule == "builtin-sort" for h in hits)
+
+
+def test_evaluate_requires_samples_passed(authed_client, monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "test-key")
+    response = authed_client.post(
+        "/evaluate",
+        json={
+            "problem_id": 1,
+            "language": "python",
+            "code": "print(1)",
+            "samples_passed": False,
+        },
+    )
+    assert response.status_code == 400
+    assert "sample" in response.json()["detail"].lower()
+
+
+def test_evaluate_success(authed_client, monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "test-key")
+
+    mock_eval = MagicMock()
+    mock_eval.big_o = "O(n)"
+    mock_eval.big_o_reason = "Single loop."
+    mock_eval.duplicates = []
+
+    with patch(
+        "services.gemini_evaluate.evaluate_code",
+        return_value=mock_eval,
+    ):
+        response = authed_client.post(
+            "/evaluate",
+            json={
+                "problem_id": 1,
+                "language": "python",
+                "code": "for i in range(n):\n    break\n",
+                "samples_passed": True,
+            },
+        )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["big_o"] == "O(n)"
+    assert any(h["rule"] == "break" for h in body["forbidden_hints"])

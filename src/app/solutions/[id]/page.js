@@ -4,39 +4,45 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { ChevronDown, ChevronUp, Columns2, Loader2, Rows2 } from 'lucide-react'
+import { BookOpen, ChevronDown, ChevronUp, Columns2, Loader2, Rows2 } from 'lucide-react'
 import RoleGuard from '@/components/auth/RoleGuard'
 import { useAuth } from '@/hooks/useAuth'
 import { ProblemBody } from '@/app/problems/_shared'
-import { fetchProblemById } from '@/services/problemsService'
+import { fetchProblemById, normalizeSampleTests } from '@/services/problemsService'
 import {
   fetchCommunitySubmissions,
   fetchOwnSubmission,
 } from '@/services/submissionsService'
 import {
+  LANGUAGE_DOCS,
   SOLUTION_LANGUAGES,
+  evaluateSolution,
   executeCode,
   executeSamples,
   languageLabel,
   submitSolution,
 } from '@/services/solutionService'
-import { normalizeSampleTests } from '@/services/problemsService'
 
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), { ssr: false })
 
 const STARTER = {
-  python: 'def solution():\n    pass\n',
-  java: 'public class Main {\n    public static void main(String[] args) {\n        \n    }\n}\n',
-  c: '#include <stdio.h>\n\nint main(void) {\n    return 0;\n}\n',
-  cpp: '#include <iostream>\nusing namespace std;\n\nint main() {\n    return 0;\n}\n',
-  javascript: 'function solution() {\n  \n}\n',
-  typescript: 'function solution(): void {\n  \n}\n',
+  python: 'a, b = map(int, input().split())\n',
+  java: 'import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int a = sc.nextInt();\n        int b = sc.nextInt();\n    }\n}\n',
+  c: '#include <stdio.h>\n\nint main(void) {\n    int a, b;\n    if (scanf("%d %d", &a, &b) != 2) return 1;\n    return 0;\n}\n',
+  cpp: '#include <iostream>\nusing namespace std;\n\nint main() {\n    int a, b;\n    if (!(cin >> a >> b)) return 1;\n    return 0;\n}\n',
+  javascript: 'const fs = require("fs");\nconst [a, b] = fs.readFileSync(0, "utf8").trim().split(/\\s+/).map(Number);\n',
+  typescript: 'const fs = require("fs");\nconst [a, b] = fs.readFileSync(0, "utf8").trim().split(/\\s+/).map(Number);\n',
 }
 
 const PROBLEM_SIZE_MIN = 22
 const PROBLEM_SIZE_MAX = 78
+const STACK_PROBLEM_VH_MIN = 18
+const STACK_PROBLEM_VH_MAX = 45
 
-function clampProblemSize(value) {
+function clampProblemSize(value, layout = 'split') {
+  if (layout === 'stack') {
+    return Math.min(STACK_PROBLEM_VH_MAX, Math.max(STACK_PROBLEM_VH_MIN, value))
+  }
   return Math.min(PROBLEM_SIZE_MAX, Math.max(PROBLEM_SIZE_MIN, value))
 }
 
@@ -76,6 +82,9 @@ function SolutionWorkspace() {
   const [language, setLanguage] = useState('python')
   const [code, setCode] = useState(STARTER.python)
   const [output, setOutput] = useState(null)
+  const [customInput, setCustomInput] = useState('')
+  const [evaluation, setEvaluation] = useState(null)
+  const [evaluating, setEvaluating] = useState(false)
   const [running, setRunning] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [statusMessage, setStatusMessage] = useState('')
@@ -86,7 +95,7 @@ function SolutionWorkspace() {
   const [communityLoading, setCommunityLoading] = useState(false)
   const [problemOpen, setProblemOpen] = useState(true)
   const [layout, setLayout] = useState('split') // 'split' | 'stack'
-  const [problemSize, setProblemSize] = useState(48) // percent of workspace
+  const [problemSize, setProblemSize] = useState(36) // split: width %, stack: problem vh
   const workspaceRef = useRef(null)
   const draggingRef = useRef(false)
 
@@ -94,6 +103,20 @@ function SolutionWorkspace() {
     () => SOLUTION_LANGUAGES.find((l) => l.value === language)?.monaco || 'python',
     [language],
   )
+
+  const samplesAllPassed = Boolean(
+    output
+    && !output.pending
+    && output.samples
+    && Number(output.samples.total) > 0
+    && Number(output.samples.passed) === Number(output.samples.total),
+  )
+
+  const evaluateDisabledReason = !accessToken
+    ? 'Sign in to evaluate'
+    : !samplesAllPassed
+      ? 'All sample tests must pass before Evaluate'
+      : ''
 
   useEffect(() => {
     let cancelled = false
@@ -155,10 +178,11 @@ function SolutionWorkspace() {
       const rect = workspaceRef.current.getBoundingClientRect()
       if (layout === 'split') {
         const next = ((event.clientX - rect.left) / rect.width) * 100
-        setProblemSize(clampProblemSize(next))
+        setProblemSize(clampProblemSize(next, 'split'))
       } else {
-        const next = ((event.clientY - rect.top) / rect.height) * 100
-        setProblemSize(clampProblemSize(next))
+        // Stack: problem height as vh so the rest of the page can scroll naturally.
+        const next = ((event.clientY - rect.top) / window.innerHeight) * 100
+        setProblemSize(clampProblemSize(next, 'stack'))
       }
     }
 
@@ -185,6 +209,8 @@ function SolutionWorkspace() {
   }
   function handleLanguageChange(next) {
     setLanguage(next)
+    setEvaluation(null)
+    setOutput(null)
     setCode((prev) => {
       const isStarter = Object.values(STARTER).includes(prev)
       if (!prev.trim() || isStarter) return STARTER[next] || ''
@@ -195,10 +221,15 @@ function SolutionWorkspace() {
   async function handleRun() {
     setStatusMessage('')
     setError('')
+    setEvaluation(null)
     setRunning(true)
     setOutput({ pending: true })
     try {
       const samples = normalizeSampleTests(problem?.sample_tests)
+      const hasCustom = customInput.trim() !== ''
+      let sampleBlock = null
+      let customBlock = null
+
       if (samples.length > 0) {
         const result = await executeSamples({
           accessToken,
@@ -206,18 +237,34 @@ function SolutionWorkspace() {
           language,
           code,
         })
-        setOutput({
-          pending: false,
-          mode: 'samples',
-          passed: result.passed,
-          total: result.total,
+        sampleBlock = {
+          passed: Number(result.passed) || 0,
+          total: Number(result.total) || 0,
           results: result.results || [],
-        })
-      } else {
+        }
+      }
+
+      if (hasCustom) {
         const result = await executeCode({
           accessToken,
           language,
           code,
+          stdin: customInput,
+        })
+        customBlock = {
+          stdout: result.stdout || '',
+          stderr: result.stderr || '',
+          runtime: result.runtime,
+          exitCode: result.exit_code,
+        }
+      }
+
+      if (!sampleBlock && !customBlock) {
+        const result = await executeCode({
+          accessToken,
+          language,
+          code,
+          stdin: '',
         })
         setOutput({
           pending: false,
@@ -227,12 +274,60 @@ function SolutionWorkspace() {
           runtime: result.runtime,
           exitCode: result.exit_code,
         })
+        return
       }
+
+      setOutput({
+        pending: false,
+        mode: sampleBlock ? 'samples' : 'custom',
+        samples: sampleBlock,
+        custom: customBlock,
+        passed: sampleBlock?.passed,
+        total: sampleBlock?.total,
+        results: sampleBlock?.results,
+      })
     } catch (err) {
+      const message = err.message || 'Run failed'
       setOutput(null)
-      setError(err.message || 'Run failed')
+      if (/daily .+ limit/i.test(message)) {
+        window.alert(message)
+        setError('')
+      } else {
+        setError(message)
+      }
     } finally {
       setRunning(false)
+    }
+  }
+
+  async function handleEvaluate() {
+    setStatusMessage('')
+    setError('')
+    if (!samplesAllPassed) {
+      setError('All sample tests must pass before Evaluate')
+      return
+    }
+    setEvaluating(true)
+    setEvaluation(null)
+    try {
+      const result = await evaluateSolution({
+        accessToken,
+        problemId,
+        language,
+        code,
+        samplesPassed: true,
+      })
+      setEvaluation(result)
+    } catch (err) {
+      const message = err.message || 'Evaluate failed'
+      if (/daily .+ limit/i.test(message)) {
+        window.alert(message)
+        setError('')
+      } else {
+        setError(message)
+      }
+    } finally {
+      setEvaluating(false)
     }
   }
 
@@ -328,7 +423,7 @@ function SolutionWorkspace() {
         </div>
       </div>
 
-      <section className="max-w-[1400px] mx-auto px-4 sm:px-6 py-8 pb-16">
+      <section className="max-w-[1400px] mx-auto px-4 sm:px-6 py-8 pb-24">
         {error && (
           <p className="font-inter text-sm text-accent mb-4">{error}</p>
         )}
@@ -351,7 +446,10 @@ function SolutionWorkspace() {
                 <div className="inline-flex rounded-md border border-border overflow-hidden">
                   <button
                     type="button"
-                    onClick={() => setLayout('stack')}
+                    onClick={() => {
+                      setLayout('stack')
+                      setProblemSize((size) => clampProblemSize(size, 'stack'))
+                    }}
                     title="Stack vertically"
                     className={`inline-flex items-center gap-1.5 px-3 py-1.5 font-inter text-sm ${
                       layout === 'stack'
@@ -364,7 +462,10 @@ function SolutionWorkspace() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setLayout('split')}
+                    onClick={() => {
+                      setLayout('split')
+                      setProblemSize((size) => clampProblemSize(size, 'split'))
+                    }}
                     title="Side by side"
                     className={`inline-flex items-center gap-1.5 px-3 py-1.5 font-inter text-sm border-l border-border ${
                       layout === 'split'
@@ -393,11 +494,11 @@ function SolutionWorkspace() {
 
             <div
               ref={workspaceRef}
-              className={`min-h-[560px] h-[calc(100vh-260px)] ${
+              className={
                 problemOpen && layout === 'split'
-                  ? 'flex flex-row'
+                  ? 'min-h-[560px] h-[calc(100vh-260px)] overflow-hidden flex flex-row'
                   : 'flex flex-col'
-              }`}
+              }
             >
               {problemOpen && (
                 <>
@@ -406,7 +507,10 @@ function SolutionWorkspace() {
                     style={
                       layout === 'split'
                         ? { width: `${problemSize}%`, flexShrink: 0 }
-                        : { height: `${problemSize}%`, flexShrink: 0 }
+                        : {
+                          height: `${clampProblemSize(problemSize, 'stack')}vh`,
+                          flexShrink: 0,
+                        }
                     }
                   >
                     <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-bg-surface shrink-0">
@@ -450,14 +554,33 @@ function SolutionWorkspace() {
                 </>
               )}
 
-              <div className="flex-1 min-w-0 min-h-0 flex flex-col gap-3">
-                <div className="border border-border rounded-md overflow-hidden bg-white flex-1 min-h-[200px]">
+              <div
+                className={
+                  layout === 'split'
+                    ? 'flex-1 min-w-0 min-h-0 flex flex-col gap-3 overflow-y-auto'
+                    : 'w-full flex flex-col gap-3'
+                }
+              >
+                <div
+                  className={
+                    layout === 'split'
+                      ? 'border border-border rounded-md overflow-hidden bg-white flex-1 min-h-[200px]'
+                      : 'border border-border rounded-md overflow-hidden bg-white h-[360px] shrink-0'
+                  }
+                >
                   <MonacoEditor
                     height="100%"
                     language={monacoLanguage}
                     theme="vs-dark"
                     value={code}
-                    onChange={(value) => setCode(value ?? '')}
+                    onChange={(value) => {
+                      const next = value ?? ''
+                      if (next !== code) {
+                        setEvaluation(null)
+                        setOutput(null)
+                      }
+                      setCode(next)
+                    }}
                     options={{
                       minimap: { enabled: false },
                       fontSize: 14,
@@ -468,7 +591,21 @@ function SolutionWorkspace() {
                   />
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-3 shrink-0">
+                <label className="block shrink-0 space-y-1">
+                  <span className="font-inter text-xs text-text-secondary">
+                    Custom input
+                  </span>
+                  <input
+                    type="text"
+                    value={customInput}
+                    onChange={(e) => setCustomInput(e.target.value)}
+                    spellCheck={false}
+                    placeholder="Optional stdin for a raw run"
+                    className="w-full border border-border rounded-md px-3 py-2 font-mono text-sm text-text-primary bg-bg-base focus:outline-none focus:border-border-strong"
+                  />
+                </label>
+
+                <div className="flex flex-col sm:flex-row gap-3 shrink-0 flex-wrap">
                   <button
                     type="button"
                     onClick={handleRun}
@@ -478,14 +615,27 @@ function SolutionWorkspace() {
                     {running && <Loader2 size={16} className="animate-spin" />}
                     {running ? 'Running…' : 'Run'}
                   </button>
-                  <button
-                    type="button"
-                    disabled
-                    title="Evaluate is deferred to a later release"
-                    className="inline-flex items-center justify-center rounded-md px-4 py-2 font-inter text-sm font-medium border border-border-strong text-text-hint cursor-not-allowed"
-                  >
-                    Evaluate
-                  </button>
+                  <span className="relative inline-flex group">
+                    <button
+                      type="button"
+                      onClick={handleEvaluate}
+                      disabled={evaluating || !accessToken || !samplesAllPassed}
+                      className={`inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 font-inter text-sm font-medium border border-border-strong text-text-primary hover:bg-bg-surface disabled:opacity-60 disabled:cursor-not-allowed${
+                        evaluateDisabledReason ? ' pointer-events-none' : ''
+                      }`}
+                    >
+                      {evaluating && <Loader2 size={16} className="animate-spin" />}
+                      {evaluating ? 'Evaluating…' : 'Evaluate'}
+                    </button>
+                    {evaluateDisabledReason && (
+                      <span
+                        role="tooltip"
+                        className="pointer-events-none absolute left-0 top-full z-30 mt-1.5 max-w-[min(280px,70vw)] rounded-md bg-bg-elevated px-2.5 py-1.5 font-inter text-xs text-bg-base opacity-0 group-hover:opacity-100"
+                      >
+                        {evaluateDisabledReason}
+                      </span>
+                    )}
+                  </span>
                   <button
                     type="button"
                     onClick={handleSubmit}
@@ -495,58 +645,145 @@ function SolutionWorkspace() {
                     {submitting && <Loader2 size={16} className="animate-spin" />}
                     {submitting ? 'Submitting…' : 'Submit'}
                   </button>
+                  {LANGUAGE_DOCS[language] && (
+                    <a
+                      href={LANGUAGE_DOCS[language].href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 font-inter text-sm font-medium border border-border-strong text-text-secondary hover:bg-bg-surface"
+                    >
+                      <BookOpen size={16} />
+                      Docs
+                    </a>
+                  )}
                 </div>
 
+                {evaluation && (
+                  <div className="bg-bg-surface rounded-md p-4 shrink-0 space-y-4 border border-border">
+                    <p className="font-inter text-sm font-medium text-text-primary">Evaluation</p>
+                    {(evaluation.forbidden_hints || []).length > 0 && (
+                      <div className="space-y-2">
+                        <p className="font-inter text-xs font-medium text-text-secondary uppercase tracking-wide">
+                          Style hints (not failures)
+                        </p>
+                        {evaluation.forbidden_hints.map((hint) => (
+                          <div
+                            key={`${hint.rule}-${hint.line}`}
+                            className="rounded-md border border-border bg-bg-base p-3"
+                          >
+                            <p className="font-inter text-sm text-text-primary">
+                              {hint.rule}
+                              {hint.line != null ? ` (line ${hint.line})` : ''}
+                            </p>
+                            <p className="font-inter text-xs text-text-secondary mt-1">
+                              {hint.hint}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div>
+                      <p className="font-inter text-xs font-medium text-text-secondary uppercase tracking-wide mb-1">
+                        Big O (estimate)
+                      </p>
+                      <p className="font-inter text-sm font-medium text-text-primary">
+                        {evaluation.big_o}
+                      </p>
+                      {evaluation.big_o_reason && (
+                        <p className="font-inter text-xs text-text-secondary mt-1">
+                          {evaluation.big_o_reason}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-inter text-xs font-medium text-text-secondary uppercase tracking-wide mb-1">
+                        Duplication
+                      </p>
+                      {(evaluation.duplicates || []).length === 0 ? (
+                        <p className="font-inter text-sm text-text-secondary">None noted.</p>
+                      ) : (
+                        <ul className="list-disc pl-5 space-y-1">
+                          {evaluation.duplicates.map((note) => (
+                            <li key={note} className="font-inter text-sm text-text-primary">
+                              {note}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {output && (
-                  <div className="bg-bg-surface rounded-md p-4 shrink-0 max-h-64 overflow-y-auto">
+                  <div className="bg-bg-surface rounded-md p-4 shrink-0 space-y-4">
                     {output.pending && (
                       <>
                         <p className="font-inter text-sm font-medium text-text-primary mb-2">Output</p>
                         <pre className="font-mono text-[13px] text-text-primary">{'> Running...\n'}</pre>
                       </>
                     )}
-                    {!output.pending && output.mode === 'samples' && (
+                    {!output.pending && output.samples && (
                       <div className="space-y-3">
                         <p className="font-inter text-sm font-medium text-text-primary">
                           Samples
                           {' '}
-                          {output.passed}
+                          {output.samples.passed}
                           /
-                          {output.total}
+                          {output.samples.total}
                           {' '}
                           passed
                         </p>
-                        {(output.results || []).map((row) => (
-                          <div key={row.index} className="border border-border rounded-md bg-bg-base p-3 space-y-1">
-                            <p className={`font-inter text-sm font-medium ${
-                              row.passed ? 'text-success' : 'text-accent'
-                            }`}
-                            >
-                              Sample
-                              {' '}
-                              {row.index}
-                              {': '}
-                              {row.passed ? 'Pass' : 'Fail'}
-                            </p>
-                            {!row.passed && (
-                              <pre className="font-mono text-[12px] text-text-primary whitespace-pre-wrap break-words">
-                                {`expected:\n${row.expected_stdout || '(empty)'}\n\ngot:\n${row.stdout || '(empty)'}`}
-                                {row.stderr ? `\n\nstderr:\n${row.stderr}` : ''}
-                              </pre>
-                            )}
-                            {row.passed && typeof row.runtime === 'number' && (
-                              <p className="font-inter text-xs text-text-secondary">
-                                Runtime:
+                        {(output.samples.results || []).map((row) => {
+                          const stdin = (row.stdin ?? '').trim() || '(empty)'
+                          const got = (row.stdout ?? '').trim() || '(empty)'
+                          const expected = (row.expected_stdout ?? '').trim() || '(empty)'
+                          return (
+                            <div key={row.index} className="border border-border rounded-md bg-bg-base p-3 space-y-1">
+                              <p className={`font-inter text-sm font-medium ${
+                                row.passed ? 'text-success' : 'text-accent'
+                              }`}
+                              >
+                                Sample
                                 {' '}
-                                {row.runtime}
-                                s
+                                {row.index}
+                                {': '}
+                                {row.passed ? 'Pass' : 'Fail'}
                               </p>
-                            )}
-                          </div>
-                        ))}
+                              <pre className="font-mono text-[12px] text-text-secondary whitespace-pre-wrap break-words">
+                                {`in:  ${stdin}\nout: ${got}`}
+                                {!row.passed ? `\nexp: ${expected}` : ''}
+                                {!row.passed && row.stderr ? `\nerr: ${row.stderr}` : ''}
+                              </pre>
+                              {typeof row.runtime === 'number' && (
+                                <p className="font-inter text-xs text-text-hint">
+                                  {row.runtime}
+                                  s
+                                </p>
+                              )}
+                            </div>
+                          )
+                        })}
                       </div>
                     )}
-                    {!output.pending && output.mode !== 'samples' && (
+                    {!output.pending && output.custom && (
+                      <div className="space-y-2">
+                        <p className="font-inter text-sm font-medium text-text-primary">
+                          Custom output
+                        </p>
+                        <p className="font-inter text-xs text-text-secondary">
+                          Experimental run only (no Pass/Fail).
+                        </p>
+                        <pre className="font-mono text-[13px] text-text-primary whitespace-pre-wrap break-words bg-bg-base border border-border rounded-md p-3">
+                          {output.custom.stdout ? `${output.custom.stdout}` : ''}
+                          {output.custom.stderr ? `\n${output.custom.stderr}` : ''}
+                          {typeof output.custom.runtime === 'number'
+                            ? `\nRuntime: ${output.custom.runtime}s`
+                            : ''}
+                          {!output.custom.stdout && !output.custom.stderr ? '(empty)' : ''}
+                        </pre>
+                      </div>
+                    )}
+                    {!output.pending && output.mode === 'raw' && (
                       <>
                         <p className="font-inter text-sm font-medium text-text-primary mb-2">Output</p>
                         <pre className="font-mono text-[13px] text-text-primary whitespace-pre-wrap break-words">
@@ -556,6 +793,11 @@ function SolutionWorkspace() {
                             ? `\nRuntime: ${output.runtime}s`
                             : ''}
                         </pre>
+                        {output.stderr && (
+                          <p className="font-inter text-xs text-text-secondary mt-2">
+                            Use the error message and Docs to fix syntax or runtime issues.
+                          </p>
+                        )}
                       </>
                     )}
                   </div>

@@ -148,26 +148,21 @@
 ### [▶ Run]
 ```
 Style: Primary — bg #C0392B, text white, radius 6px
-Action: Sends code to Piston API for execution
-        Shows Output panel below editor
-        Output: stdout, stderr, runtime
-        Running state: button shows spinner, disabled
+Action:
+  - If samples exist: run each sample via Judge0 → Pass/Fail vs expected
+  - If Custom input is filled: also run with that stdin → Custom output (raw, no Pass/Fail)
+  - If no samples and no custom: single run with empty stdin
+Docs link: language official docs (syntax help; no AI)
 ```
 
-### [✦ Evaluate] — ⚠️ P3 / Post-MVP (deferred from W3)
-> AI Evaluate is excluded from MVP scope. Run + Submit only for W3.
-> Tracked in GitHub issue #60.
+### [Evaluate] — #60
 ```
 Style: Secondary outline
-Action: Sends code to Gemma 4 API for evaluation
-        Returns two sections:
-          1. Forbidden Patterns — checklist per rule
-             ✅ rule name — "not used"
-             ❌ rule name — "detected — Line N"
-          2. Time Complexity
-             Estimated Big-O + Score out of 10
-        Does NOT reveal the answer or solution approach
-        Loading state: button shows spinner, disabled
+Enabled only when the latest Run has all samples Pass
+Action: soft forbidden regex hints + Gemini 3.5 Flash-Lite (Big O + duplication)
+Forbidden hints are NOT failures ("contests often disallow… try another approach")
+Does NOT reveal the answer or rewrite the solution
+No AI syntax hints (use stderr + Docs)
 ```
 
 ### [⬆ Submit]
@@ -183,16 +178,10 @@ Action: Saves current editor code as member's official submission
 
 ## Evaluation Rules Config
 ```
-Forbidden patterns are configurable per problem (not global).
-Admin sets rules when creating a problem.
-Examples:
-  - break statement
-  - STL containers (map, set, sort, etc.)
-  - built-in sort functions
-  - recursion (if iterative solution required)
-
-Gemma 4 receives: { code, language, forbidden_rules[] }
-Returns: { patterns: [{rule, detected, line}], complexity: {big_o, score} }
+MVP: global soft-forbidden preset (break, builtin sort, C++ map/set/priority_queue).
+Per-problem toggles: later (#31).
+Gemini receives: { code, language } only (no problem statement / answers).
+Returns: { forbidden_hints[], big_o, big_o_reason, duplicates[] }
 ```
 
 ---
