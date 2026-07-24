@@ -114,7 +114,7 @@ Public (Unauthenticated)
 | **Public** | Landing, public announcements, events |
 | **Member** | Dashboard, member directory, problem submissions |
 | **Executive** | Post problems, manage sessions, events CRUD |
-| **Admin** | User approval, role management, executive position assignment for Our Team, full access |
+| **Admin** | User approval, role management, executive position assignment for Our Team, member CSV export for Excel, full access |
 
 **Onboarding flow:** `Google Sign-In → pending → Admin approval → member`
 
