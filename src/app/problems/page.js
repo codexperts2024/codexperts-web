@@ -370,31 +370,53 @@ function ProblemsContent() {
     if (idx !== -1) setCurrentIdx(idx)
   }, [problems, searchParams])
 
-  const loadProblems = useCallback(async () => {
+  const loadProblems = useCallback(async (signal) => {
     setLoading(true)
     setError(null)
     try {
-      const data = await fetchProblems(schoolFilter)
+      const data = await fetchProblems(schoolFilter, { signal })
       setProblems(data)
-    } catch {
-      setError('Failed to load problems. Please try again.')
+    } catch (err) {
+      if (err?.name === 'AbortError') {
+        setError('Request timed out. Refresh the page and try again.')
+      } else {
+        setError('Failed to load problems. Please try again.')
+      }
     } finally {
       setLoading(false)
     }
   }, [schoolFilter])
 
-  const loadSubmissions = useCallback(async () => {
+  const loadSubmissions = useCallback(async (signal) => {
     if (!profile?.id) return
     try {
-      const solved = await fetchUserSubmissions(profile.id)
+      const solved = await fetchUserSubmissions(profile.id, { signal })
       setUserSubmissions(solved)
     } catch {
       // Non-critical
     }
   }, [profile?.id])
 
-  useEffect(() => { loadProblems() }, [loadProblems])
-  useEffect(() => { loadSubmissions() }, [loadSubmissions])
+  useEffect(() => {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 15000)
+    loadProblems(controller.signal)
+    return () => {
+      clearTimeout(timer)
+      controller.abort()
+    }
+  }, [loadProblems])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 15000)
+    loadSubmissions(controller.signal)
+    return () => {
+      clearTimeout(timer)
+      controller.abort()
+    }
+  }, [loadSubmissions])
+
   useEffect(() => { setCurrentIdx(0) }, [schoolFilter])
 
   function navigateTo(idx) {

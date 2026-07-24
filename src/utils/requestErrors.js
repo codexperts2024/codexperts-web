@@ -1,8 +1,8 @@
 export function formatRequestError(error) {
   const message = error?.message ?? 'Something went wrong. Please try again.'
 
-  if (message.includes('timed out') || message.includes('timeout')) {
-    return `${message} If this keeps happening, refresh the page and log in again.`
+  if (message.includes('timed out') || message.includes('timeout') || error?.name === 'AbortError') {
+    return 'Request timed out. Refresh the page and try again.'
   }
 
   if (message.includes('No active session') || message.includes('Unauthorized')) {

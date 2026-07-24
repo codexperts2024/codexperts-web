@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { getCurrentExecutives } from '@/services/executiveService'
 import AboutCTA from '@/components/common/AboutCTA'
 import { IconLinkedIn, IconGitHub } from '@/components/ui/SocialIcons'
+import { createLoadGuard } from '@/utils/loadGuard'
 
 const TITLE_ORDER = ['President', 'Vice President', 'Treasurer']
 const SCHOOLS = [
@@ -56,8 +57,12 @@ const AboutPage = () => {
   const [executivesBySchool, setExecutivesBySchool] = useState({})
 
   useEffect(() => {
-    getCurrentExecutives()
-      .then((data) => {
+    const guard = createLoadGuard()
+
+    async function load() {
+      try {
+        const data = await getCurrentExecutives({ signal: guard.signal })
+        if (guard.isCancelled()) return
         const grouped = {}
         for (const school of SCHOOLS) {
           const schoolExecs = data.filter((e) => e.school === school.key)
@@ -66,8 +71,13 @@ const AboutPage = () => {
           )
         }
         setExecutivesBySchool(grouped)
-      })
-      .catch(() => {})
+      } catch {
+        // Keep empty TBD placeholders on timeout/error
+      }
+    }
+
+    load()
+    return () => guard.cleanup()
   }, [])
 
   return (

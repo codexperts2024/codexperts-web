@@ -39,7 +39,7 @@ function ListView({
       <PageHeader isAdmin={isAdmin} onNew={onNew} />
 
       {actionError && !showForm && (
-        <div className="bg-white px-4 sm:px-6 pt-4">
+        <div className="bg-bg-base px-4 sm:px-6 pt-4">
           <div className="max-w-[800px] mx-auto">
             <p className="text-sm text-error font-inter">{actionError}</p>
           </div>
@@ -47,7 +47,7 @@ function ListView({
       )}
 
       {showForm && (
-        <div className="bg-white py-8 px-4 sm:px-6">
+        <div className="bg-bg-base py-8 px-4 sm:px-6">
           <div className="max-w-[800px] mx-auto">
             <PostForm
               form={form}
@@ -61,7 +61,7 @@ function ListView({
         </div>
       )}
 
-      <div className="bg-white py-12 px-4 sm:px-6">
+      <div className="bg-bg-base py-12 px-4 sm:px-6">
         <div className="max-w-[900px] mx-auto">
           {announcements.length === 0 ? (
             <p className="text-center text-text-hint font-inter py-16">No announcements yet.</p>
@@ -83,7 +83,7 @@ function ListView({
                       <tr
                         key={item.id}
                         onClick={() => router.push(`/announcements/${item.id}`)}
-                        className="border-b border-border hover:bg-[#F9F9F9] cursor-pointer transition-colors"
+                        className="border-b border-border hover:bg-bg-layer1 cursor-pointer transition-colors"
                       >
                         <td className="py-3 px-3 text-sm text-text-hint font-inter">{rowNum}</td>
                         <td className="py-3 px-3 text-sm text-text-primary font-inter">{item.title}</td>
@@ -100,7 +100,7 @@ function ListView({
                   <button
                     onClick={() => setPage(p => Math.max(1, p - 1))}
                     disabled={page === 1}
-                    className="px-3 py-1 border border-border-strong rounded-md disabled:text-border-strong disabled:border-border hover:bg-[#F9F9F9] transition-colors"
+                    className="px-3 py-1 border border-border-strong rounded-md disabled:text-border-strong disabled:border-border hover:bg-bg-layer1 transition-colors"
                   >
                     ← Prev
                   </button>
@@ -108,7 +108,7 @@ function ListView({
                   <button
                     onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                     disabled={page === totalPages}
-                    className="px-3 py-1 border border-border-strong rounded-md disabled:text-border-strong disabled:border-border hover:bg-[#F9F9F9] transition-colors"
+                    className="px-3 py-1 border border-border-strong rounded-md disabled:text-border-strong disabled:border-border hover:bg-bg-layer1 transition-colors"
                   >
                     Next →
                   </button>
@@ -130,6 +130,7 @@ function AnnouncementsContent() {
 
   const [announcements, setAnnouncements] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [editMode, setEditMode] = useState(false)
   const [form, setForm] = useState({ title: '', content: '' })
@@ -140,9 +141,37 @@ function AnnouncementsContent() {
   const view = searchParams.get('view')
 
   useEffect(() => {
-    fetchAnnouncements()
-      .then(setAnnouncements)
-      .finally(() => setLoading(false))
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 15000)
+    let cancelled = false
+
+    async function load() {
+      setLoading(true)
+      setLoadError('')
+      try {
+        const data = await fetchAnnouncements({ signal: controller.signal })
+        if (!cancelled) setAnnouncements(data)
+      } catch (err) {
+        if (cancelled) return
+        if (!cancelled) {
+          setAnnouncements([])
+          setLoadError(
+            err?.name === 'AbortError'
+              ? 'Request timed out. Refresh the page and try again.'
+              : (formatRequestError(err) || 'Failed to load announcements')
+          )
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    load()
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+      controller.abort()
+    }
   }, [])
 
   function openNew() {
@@ -234,6 +263,17 @@ function AnnouncementsContent() {
     )
   }
 
+  if (loadError) {
+    return (
+      <>
+        <PageHeader isAdmin={isAdmin} onNew={openNew} />
+        <div className="bg-bg-base py-20 px-4 text-center">
+          <p className="text-error font-inter text-sm">{loadError}</p>
+        </div>
+      </>
+    )
+  }
+
   if (view === 'list') {
     return (
       <ListView
@@ -259,7 +299,7 @@ function AnnouncementsContent() {
       <PageHeader isAdmin={isAdmin} onNew={openNew} />
 
       {actionError && !showForm && (
-        <div className="bg-white px-4 sm:px-6 pt-4">
+        <div className="bg-bg-base px-4 sm:px-6 pt-4">
           <div className="max-w-[800px] mx-auto">
             <p className="text-sm text-error font-inter">{actionError}</p>
           </div>
@@ -267,7 +307,7 @@ function AnnouncementsContent() {
       )}
 
       {showForm && (
-        <div className="bg-white py-8 px-4 sm:px-6">
+        <div className="bg-bg-base py-8 px-4 sm:px-6">
           <div className="max-w-[800px] mx-auto">
             <PostForm
               form={form}
@@ -297,7 +337,7 @@ function AnnouncementsContent() {
           />
         </>
       ) : (
-        <div className="bg-white py-20 px-4 text-center">
+        <div className="bg-bg-base py-20 px-4 text-center">
           <p className="text-text-hint font-inter">No announcements yet.</p>
         </div>
       )}
@@ -307,7 +347,7 @@ function AnnouncementsContent() {
 
 export default function AnnouncementsPage() {
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-bg-base">
       <Suspense
         fallback={
           <div className="flex justify-center items-center py-32">

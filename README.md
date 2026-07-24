@@ -472,7 +472,7 @@ codexperts-web/
 │   └── utils/               # Helper functions, constants
 ├── docs/
 │   ├── design/              # Design system, sitemap, page-level specs
-│   ├── guidelines/          # code-conventions, git-workflow, judge0-rapidapi-setup
+│   ├── guidelines/          # code-conventions, git-workflow, data-loading, judge0-rapidapi-setup
 │   ├── meeting-notes/       # Sprint meeting records
 │   ├── sprints/             # Sprint plan + weekly specs
 │   └── schema/              # Database schema definitions

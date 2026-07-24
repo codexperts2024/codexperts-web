@@ -6,12 +6,15 @@ import { useAuth } from '@/hooks/useAuth'
 import { canAccessAdminRoutes } from '@/utils/constants'
 import { formatRequestError } from '@/utils/requestErrors'
 import {
-  fetchAnnouncements,
+  fetchAnnouncement,
+  fetchAnnouncementIds,
   createAnnouncement,
   updateAnnouncement,
   deleteAnnouncement,
 } from '@/services/announcementService'
 import { PageHeader, PostContent, NavRow, PostForm } from '../_shared'
+
+const FETCH_TIMEOUT_MS = 15000
 
 export default function AnnouncementPostPage() {
   const { id } = useParams()
@@ -19,8 +22,10 @@ export default function AnnouncementPostPage() {
   const { user, profile } = useAuth()
   const isAdmin = canAccessAdminRoutes(profile?.role)
 
-  const [announcements, setAnnouncements] = useState([])
+  const [post, setPost] = useState(null)
+  const [ids, setIds] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [editMode, setEditMode] = useState(false)
   const [form, setForm] = useState({ title: '', content: '' })
@@ -28,15 +33,56 @@ export default function AnnouncementPostPage() {
   const [formError, setFormError] = useState('')
   const [actionError, setActionError] = useState('')
 
-  useEffect(() => {
-    fetchAnnouncements()
-      .then(setAnnouncements)
-      .finally(() => setLoading(false))
-  }, [])
-
   const numId = Number(id)
-  const idx = announcements.findIndex(a => a.id === numId)
-  const post = idx !== -1 ? announcements[idx] : null
+
+  useEffect(() => {
+    if (!Number.isFinite(numId)) {
+      setPost(null)
+      setIds([])
+      setLoading(false)
+      return
+    }
+
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
+    let cancelled = false
+
+    async function load() {
+      setLoading(true)
+      setLoadError('')
+      try {
+        const [detail, idList] = await Promise.all([
+          fetchAnnouncement(numId, { signal: controller.signal }),
+          fetchAnnouncementIds({ signal: controller.signal }),
+        ])
+        if (cancelled) return
+        setPost(detail)
+        setIds(idList)
+      } catch (err) {
+        if (cancelled) return
+        if (!cancelled) {
+          setPost(null)
+          setIds([])
+          setLoadError(
+            err?.name === 'AbortError'
+              ? 'Request timed out. Refresh the page and try again.'
+              : (formatRequestError(err) || 'Failed to load announcement')
+          )
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    load()
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+      controller.abort()
+    }
+  }, [numId])
+
+  const idx = ids.findIndex((itemId) => itemId === numId)
 
   function openNew() {
     setEditMode(false)
@@ -69,7 +115,6 @@ export default function AnnouncementPostPage() {
     setFormError('')
     try {
       const created = await createAnnouncement(form.title.trim(), form.content, user.id)
-      setAnnouncements(prev => [created, ...prev])
       cancelForm()
       router.push(`/announcements/${created.id}`)
     } catch (err) {
@@ -89,7 +134,7 @@ export default function AnnouncementPostPage() {
     setFormError('')
     try {
       const updated = await updateAnnouncement(numId, form.title.trim(), form.content)
-      setAnnouncements(prev => prev.map(a => a.id === numId ? updated : a))
+      setPost(updated)
       cancelForm()
     } catch (err) {
       setFormError(formatRequestError(err))
@@ -106,10 +151,10 @@ export default function AnnouncementPostPage() {
     setActionError('')
     try {
       await deleteAnnouncement(numId)
-      const remaining = announcements.filter(a => a.id !== numId)
-      setAnnouncements(remaining)
+      const remaining = ids.filter((itemId) => itemId !== numId)
       if (remaining.length > 0) {
-        router.push(`/announcements/${remaining[0].id}`)
+        const nextId = idx > 0 ? remaining[Math.min(idx, remaining.length - 1)] : remaining[0]
+        router.push(`/announcements/${nextId}`)
       } else {
         router.push('/announcements')
       }
@@ -121,22 +166,24 @@ export default function AnnouncementPostPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-white flex justify-center items-center py-32">
+      <main className="min-h-screen bg-bg-base flex justify-center items-center py-32">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-text-primary" />
       </main>
     )
   }
 
-  if (!post) {
+  if (loadError || !post) {
     return (
-      <main className="min-h-screen bg-white">
-        <div className="bg-[#F9F9F9] py-8 px-4 sm:px-6">
+      <main className="min-h-screen bg-bg-base">
+        <div className="bg-bg-surface py-8 px-4 sm:px-6">
           <div className="max-w-[900px] mx-auto">
             <h1 className="font-montserrat font-bold text-4xl text-text-primary">Announcements</h1>
           </div>
         </div>
-        <div className="bg-white py-20 px-4 text-center">
-          <p className="text-text-hint font-inter">Announcement not found.</p>
+        <div className="bg-bg-base py-20 px-4 text-center">
+          <p className="text-text-hint font-inter">
+            {loadError || 'Announcement not found.'}
+          </p>
           <button
             onClick={() => router.push('/announcements')}
             className="mt-4 text-sm font-inter text-link hover:underline"
@@ -148,15 +195,15 @@ export default function AnnouncementPostPage() {
     )
   }
 
-  const isNewest = idx === 0
-  const isOldest = idx === announcements.length - 1
+  const isNewest = idx <= 0
+  const isOldest = idx === -1 || idx >= ids.length - 1
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-bg-base">
       <PageHeader isAdmin={isAdmin} onNew={openNew} />
 
       {actionError && !showForm && (
-        <div className="bg-white px-4 sm:px-6 pt-4">
+        <div className="bg-bg-base px-4 sm:px-6 pt-4">
           <div className="max-w-[800px] mx-auto">
             <p className="text-sm text-error font-inter">{actionError}</p>
           </div>
@@ -164,7 +211,7 @@ export default function AnnouncementPostPage() {
       )}
 
       {showForm && (
-        <div className="bg-white py-8 px-4 sm:px-6">
+        <div className="bg-bg-base py-8 px-4 sm:px-6">
           <div className="max-w-[800px] mx-auto">
             <PostForm
               form={form}
@@ -184,8 +231,8 @@ export default function AnnouncementPostPage() {
       <NavRow
         prevDisabled={isOldest}
         nextDisabled={isNewest}
-        onPrev={() => router.push(`/announcements/${announcements[idx + 1].id}`)}
-        onNext={() => router.push(`/announcements/${announcements[idx - 1].id}`)}
+        onPrev={() => router.push(`/announcements/${ids[idx + 1]}`)}
+        onNext={() => router.push(`/announcements/${ids[idx - 1]}`)}
         onList={() => router.push('/announcements?view=list')}
         onDelete={handleDelete}
         onEdit={openEdit}

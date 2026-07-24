@@ -1,29 +1,40 @@
 import { supabase } from '@/lib/supabase'
 
-export async function fetchUserSubmissions(profileId) {
-  const { data, error } = await supabase
-    .from('submissions')
-    .select('problem_id')
-    .eq('profile_id', profileId)
+function withSignal(query, signal) {
+  return signal ? query.abortSignal(signal) : query
+}
+
+export async function fetchUserSubmissions(profileId, { signal } = {}) {
+  const { data, error } = await withSignal(
+    supabase
+      .from('submissions')
+      .select('problem_id')
+      .eq('profile_id', profileId),
+    signal
+  )
   if (error) throw error
   return new Set((data ?? []).map((s) => s.problem_id))
 }
 
-export async function fetchOwnSubmission(profileId, problemId) {
-  const { data, error } = await supabase
-    .from('submissions')
-    .select('id, code, language, created_at, updated_at')
-    .eq('profile_id', profileId)
-    .eq('problem_id', problemId)
-    .maybeSingle()
+export async function fetchOwnSubmission(profileId, problemId, { signal } = {}) {
+  const { data, error } = await withSignal(
+    supabase
+      .from('submissions')
+      .select('id, code, language, created_at, updated_at')
+      .eq('profile_id', profileId)
+      .eq('problem_id', problemId)
+      .maybeSingle(),
+    signal
+  )
   if (error) throw error
   return data
 }
 
-export async function fetchCommunitySubmissions(problemId) {
-  const { data, error } = await supabase
-    .from('submissions')
-    .select(`
+export async function fetchCommunitySubmissions(problemId, { signal } = {}) {
+  const { data, error } = await withSignal(
+    supabase
+      .from('submissions')
+      .select(`
       id,
       code,
       language,
@@ -36,9 +47,11 @@ export async function fetchCommunitySubmissions(problemId) {
         avatar_url
       )
     `)
-    .eq('problem_id', problemId)
-    .order('updated_at', { ascending: false, nullsFirst: false })
-    .order('created_at', { ascending: false })
+      .eq('problem_id', problemId)
+      .order('updated_at', { ascending: false, nullsFirst: false })
+      .order('created_at', { ascending: false }),
+    signal
+  )
 
   if (error) throw error
 

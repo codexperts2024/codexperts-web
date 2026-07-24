@@ -87,19 +87,34 @@ export default function MembersPage() {
   const [sort, setSort] = useState('name-asc')
 
   useEffect(() => {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 15000)
     let cancelled = false
+
     async function load() {
       try {
-        const data = await fetchMembers()
+        const data = await fetchMembers({ signal: controller.signal })
         if (!cancelled) setMembers(data)
       } catch (err) {
-        if (!cancelled) setError(err)
+        if (cancelled) return
+        if (!cancelled) {
+          setError(
+            err?.name === 'AbortError'
+              ? new Error('Request timed out. Refresh the page and try again.')
+              : err
+          )
+        }
       } finally {
         if (!cancelled) setLoading(false)
       }
     }
+
     load()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+      controller.abort()
+    }
   }, [])
 
   const cohortOptions = useMemo(() => {

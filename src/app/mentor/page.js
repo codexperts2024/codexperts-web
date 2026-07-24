@@ -6,6 +6,7 @@ import { getOptimizedUrl } from '@/services/cloudinaryService'
 import { getSiteSetting } from '@/services/siteSettingsService'
 import MentorPhotoEditor from '@/components/mentor/MentorPhotoEditor'
 import PageCTA from '@/components/common/PageCTA'
+import { createLoadGuard } from '@/utils/loadGuard'
 
 const FALLBACK_PHOTO = '/mentor.png'
 
@@ -30,19 +31,21 @@ export default function MentorPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    let cancelled = false
+    const guard = createLoadGuard()
+
     async function load() {
       try {
-        const url = await getSiteSetting('mentor_photo_url')
-        if (!cancelled) setPhotoUrl(url)
+        const url = await getSiteSetting('mentor_photo_url', { signal: guard.signal })
+        if (!guard.isCancelled()) setPhotoUrl(url)
       } catch {
-        if (!cancelled) setPhotoUrl(null)
+        if (!guard.isCancelled()) setPhotoUrl(null)
       } finally {
-        if (!cancelled) setLoading(false)
+        if (!guard.isCancelled()) setLoading(false)
       }
     }
+
     load()
-    return () => { cancelled = true }
+    return () => guard.cleanup()
   }, [])
 
   const src = getOptimizedUrl(photoUrl) ?? FALLBACK_PHOTO

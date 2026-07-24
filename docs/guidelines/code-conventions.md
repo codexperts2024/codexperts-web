@@ -175,3 +175,11 @@ if (user.status === 'pending') return <PendingScreen />;
 - No `console.log` in commits — remove all debug logs before pushing
 - No hardcoded role strings — use the `ROLES` constant from `constants.js`
 - No direct Supabase calls inside components — always go through the `services/` layer
+
+---
+
+## 9. Client Data Loading
+
+All client-side page/data loaders must abort on unmount, time out (15s), and show errors instead of hanging on a spinner.
+
+See **`docs/guidelines/data-loading.md`** for the required pattern (`createLoadGuard`, `fetchWithTimeout`, `withTimeout`) and the new-page checklist.

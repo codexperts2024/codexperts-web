@@ -8,7 +8,8 @@ import Button from '@/components/ui/Button'
 import JoinUsButton from '@/components/ui/JoinUsButton'
 import HeroImageEditor from '@/components/home/HeroImageEditor'
 import { getOptimizedUrl } from '@/services/cloudinaryService'
-import { supabase } from '@/lib/supabase'
+import { getSiteSetting } from '@/services/siteSettingsService'
+import { createLoadGuard } from '@/utils/loadGuard'
 
 const FALLBACK_HERO = '/hero.jpg'
 
@@ -16,14 +17,19 @@ export default function HomePage() {
   const [heroUrl, setHeroUrl] = useState(null)
 
   useEffect(() => {
-    supabase
-      .from('site_settings')
-      .select('value')
-      .eq('key', 'hero_image_url')
-      .single()
-      .then(({ data }) => {
-        if (data?.value) setHeroUrl(data.value)
-      })
+    const guard = createLoadGuard()
+
+    async function load() {
+      try {
+        const url = await getSiteSetting('hero_image_url', { signal: guard.signal })
+        if (!guard.isCancelled() && url) setHeroUrl(url)
+      } catch {
+        // Keep fallback hero on timeout/error
+      }
+    }
+
+    load()
+    return () => guard.cleanup()
   }, [])
 
   const src = getOptimizedUrl(heroUrl) ?? FALLBACK_HERO

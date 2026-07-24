@@ -2,8 +2,8 @@ import { supabase } from '@/lib/supabase'
 
 // Returns all currently active executives (end_date IS NULL),
 // joined with their profile. Used by the About page.
-export async function getCurrentExecutives() {
-  const { data, error } = await supabase
+export async function getCurrentExecutives({ signal } = {}) {
+  let query = supabase
     .from('executive_roles')
     .select(`
       id,
@@ -24,6 +24,8 @@ export async function getCurrentExecutives() {
     `)
     .is('end_date', null)
     .order('created_at', { ascending: true })
+  if (signal) query = query.abortSignal(signal)
+  const { data, error } = await query
 
   if (error) throw error
 
