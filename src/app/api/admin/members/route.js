@@ -8,7 +8,9 @@ export async function GET(request) {
 
   const { data, error } = await serviceClient
     .from('profiles')
-    .select('id, first_name, last_name, email, avatar_url, school, cohort, phone, status, role, application_status, created_at')
+    .select(
+      'id, first_name, last_name, nickname, email, avatar_url, school, cohort, phone, status, role, application_status, occupation, company, linkedin, github, bio, created_at, updated_at'
+    )
     .neq('application_status', 'rejected')
     .order('first_name', { ascending: true })
 
