@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { getOptimizedUrl } from '@/services/cloudinaryService'
 import { getSiteSetting } from '@/services/siteSettingsService'
 import MentorPhotoEditor from '@/components/mentor/MentorPhotoEditor'
+import PageCTA from '@/components/common/PageCTA'
 
 const FALLBACK_PHOTO = '/mentor.png'
 
@@ -105,6 +106,12 @@ export default function MentorPage() {
           </div>
         </div>
       </section>
+
+      <PageCTA
+        heading="See what's happening"
+        href="/announcements"
+        label="Announcements"
+      />
     </main>
   )
 }
