@@ -3,6 +3,7 @@
 import { createContext, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { getSession, fetchProfile, signOut as authSignOut } from '@/services/authService'
+import { withTimeout } from '@/utils/withTimeout'
 
 export const AuthContext = createContext(null)
 
@@ -17,22 +18,33 @@ export function AuthProvider({ children }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     let initialized = false
+    let cancelled = false
 
     async function init() {
       // Clear any stale OAuth flag left from a previous abandoned flow
       // (covers the full-remount case where pageshow doesn't reload).
       sessionStorage.removeItem('oauth_pending')
       try {
-        const session = await getSession()
+        const session = await withTimeout(getSession())
+        if (cancelled) return
         setUser(session?.user ?? null)
         setAccessToken(session?.access_token ?? null)
         if (session?.user) {
-          const p = await fetchProfile(session.user.id)
+          const p = await withTimeout(fetchProfile(session.user.id))
+          if (cancelled) return
           setProfile(p)
         }
+      } catch {
+        if (!cancelled) {
+          setUser(null)
+          setProfile(null)
+          setAccessToken(null)
+        }
       } finally {
-        setLoading(false)
-        initialized = true
+        if (!cancelled) {
+          setLoading(false)
+          initialized = true
+        }
       }
     }
 
@@ -52,7 +64,7 @@ export function AuthProvider({ children }) {
       }
       ;(async () => {
         try {
-          const session = await getSession()
+          const session = await withTimeout(getSession())
           setUser(session?.user ?? null)
           setAccessToken(session?.access_token ?? null)
           if (!session?.user) setProfile(null)
@@ -75,7 +87,7 @@ export function AuthProvider({ children }) {
         setAccessToken(session?.access_token ?? null)
         if (session?.user) {
           try {
-            const p = await fetchProfile(session.user.id)
+            const p = await withTimeout(fetchProfile(session.user.id))
             setProfile(p)
           } catch {
             setProfile(null)
@@ -87,6 +99,7 @@ export function AuthProvider({ children }) {
     )
 
     return () => {
+      cancelled = true
       subscription.unsubscribe()
       window.removeEventListener('pageshow', handlePageShow)
     }

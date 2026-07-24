@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { fetchWithTimeout } from '@/utils/fetchWithTimeout'
 
 export const PROBLEM_BUCKET = 'problem-documents'
 export const MAX_DOCUMENT_BYTES = 50 * 1024 * 1024
@@ -199,13 +200,15 @@ export async function uploadProblemDocument(file, problemId, accessToken) {
   }
 }
 
+import { fetchWithTimeout } from '@/utils/fetchWithTimeout'
+
 export async function previewDocxAsPdf(file, accessToken) {
   if (!accessToken) throw new Error('Not authenticated.')
 
   const formData = new FormData()
   formData.append('file', file)
 
-  const res = await fetch('/api/problems/documents/preview', {
+  const res = await fetchWithTimeout('/api/problems/documents/preview', {
     method: 'POST',
     headers: { Authorization: `Bearer ${accessToken}` },
     body: formData,
@@ -222,7 +225,7 @@ export async function previewDocxAsPdf(file, accessToken) {
 export async function getDocumentSignedUrl(storagePath, accessToken) {
   if (!accessToken) throw new Error('Not authenticated.')
 
-  const res = await fetch(
+  const res = await fetchWithTimeout(
     `/api/problems/documents?path=${encodeURIComponent(storagePath)}`,
     { headers: { Authorization: `Bearer ${accessToken}` } },
   )
@@ -239,7 +242,7 @@ export async function downloadProblemDocument(storagePath, accessToken, filename
   })
   if (filename) params.set('filename', filename)
 
-  const res = await fetch(`/api/problems/documents?${params}`, {
+  const res = await fetchWithTimeout(`/api/problems/documents?${params}`, {
     headers: { Authorization: `Bearer ${accessToken}` },
   })
   if (!res.ok) {
