@@ -30,6 +30,7 @@ function mapMember(row) {
     id: row.id,
     firstName: row.first_name,
     lastName: row.last_name,
+    nickname: row.nickname ?? null,
     email: row.email,
     avatarUrl: row.avatar_url,
     school: row.school,
@@ -38,7 +39,13 @@ function mapMember(row) {
     status: row.status,
     role: row.role,
     applicationStatus: row.application_status,
+    occupation: row.occupation ?? null,
+    company: row.company ?? null,
+    linkedin: row.linkedin ?? null,
+    github: row.github ?? null,
+    bio: row.bio ?? null,
     createdAt: row.created_at,
+    updatedAt: row.updated_at ?? null,
     executiveTitle: row.executive_title ?? null,
   }
 }

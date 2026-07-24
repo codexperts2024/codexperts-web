@@ -2,7 +2,9 @@
 
 import { useMemo, useState } from 'react'
 import UserAvatar from '@/components/common/UserAvatar'
+import Button from '@/components/ui/Button'
 import { cohortLabel } from '@/utils/cohort'
+import { downloadMembersCsv } from '@/utils/membersCsv'
 import { isPendingApplicant } from '@/services/adminService'
 import {
   compareNumberLike,
@@ -126,7 +128,20 @@ export default function MemberTable({
             )}
           </p>
           {isAdmin && (
-            <p className="text-xs text-text-hint font-inter hidden sm:block">Click a name to edit · click headers to sort</p>
+            <div className="flex items-center gap-3">
+              <p className="text-xs text-text-hint font-inter hidden sm:block">
+                Click a name to edit · click headers to sort
+              </p>
+              <Button
+                type="button"
+                variant="secondary"
+                className="px-3 py-1.5 text-xs shrink-0"
+                disabled={members.length === 0}
+                onClick={() => downloadMembersCsv(members)}
+              >
+                Export CSV
+              </Button>
+            </div>
           )}
         </div>
 
