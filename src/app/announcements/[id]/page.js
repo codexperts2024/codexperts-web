@@ -121,7 +121,7 @@ export default function AnnouncementPostPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-white flex justify-center items-center py-32">
+      <main className="min-h-screen bg-bg-base flex justify-center items-center py-32">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-text-primary" />
       </main>
     )
@@ -129,13 +129,13 @@ export default function AnnouncementPostPage() {
 
   if (!post) {
     return (
-      <main className="min-h-screen bg-white">
-        <div className="bg-[#F9F9F9] py-8 px-4 sm:px-6">
+      <main className="min-h-screen bg-bg-base">
+        <div className="bg-bg-surface py-8 px-4 sm:px-6">
           <div className="max-w-[900px] mx-auto">
             <h1 className="font-montserrat font-bold text-4xl text-text-primary">Announcements</h1>
           </div>
         </div>
-        <div className="bg-white py-20 px-4 text-center">
+        <div className="bg-bg-base py-20 px-4 text-center">
           <p className="text-text-hint font-inter">Announcement not found.</p>
           <button
             onClick={() => router.push('/announcements')}
@@ -152,11 +152,11 @@ export default function AnnouncementPostPage() {
   const isOldest = idx === announcements.length - 1
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-bg-base">
       <PageHeader isAdmin={isAdmin} onNew={openNew} />
 
       {actionError && !showForm && (
-        <div className="bg-white px-4 sm:px-6 pt-4">
+        <div className="bg-bg-base px-4 sm:px-6 pt-4">
           <div className="max-w-[800px] mx-auto">
             <p className="text-sm text-error font-inter">{actionError}</p>
           </div>
@@ -164,7 +164,7 @@ export default function AnnouncementPostPage() {
       )}
 
       {showForm && (
-        <div className="bg-white py-8 px-4 sm:px-6">
+        <div className="bg-bg-base py-8 px-4 sm:px-6">
           <div className="max-w-[800px] mx-auto">
             <PostForm
               form={form}

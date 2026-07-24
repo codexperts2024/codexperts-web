@@ -69,7 +69,7 @@ export function AnnouncementMarkdown({ children }) {
 
 export function PageHeader({ isAdmin, onNew }) {
   return (
-    <div className="bg-[#F9F9F9] py-8 px-4 sm:px-6">
+    <div className="bg-bg-surface py-8 px-4 sm:px-6">
       <div className="max-w-[900px] mx-auto flex items-center justify-between">
         <h1 className="font-montserrat font-bold text-4xl text-text-primary">Announcements</h1>
         {isAdmin && (
@@ -204,7 +204,7 @@ export function PostForm({ form, onChange, onSubmit, onCancel, submitting, editM
       <div className="flex gap-3 justify-end">
         <button
           onClick={onCancel}
-          className="px-4 py-2 border border-border-strong rounded-md text-sm font-inter text-text-secondary hover:bg-[#F9F9F9] transition-colors"
+          className="px-4 py-2 border border-border-strong rounded-md text-sm font-inter text-text-secondary hover:bg-bg-layer1 transition-colors"
         >
           Cancel
         </button>
@@ -230,7 +230,7 @@ export function DeleteModal({ onConfirm, onCancel, deleting }) {
         <div className="flex gap-3 justify-end">
           <button
             onClick={onCancel}
-            className="px-4 py-2 border border-border-strong rounded-md text-sm font-inter text-text-secondary hover:bg-[#F9F9F9] transition-colors"
+            className="px-4 py-2 border border-border-strong rounded-md text-sm font-inter text-text-secondary hover:bg-bg-layer1 transition-colors"
           >
             Cancel
           </button>
@@ -249,7 +249,7 @@ export function DeleteModal({ onConfirm, onCancel, deleting }) {
 
 export function PostContent({ post }) {
   return (
-    <div className="bg-white py-12 px-4 sm:px-6">
+    <div className="bg-bg-base py-12 px-4 sm:px-6">
       <div className="max-w-[800px] mx-auto">
         <h2 className="font-montserrat font-bold text-2xl text-text-primary mb-2">{post.title}</h2>
         <p className="text-sm text-text-hint font-inter mb-4">
@@ -281,7 +281,7 @@ export function NavRow({ onPrev, onNext, onList, onDelete, onEdit, prevDisabled,
   }
 
   const btnBase = 'px-4 py-2 border rounded-md text-sm font-inter transition-colors'
-  const btnActive = `${btnBase} border-border-strong text-text-secondary hover:bg-[#F9F9F9]`
+  const btnActive = `${btnBase} border-border-strong text-text-secondary hover:bg-bg-layer1`
   const btnDisabled = `${btnBase} border-border text-border-strong cursor-not-allowed`
 
   return (
@@ -298,7 +298,7 @@ export function NavRow({ onPrev, onNext, onList, onDelete, onEdit, prevDisabled,
             </button>
             {isAdmin && (
               <div className="flex gap-1">
-                <button onClick={onEdit} title="Edit" className="p-1.5 text-text-secondary hover:text-text-primary transition-colors rounded-md hover:bg-[#F9F9F9]">
+                <button onClick={onEdit} title="Edit" className="p-1.5 text-text-secondary hover:text-text-primary transition-colors rounded-md hover:bg-bg-layer1">
                   <IconEdit className="w-4 h-4" />
                 </button>
                 <button onClick={() => setShowDeleteModal(true)} title="Delete" className="p-1.5 text-accent hover:text-accent-hover transition-colors rounded-md hover:bg-accent-bg">
