@@ -26,6 +26,8 @@ function SolutionsListContent() {
   const [error, setError] = useState('')
 
   useEffect(() => {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 15000)
     let cancelled = false
 
     async function load() {
@@ -33,21 +35,34 @@ function SolutionsListContent() {
       setError('')
       try {
         const [problemRows, submitted] = await Promise.all([
-          fetchProblems(),
-          profile?.id ? fetchUserSubmissions(profile.id) : Promise.resolve(new Set()),
+          fetchProblems(undefined, { signal: controller.signal }),
+          profile?.id
+            ? fetchUserSubmissions(profile.id, { signal: controller.signal })
+            : Promise.resolve(new Set()),
         ])
         if (cancelled) return
         setProblems(problemRows)
         setUserSubmissions(submitted)
       } catch (err) {
-        if (!cancelled) setError(err.message || 'Failed to load problems')
+        if (cancelled) return
+        if (!cancelled) {
+          setError(
+            err?.name === 'AbortError'
+              ? 'Request timed out. Refresh the page and try again.'
+              : (err.message || 'Failed to load problems')
+          )
+        }
       } finally {
         if (!cancelled) setLoading(false)
       }
     }
 
     load()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+      controller.abort()
+    }
   }, [profile?.id])
 
   return (

@@ -23,23 +23,33 @@ function mapMember(row) {
   }
 }
 
-export async function fetchMembers() {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select(MEMBER_FIELDS)
-    .neq('role', 'pending')
-    .order('first_name', { ascending: true })
+function withSignal(query, signal) {
+  return signal ? query.abortSignal(signal) : query
+}
+
+export async function fetchMembers({ signal } = {}) {
+  const { data, error } = await withSignal(
+    supabase
+      .from('profiles')
+      .select(MEMBER_FIELDS)
+      .neq('role', 'pending')
+      .order('first_name', { ascending: true }),
+    signal
+  )
 
   if (error) throw error
   return (data ?? []).map(mapMember)
 }
 
-export async function fetchMemberById(id) {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select(MEMBER_FIELDS)
-    .eq('id', id)
-    .single()
+export async function fetchMemberById(id, { signal } = {}) {
+  const { data, error } = await withSignal(
+    supabase
+      .from('profiles')
+      .select(MEMBER_FIELDS)
+      .eq('id', id)
+      .single(),
+    signal
+  )
   if (error) throw error
   return mapMember(data)
 }

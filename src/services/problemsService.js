@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { fetchWithTimeout } from '@/utils/fetchWithTimeout'
 
 export const PROBLEM_BUCKET = 'problem-documents'
 export const MAX_DOCUMENT_BYTES = 50 * 1024 * 1024
@@ -80,7 +81,7 @@ export function detectProblemFileType(file) {
   return null
 }
 
-export async function fetchProblems(schoolFilter) {
+export async function fetchProblems(schoolFilter, { signal } = {}) {
   let query = supabase
     .from('problems')
     .select(SELECT_FIELDS)
@@ -91,17 +92,18 @@ export async function fetchProblems(schoolFilter) {
     query = query.eq('school', schoolFilter)
   }
 
-  const { data, error } = await query
+  const { data, error } = await (signal ? query.abortSignal(signal) : query)
   if (error) throw error
   return (data ?? []).map(mapProblem)
 }
 
-export async function fetchProblemById(id) {
-  const { data, error } = await supabase
+export async function fetchProblemById(id, { signal } = {}) {
+  let query = supabase
     .from('problems')
     .select(SELECT_FIELDS)
     .eq('id', id)
     .single()
+  const { data, error } = await (signal ? query.abortSignal(signal) : query)
   if (error) throw error
   return mapProblem(data)
 }
@@ -204,7 +206,7 @@ export async function previewDocxAsPdf(file, accessToken) {
   const formData = new FormData()
   formData.append('file', file)
 
-  const res = await fetch('/api/problems/documents/preview', {
+  const res = await fetchWithTimeout('/api/problems/documents/preview', {
     method: 'POST',
     headers: { Authorization: `Bearer ${accessToken}` },
     body: formData,
@@ -221,7 +223,7 @@ export async function previewDocxAsPdf(file, accessToken) {
 export async function getDocumentSignedUrl(storagePath, accessToken) {
   if (!accessToken) throw new Error('Not authenticated.')
 
-  const res = await fetch(
+  const res = await fetchWithTimeout(
     `/api/problems/documents?path=${encodeURIComponent(storagePath)}`,
     { headers: { Authorization: `Bearer ${accessToken}` } },
   )
@@ -238,7 +240,7 @@ export async function downloadProblemDocument(storagePath, accessToken, filename
   })
   if (filename) params.set('filename', filename)
 
-  const res = await fetch(`/api/problems/documents?${params}`, {
+  const res = await fetchWithTimeout(`/api/problems/documents?${params}`, {
     headers: { Authorization: `Bearer ${accessToken}` },
   })
   if (!res.ok) {

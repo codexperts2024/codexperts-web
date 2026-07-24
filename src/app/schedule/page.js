@@ -140,31 +140,39 @@ export default function SchedulePage() {
   const [hasError, setHasError] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
 
-  const fetchEvents = useCallback(async (y, m, signal) => {
-    setIsLoading(true);
-    setHasError(false);
-    try {
-      const res = await fetch(`/api/calendar?year=${y}&month=${m}`, {
-        cache: 'no-store',
-        signal,
-      });
-      if (!res.ok) throw new Error('Network error');
-      const data = await res.json();
-      setEvents(data.events ?? []);
-      setIsLoading(false);
-    } catch (err) {
-      if (err.name === 'AbortError') return; // newer request is in flight — ignore
-      setHasError(true);
-      setEvents([]);
-      setIsLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
     const controller = new AbortController();
-    fetchEvents(year, month, controller.signal);
-    return () => controller.abort();
-  }, [year, month, fetchEvents]);
+    const timer = setTimeout(() => controller.abort(), 15000);
+    let cancelled = false;
+
+    async function load() {
+      setIsLoading(true);
+      setHasError(false);
+      try {
+        const res = await fetch(`/api/calendar?year=${year}&month=${month}`, {
+          cache: 'no-store',
+          signal: controller.signal,
+        });
+        if (!res.ok) throw new Error('Network error');
+        const data = await res.json();
+        if (cancelled) return;
+        setEvents(data.events ?? []);
+        setIsLoading(false);
+      } catch (err) {
+        if (cancelled) return;
+        setHasError(true);
+        setEvents([]);
+        setIsLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [year, month]);
 
   const handleCloseModal = useCallback(() => setSelectedEvent(null), []);
 

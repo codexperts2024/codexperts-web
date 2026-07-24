@@ -9,8 +9,8 @@ import { canAccessAdminRoutes } from '@/utils/constants'
 import { isEventUpcoming, formatEventDate } from '@/lib/events'
 import Gallery from '@/components/gallery'
 import {
-  fetchEvents,
   fetchEventById,
+  fetchEventNavItems,
   createEvent,
   updateEvent,
   deleteEvent,
@@ -58,7 +58,7 @@ export default function EventDetailPage({ params }) {
   const isAdmin = canAccessAdminRoutes(profile?.role)
 
   const [event, setEvent] = useState(null)
-  const [allEvents, setAllEvents] = useState([])
+  const [navEvents, setNavEvents] = useState([])
   const [categoryOptions, setCategoryOptions] = useState([])
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
@@ -69,28 +69,45 @@ export default function EventDetailPage({ params }) {
   const [error, setError] = useState('')
 
   useEffect(() => {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 15000)
     let cancelled = false
+
     async function load() {
       setLoading(true)
       setNotFound(false)
+      setError('')
       try {
-        const [detail, list, cats] = await Promise.all([
-          fetchEventById(id),
-          fetchEvents(),
+        const [detail, nav, cats] = await Promise.all([
+          fetchEventById(id, { signal: controller.signal }),
+          fetchEventNavItems({ signal: controller.signal }),
           fetchEventCategories(),
         ])
         if (cancelled) return
         setEvent(detail)
-        setAllEvents(list)
+        setNavEvents(nav)
         setCategoryOptions(cats)
-      } catch {
-        if (!cancelled) setNotFound(true)
+      } catch (err) {
+        if (cancelled) return
+        if (!cancelled) {
+          setNotFound(true)
+          setError(
+            err?.name === 'AbortError'
+              ? 'Request timed out. Refresh the page and try again.'
+              : (err?.message || 'Failed to load event')
+          )
+        }
       } finally {
         if (!cancelled) setLoading(false)
       }
     }
+
     load()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+      controller.abort()
+    }
   }, [id])
 
   function openNew() {
@@ -136,7 +153,13 @@ export default function EventDetailPage({ params }) {
     try {
       const updated = await updateEvent(event.id, formToPayload(form))
       setEvent(updated)
-      setAllEvents((prev) => prev.map((e) => (e.id === updated.id ? updated : e)))
+      setNavEvents((prev) =>
+        prev.map((e) =>
+          e.id === updated.id
+            ? { id: updated.id, date: updated.date, endDate: updated.endDate }
+            : e
+        )
+      )
       if (updated.category) {
         setCategoryOptions((prev) => [...new Set([...prev, updated.category])])
       }
@@ -185,8 +208,8 @@ export default function EventDetailPage({ params }) {
 
   const isPast = !isEventUpcoming(event)
   const siblings = isPast
-    ? sortPast(allEvents.filter((e) => !isEventUpcoming(e)))
-    : sortUpcoming(allEvents.filter(isEventUpcoming))
+    ? sortPast(navEvents.filter((e) => !isEventUpcoming(e)))
+    : sortUpcoming(navEvents.filter(isEventUpcoming))
   const { previous, next } = getAdjacent(siblings, event.id)
 
   const btnBase = 'px-4 py-2 border rounded-md text-sm font-inter transition-colors'
