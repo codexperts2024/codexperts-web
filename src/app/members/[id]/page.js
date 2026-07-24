@@ -346,19 +346,36 @@ export default function ProfilePage({ params }) {
   const initializedRef = useRef(false)
 
   useEffect(() => {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 15000)
     let cancelled = false
+
     async function load() {
+      setLoading(true)
+      setError(null)
       try {
-        const data = await fetchMemberById(id)
+        const data = await fetchMemberById(id, { signal: controller.signal })
         if (!cancelled) setMember(data)
       } catch (err) {
-        if (!cancelled) setError(err)
+        if (cancelled) return
+        if (!cancelled) {
+          setError(
+            err?.name === 'AbortError'
+              ? new Error('Request timed out. Refresh the page and try again.')
+              : err
+          )
+        }
       } finally {
         if (!cancelled) setLoading(false)
       }
     }
+
     load()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+      controller.abort()
+    }
   }, [id])
 
   useEffect(() => {

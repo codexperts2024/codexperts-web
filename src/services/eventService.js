@@ -58,6 +58,10 @@ function toRow(payload) {
   }
 }
 
+function withSignal(query, signal) {
+  return signal ? query.abortSignal(signal) : query
+}
+
 export async function fetchEventCategories() {
   const { data, error } = await supabase
     .from('events')
@@ -72,21 +76,44 @@ export async function fetchEventCategories() {
   return [...set].sort((a, b) => a.localeCompare(b))
 }
 
-export async function fetchEvents() {
-  const { data, error } = await supabase
-    .from('events')
-    .select(SELECT_FIELDS)
-    .order('event_date', { ascending: false })
+export async function fetchEvents({ signal } = {}) {
+  const { data, error } = await withSignal(
+    supabase
+      .from('events')
+      .select(SELECT_FIELDS)
+      .order('event_date', { ascending: false }),
+    signal
+  )
   if (error) throw error
   return data.map(map)
 }
 
-export async function fetchEventById(id) {
-  const { data, error } = await supabase
-    .from('events')
-    .select(SELECT_FIELDS)
-    .eq('id', id)
-    .single()
+/** Lightweight list for prev/next (date fields only). */
+export async function fetchEventNavItems({ signal } = {}) {
+  const { data, error } = await withSignal(
+    supabase
+      .from('events')
+      .select('id, event_date, end_date')
+      .order('event_date', { ascending: false }),
+    signal
+  )
+  if (error) throw error
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    date: row.event_date,
+    endDate: row.end_date ?? null,
+  }))
+}
+
+export async function fetchEventById(id, { signal } = {}) {
+  const { data, error } = await withSignal(
+    supabase
+      .from('events')
+      .select(SELECT_FIELDS)
+      .eq('id', id)
+      .single(),
+    signal
+  )
   if (error) throw error
   return map(data)
 }

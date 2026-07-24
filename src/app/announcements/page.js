@@ -130,6 +130,7 @@ function AnnouncementsContent() {
 
   const [announcements, setAnnouncements] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [editMode, setEditMode] = useState(false)
   const [form, setForm] = useState({ title: '', content: '' })
@@ -140,9 +141,37 @@ function AnnouncementsContent() {
   const view = searchParams.get('view')
 
   useEffect(() => {
-    fetchAnnouncements()
-      .then(setAnnouncements)
-      .finally(() => setLoading(false))
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 15000)
+    let cancelled = false
+
+    async function load() {
+      setLoading(true)
+      setLoadError('')
+      try {
+        const data = await fetchAnnouncements({ signal: controller.signal })
+        if (!cancelled) setAnnouncements(data)
+      } catch (err) {
+        if (cancelled) return
+        if (!cancelled) {
+          setAnnouncements([])
+          setLoadError(
+            err?.name === 'AbortError'
+              ? 'Request timed out. Refresh the page and try again.'
+              : (formatRequestError(err) || 'Failed to load announcements')
+          )
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    load()
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+      controller.abort()
+    }
   }, [])
 
   function openNew() {
@@ -231,6 +260,17 @@ function AnnouncementsContent() {
       <div className="flex justify-center items-center py-32">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-text-primary" />
       </div>
+    )
+  }
+
+  if (loadError) {
+    return (
+      <>
+        <PageHeader isAdmin={isAdmin} onNew={openNew} />
+        <div className="bg-bg-base py-20 px-4 text-center">
+          <p className="text-error font-inter text-sm">{loadError}</p>
+        </div>
+      </>
     )
   }
 

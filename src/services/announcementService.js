@@ -18,13 +18,46 @@ function assertLength(title, content) {
   if (error) throw new Error(error)
 }
 
-export async function fetchAnnouncements() {
-  const { data, error } = await supabase
-    .from('announcements')
-    .select(SELECT_FIELDS)
-    .order('created_at', { ascending: false })
+function withSignal(query, signal) {
+  return signal ? query.abortSignal(signal) : query
+}
+
+export async function fetchAnnouncements({ signal } = {}) {
+  const { data, error } = await withSignal(
+    supabase
+      .from('announcements')
+      .select(SELECT_FIELDS)
+      .order('created_at', { ascending: false }),
+    signal
+  )
   if (error) throw error
   return data.map(map)
+}
+
+export async function fetchAnnouncement(id, { signal } = {}) {
+  const { data, error } = await withSignal(
+    supabase
+      .from('announcements')
+      .select(SELECT_FIELDS)
+      .eq('id', id)
+      .single(),
+    signal
+  )
+  if (error) throw error
+  return map(data)
+}
+
+/** Ordered ids only — for prev/next without downloading every post body. */
+export async function fetchAnnouncementIds({ signal } = {}) {
+  const { data, error } = await withSignal(
+    supabase
+      .from('announcements')
+      .select('id')
+      .order('created_at', { ascending: false }),
+    signal
+  )
+  if (error) throw error
+  return (data ?? []).map((row) => row.id)
 }
 
 export async function createAnnouncement(title, content, authorId) {

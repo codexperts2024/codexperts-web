@@ -49,13 +49,41 @@ export default function EventsPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    Promise.all([fetchEvents(), fetchEventCategories()])
-      .then(([list, cats]) => {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 15000)
+    let cancelled = false
+
+    async function load() {
+      setLoading(true)
+      setError('')
+      try {
+        const [list, cats] = await Promise.all([
+          fetchEvents({ signal: controller.signal }),
+          fetchEventCategories(),
+        ])
+        if (cancelled) return
         setEvents(list)
         setCategoryOptions(cats)
-      })
-      .catch((err) => setError(err.message || 'Failed to load events'))
-      .finally(() => setLoading(false))
+      } catch (err) {
+        if (cancelled) return
+        if (!cancelled) {
+          setError(
+            err?.name === 'AbortError'
+              ? 'Request timed out. Refresh the page and try again.'
+              : (err.message || 'Failed to load events')
+          )
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    load()
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+      controller.abort()
+    }
   }, [])
 
   function openNew() {

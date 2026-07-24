@@ -80,7 +80,7 @@ export function detectProblemFileType(file) {
   return null
 }
 
-export async function fetchProblems(schoolFilter) {
+export async function fetchProblems(schoolFilter, { signal } = {}) {
   let query = supabase
     .from('problems')
     .select(SELECT_FIELDS)
@@ -91,17 +91,18 @@ export async function fetchProblems(schoolFilter) {
     query = query.eq('school', schoolFilter)
   }
 
-  const { data, error } = await query
+  const { data, error } = await (signal ? query.abortSignal(signal) : query)
   if (error) throw error
   return (data ?? []).map(mapProblem)
 }
 
-export async function fetchProblemById(id) {
-  const { data, error } = await supabase
+export async function fetchProblemById(id, { signal } = {}) {
+  let query = supabase
     .from('problems')
     .select(SELECT_FIELDS)
     .eq('id', id)
     .single()
+  const { data, error } = await (signal ? query.abortSignal(signal) : query)
   if (error) throw error
   return mapProblem(data)
 }

@@ -119,6 +119,8 @@ function SolutionWorkspace() {
       : ''
 
   useEffect(() => {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 15000)
     let cancelled = false
 
     async function load() {
@@ -131,12 +133,14 @@ function SolutionWorkspace() {
       setLoading(true)
       setError('')
       try {
-        const row = await fetchProblemById(problemId)
+        const row = await fetchProblemById(problemId, { signal: controller.signal })
         if (cancelled) return
         setProblem(row)
 
         if (profile?.id) {
-          const own = await fetchOwnSubmission(profile.id, problemId)
+          const own = await fetchOwnSubmission(profile.id, problemId, {
+            signal: controller.signal,
+          })
           if (cancelled) return
           if (own?.code) {
             setCode(own.code)
@@ -144,24 +148,42 @@ function SolutionWorkspace() {
           }
         }
       } catch (err) {
-        if (!cancelled) setError(err.message || 'Failed to load problem')
+        if (cancelled) return
+        if (!cancelled) {
+          setError(
+            err?.name === 'AbortError'
+              ? 'Request timed out. Refresh the page and try again.'
+              : (err.message || 'Failed to load problem')
+          )
+        }
       } finally {
         if (!cancelled) setLoading(false)
       }
     }
 
     load()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+      controller.abort()
+    }
   }, [problemId, profile?.id])
 
   const loadCommunity = useCallback(async () => {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 15000)
     setCommunityLoading(true)
     try {
-      const rows = await fetchCommunitySubmissions(problemId)
+      const rows = await fetchCommunitySubmissions(problemId, { signal: controller.signal })
       setCommunity(rows)
     } catch (err) {
-      setError(err.message || 'Failed to load community solutions')
+      if (err?.name !== 'AbortError') {
+        setError(err.message || 'Failed to load community solutions')
+      } else {
+        setError('Request timed out. Refresh the page and try again.')
+      }
     } finally {
+      clearTimeout(timer)
       setCommunityLoading(false)
     }
   }, [problemId])
