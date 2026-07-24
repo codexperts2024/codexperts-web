@@ -58,8 +58,8 @@ export default function MentorPage() {
         </p>
       </div>
 
-      <section className="bg-bg-surface py-10 md:py-14 px-4 sm:px-6">
-        <div className="max-w-3xl mx-auto">
+      <section className="bg-bg-surface py-10 md:py-14">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <h2 className="font-montserrat font-semibold text-2xl md:text-3xl text-text-primary mb-8">
             Welcome to codeXperts
           </h2>
