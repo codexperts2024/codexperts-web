@@ -200,8 +200,6 @@ export async function uploadProblemDocument(file, problemId, accessToken) {
   }
 }
 
-import { fetchWithTimeout } from '@/utils/fetchWithTimeout'
-
 export async function previewDocxAsPdf(file, accessToken) {
   if (!accessToken) throw new Error('Not authenticated.')
 
