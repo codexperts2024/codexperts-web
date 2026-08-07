@@ -200,16 +200,21 @@ Visibility: all approved members can see all submissions
 ---
 
 ## Notes
-- Code execution via Piston API (supports Python, Java, C++, etc.)
+- Code execution via Judge0 CE on RapidAPI (Python, Java, C, C++, JavaScript, TypeScript)
 - Submit saves to `submissions` table — one submission per member per problem (overwrite on re-submit)
 
 ## MVP Scope (W3)
-- [▶ Run] → Piston API execution → Output panel
+- [▶ Run] → Judge0 execution → Output panel
 - [⬆ Submit] → saves to submissions table
 - Community Solutions tab (read-only viewer)
 
+## Shipped after MVP
+- [✦ Evaluate] button and Evaluation panel, backed by Gemini Flash-Lite.
+  Reports Big O complexity and duplicated logic, plus static hints for forbidden
+  constructs. Gated behind passing the sample tests and a per-member daily limit;
+  the prompt is scoped so it never reveals the solution.
+
 ## P3 / Post-MVP
-- [✦ Evaluate] button and Evaluation panel (Gemma 4 AI)
 - Forbidden rules config per problem by admin
 - In-person feedback from professor — Evaluate is supplementary only
 - Tracked in GitHub issue #60

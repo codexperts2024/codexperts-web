@@ -138,7 +138,9 @@ Install against the remote API (`-u`):
 ./cli/index.js -u "http://<PUBLIC_IP>:2000" ppman install node=15.10.0 # javascript
 ```
 
-If a exact version string fails, run `ppman list` and pick the closest matching versions, then update `backend/services/piston.py` `SUPPORTED_LANGUAGES` to match.
+If a exact version string fails, run `ppman list` and pick the closest matching versions, then update the executor's `SUPPORTED_LANGUAGES` to match. Note that
+`backend/services/piston.py` no longer exists; the current executor is
+`backend/services/judge0.py`, and reviving this setup means restoring a Piston client alongside it.
 
 Verify:
 

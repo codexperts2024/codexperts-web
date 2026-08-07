@@ -18,7 +18,7 @@ RIGHT: [LinkedIn] [Email] [Instagram▾] ([Discord▾])  [Log In]
 |------|-------|------------|-------|
 | Logo | `/` | public | Links to Home |
 | Home | `/` | public | |
-| About▾ | dropdown | public | About Us + Our Team |
+| About▾ | dropdown | public | About Us `/about` + Our Team `/about#team` + Our Mentor `/mentor` |
 | Updates▾ | dropdown | public | Announcements + Schedule |
 | Events | `/events` | public | |
 | Practice▾ | dropdown | member | Problems + Solutions |
@@ -70,8 +70,11 @@ Adding a new campus = one entry in the config file, no component changes needed.
 - Community links (Instagram, Discord teaser)
 
 ### [public] About Us `/about`
-- Club intro
-- Executive Board (org chart / team cards)
+- Club intro, Why We Exist, Our Story timeline
+- **Our Team** section at the `#team` anchor: Executive Board grid, one block per campus
+  (Seneca, York), cards ordered by executive title
+- Executives are read from the `executive_roles` table, grouped by school
+- Spec: docs/design/page-specs/team.md
 
 ### [public] Our Mentor `/mentor`
 - Welcome letter from Professor Danny Yoon (Founder and Mentor)
@@ -94,12 +97,6 @@ Adding a new campus = one entry in the config file, no component changes needed.
 - Executive/Admin creates via Admin panel (title, body, date)
 - Stored in `announcements` table in Supabase
 
-### [public] Our Team `/team`
-- Executive Board grid (Seneca + York sections)
-- 3-column card layout per campus: photo, name, role badge, LinkedIn
-- Accessible via About▾ dropdown and About page CTA [Meet Our Team →]
-- Spec: docs/design/page-specs/team.md
-
 ### [public] Join Us
 - **No dedicated route** — rendered as a modal overlay on the current page
 - Triggered by [Join Us] button in Navbar and Home page CTA
@@ -110,9 +107,17 @@ Adding a new campus = one entry in the config file, no component changes needed.
 
 ### (member) Problems `/problems`
 - Problem list by week
-- Problem detail + Monaco Editor
-- Code execution via Piston API
-- Submit & view other members' solutions
+- Problem detail, markdown or uploaded document
+- Executives and admins can create, edit and delete; members are read-only
+
+### (member) Solutions `/solutions`, `/solutions/:id`
+- Solutions list, then a per-problem workspace
+- Monaco Editor in six languages (Python, Java, C, C++, JavaScript, TypeScript)
+- [▶ Run] executes through the FastAPI `/execute` proxy to Judge0 CE
+- [✦ Evaluate] returns a Gemini review of Big O and duplicated logic, once the sample tests pass
+- [⬆ Submit] upserts to the `submissions` table; one submission per member per problem
+- Community Solutions accordion for reading other members' code
+- Spec: docs/design/page-specs/solutions.md
 
 ### (member) Members `/members`
 - Member directory (profile cards)

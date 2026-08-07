@@ -69,12 +69,12 @@ Weekly coding challenges posted by executives. Members write and run code direct
 **How it works:**
 - Executives post a problem with a prompt and constraints
 - Members open the problem detail page — a Monaco Editor (VSCode-style) loads in the browser
-- Members hit "Run" — code is sent to FastAPI `/execute`, which proxies to the Piston API
+- Members hit "Run" — code is sent to FastAPI `/execute`, which proxies to Judge0 CE on RapidAPI
 - Results return in real-time (stdout / stderr)
 - Members submit their solution — saved to the `submissions` table in Supabase
 - All members can view each other's submitted code for a given problem
 
-**Supported languages:** Python, Java, C++, JavaScript (via Piston API)
+**Supported languages:** Python, Java, C, C++, JavaScript, TypeScript (via Judge0 CE)
 
 ---
 
