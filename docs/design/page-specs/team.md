@@ -1,5 +1,9 @@
-# Page: Our Team `/team`
+# Section: Our Team `/about#team`
 > Visibility: public
+
+> **Status:** this was specified as a standalone `/team` page and shipped instead as a
+> section of the About page, reached from About▾ → Our Team (`/about#team`). There is no
+> `/team` route. The layout rules below still apply to the section as built.
 
 ## Design Tokens (summary)
 - BG: `#FFFFFF` / Surface: `#F9F9F9`
