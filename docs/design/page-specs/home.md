@@ -68,7 +68,7 @@ RIGHT SIDE (icons + auth):
 | Log In | button → Google OAuth | far right | logged-out only |
 
 **Dropdowns:**
-- About▾ → "About Us" (`/about`) · "Our Team" (`/team`)
+- About▾ → "About Us" (`/about`) · "Our Team" (`/about#team`) · "Our Mentor" (`/mentor`)
 - Updates▾ → "Announcements" (`/announcements`) · "Schedule" (`/schedule`)
 - Practice▾ → "Problems" (`/problems`) · "Solutions" (`/solutions`)
 - Instagram▾ → "Seneca" · "York" · "TMU (coming soon)"

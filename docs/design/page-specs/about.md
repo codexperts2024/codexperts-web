@@ -85,7 +85,7 @@
 │  CTA ROW  (padding: 48px 0, text-align: center)     │
 │  [  Meet Our Team →  ]     [  Join Us →  ]          │
 │   Secondary (outline)       Primary (#C0392B)       │
-│   → /team                   → /join                 │
+│   → /about#team             → (signup modal)        │
 │                                                     │
 ├─────────────────────────────────────────────────────┤
 │ FOOTER                                              │

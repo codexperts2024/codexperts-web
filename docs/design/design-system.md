@@ -300,7 +300,7 @@ Events                    [Instagram icon ▾]
 |---|------|-------|------------|-------------|
 | 1 | Home | `/` | public | home.md ✅ |
 | 2 | About Us | `/about` | public | about.md ✅ |
-| 3 | Our Team | `/team` | public | team.md ✅ |
+| 3 | Our Team | `/about#team` | public | team.md ✅ (section of About) |
 | 4 | Events | `/events` | public | events.md ✅ |
 | 5 | Event Detail | `/events/:id` | public | events.md ✅ |
 | 6 | Announcements | `/announcements` | public | announcements.md ✅ |
@@ -406,7 +406,7 @@ Events                    [Instagram icon ▾]
 
 ---
 
-### Page 3: `/team` Our Team (public)
+### Page 3: `/about#team` Our Team (public, section of the About page)
 
 ```
 ┌─────────────────────────────────────────────────────┐

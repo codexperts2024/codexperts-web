@@ -18,7 +18,7 @@ RIGHT: [LinkedIn] [Email] [Instagram▾] ([Discord▾])  [Log In]
 |------|-------|------------|-------|
 | Logo | `/` | public | Links to Home |
 | Home | `/` | public | |
-| About▾ | dropdown | public | About Us + Our Team |
+| About▾ | dropdown | public | About Us `/about` + Our Team `/about#team` + Our Mentor `/mentor` |
 | Updates▾ | dropdown | public | Announcements + Schedule |
 | Events | `/events` | public | |
 | Practice▾ | dropdown | member | Problems + Solutions |
@@ -70,8 +70,11 @@ Adding a new campus = one entry in the config file, no component changes needed.
 - Community links (Instagram, Discord teaser)
 
 ### [public] About Us `/about`
-- Club intro
-- Executive Board (org chart / team cards)
+- Club intro, Why We Exist, Our Story timeline
+- **Our Team** section at the `#team` anchor: Executive Board grid, one block per campus
+  (Seneca, York), cards ordered by executive title
+- Executives are read from the `executive_roles` table, grouped by school
+- Spec: docs/design/page-specs/team.md
 
 ### [public] Our Mentor `/mentor`
 - Welcome letter from Professor Danny Yoon (Founder and Mentor)
@@ -93,12 +96,6 @@ Adding a new campus = one entry in the config file, no component changes needed.
 - Reverse chronological order (newest first)
 - Executive/Admin creates via Admin panel (title, body, date)
 - Stored in `announcements` table in Supabase
-
-### [public] Our Team `/team`
-- Executive Board grid (Seneca + York sections)
-- 3-column card layout per campus: photo, name, role badge, LinkedIn
-- Accessible via About▾ dropdown and About page CTA [Meet Our Team →]
-- Spec: docs/design/page-specs/team.md
 
 ### [public] Join Us
 - **No dedicated route** — rendered as a modal overlay on the current page
