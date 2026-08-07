@@ -9,7 +9,7 @@
 
 <div align="center">
 
-**A real-world Agile team project — 7 members, 6-week sprint cycle, full-stack web app.**
+**A real-world Agile team project — 6 members, 6-week sprint cycle, full-stack web app.**
 
 ![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=nextdotjs&logoColor=white) ![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black) ![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL%20%7C%20Auth-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white) ![FastAPI](https://img.shields.io/badge/FastAPI-Python-009688?style=for-the-badge&logo=fastapi&logoColor=white) ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.x-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
 
@@ -31,7 +31,7 @@
 
 ## What We Built
 
-The **codeXperts Club** official website — a members-only platform for a coding club at the University of Waterloo. Built end-to-end by a 7-person team following Agile practices over a 6-week sprint.
+The **codeXperts Club** official website — a members-only platform for a coding club at Seneca Polytechnic. Built end-to-end by a 6-person team following Agile practices over a 6-week sprint.
 
 | Feature | Description |
 |---------|-------------|
@@ -54,9 +54,9 @@ The **codeXperts Club** official website — a members-only platform for a codin
 | Layer | Choice | Why |
 |-------|--------|-----|
 | **Frontend** | Next.js 16 (App Router) | SSR for schedule/calendar pages; app router for per-route auth guards |
-| **Styling** | Tailwind CSS | Rapid iteration across 7 contributors without CSS conflicts |
+| **Styling** | Tailwind CSS | Rapid iteration across 6 contributors without CSS conflicts |
 | **Auth + DB** | Supabase | Google OAuth out of the box; RLS policies enforce RBAC at the DB level — no leaking data through API mistakes |
-| **Backend** | FastAPI (Heroku) | Lightweight proxy for Piston code execution and QR token validation; decoupled from Vercel edge |
+| **Backend** | FastAPI (Heroku) | Lightweight proxy for Judge0 code execution and QR token validation; decoupled from Vercel edge |
 | **Deployment** | Vercel + Heroku | Zero-config preview deploys per PR on Vercel; Heroku for persistent Python backend |
 
 ---
@@ -65,13 +65,12 @@ The **codeXperts Club** official website — a members-only platform for a codin
 
 | Name | Role |
 |------|------|
-| **Paul** | PM / Full-Stack / UI/UX |
+| **Paul** | PM / Full-Stack (Monaco Editor, Judge0 integration) / UI/UX |
 | **Kai** | Frontend |
 | **Dave** | Backend (FastAPI / Heroku / Deployment) / Frontend |
 | **Gary** | Backend (Supabase / DB & Auth) |
 | **Judy** | Frontend |
 | **Andra** | Frontend / Backend |
-| **Sid** | Backend (Monaco Editor / Piston API) / UI/UX |
 
 ---
 
@@ -122,7 +121,7 @@ Public (Unauthenticated)
 
 ## Agile Process
 
-7-person team, weekly sprints, Saturday standups at 7:30 PM via Google Meet.
+6-person team, weekly sprints, Saturday standups at 7:30 PM via Google Meet.
 Each PR is reviewed before merging to `develop`; `develop` merges to `main` at sprint close.
 
 ```
@@ -484,7 +483,7 @@ codexperts-web/
 │   ├── .profile.d/          # Optional dyno env (LibreOffice via Heroku buildpack)
 │   ├── requirements.txt
 │   ├── .env.example
-│   └── routers/             # documents (DOCX→PDF), execute (Piston proxy)
+│   └── routers/             # documents (DOCX→PDF), execute (Judge0 proxy)
 ├── scripts/
 │   └── sprint-report.js     # CLI tool — GitHub Issue contribution report per member
 ├── package.json
