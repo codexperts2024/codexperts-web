@@ -9,7 +9,7 @@
 
 <div align="center">
 
-**A real-world Agile team project — 7 members, 6-week sprint cycle, full-stack web app.**
+**A real-world Agile team project — 6 members, 6-week sprint cycle, full-stack web app.**
 
 ![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=nextdotjs&logoColor=white) ![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black) ![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL%20%7C%20Auth-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white) ![FastAPI](https://img.shields.io/badge/FastAPI-Python-009688?style=for-the-badge&logo=fastapi&logoColor=white) ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.x-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
 
@@ -31,13 +31,14 @@
 
 ## What We Built
 
-The **codeXperts Club** official website — a members-only platform for a coding club at the University of Waterloo. Built end-to-end by a 7-person team following Agile practices over a 6-week sprint.
+The **codeXperts Club** official website — a members-only platform for a coding club at Seneca Polytechnic. Built end-to-end by a 6-person team following Agile practices over a 6-week sprint.
 
 | Feature | Description |
 |---------|-------------|
 | **Google OAuth + RBAC** | 4-tier role system (Public → Member → Executive → Admin) with Supabase RLS enforcement |
 | **Coding Problems** | Weekly problems on `/problems` (markdown editor or Word/PDF document mode); exec/admin CRUD; members read-only |
-| **Solutions Workspace** | `/solutions` list + `/solutions/:id` Monaco editor; Run via Judge0, Submit upsert, Community accordion viewer |
+| **Solutions Workspace** | `/solutions` list + `/solutions/:id` Monaco editor; Run via Judge0 across six languages (Python, Java, C, C++, JavaScript, TypeScript), Submit upsert, Community accordion viewer |
+| **AI Code Review** | Gemini Flash-Lite reviews a submission for Big O complexity and duplicated logic, plus static hints for forbidden constructs; gated behind passing the sample tests and a per-member daily limit |
 | **QR Attendance** | Admin generates a session token → members scan to check in → auto-expires |
 | **Schedule Page** | Google Calendar API integration — synced events with subscribe/download for members |
 | **Member Directory** | Filterable profile cards with cohort, school, role badges, and per-field visibility controls |
@@ -54,9 +55,10 @@ The **codeXperts Club** official website — a members-only platform for a codin
 | Layer | Choice | Why |
 |-------|--------|-----|
 | **Frontend** | Next.js 16 (App Router) | SSR for schedule/calendar pages; app router for per-route auth guards |
-| **Styling** | Tailwind CSS | Rapid iteration across 7 contributors without CSS conflicts |
+| **Styling** | Tailwind CSS | Rapid iteration across 6 contributors without CSS conflicts |
 | **Auth + DB** | Supabase | Google OAuth out of the box; RLS policies enforce RBAC at the DB level — no leaking data through API mistakes |
-| **Backend** | FastAPI (Heroku) | Lightweight proxy for Piston code execution and QR token validation; decoupled from Vercel edge |
+| **Backend** | FastAPI (Heroku) | Lightweight proxy for Judge0 code execution and QR token validation; decoupled from Vercel edge |
+| **AI Review** | Gemini Flash-Lite | Cheap enough to run per submission; the system prompt is scoped to complexity and duplication only, so it coaches without handing over the answer |
 | **Deployment** | Vercel + Heroku | Zero-config preview deploys per PR on Vercel; Heroku for persistent Python backend |
 
 ---
@@ -65,13 +67,12 @@ The **codeXperts Club** official website — a members-only platform for a codin
 
 | Name | Role |
 |------|------|
-| **Paul** | PM / Full-Stack / UI/UX |
+| **Paul** | PM / Full-Stack (Monaco Editor, Judge0 integration) / UI/UX |
 | **Kai** | Frontend |
 | **Dave** | Backend (FastAPI / Heroku / Deployment) / Frontend |
 | **Gary** | Backend (Supabase / DB & Auth) |
 | **Judy** | Frontend |
 | **Andra** | Frontend / Backend |
-| **Sid** | Backend (Monaco Editor / Piston API) / UI/UX |
 
 ---
 
@@ -96,6 +97,8 @@ Frontend (Next.js — Vercel)
 └── FastAPI (Heroku)
     ├── /health            → service health check
     ├── /execute           → proxy to Judge0 CE (RapidAPI) for code execution
+    ├── /execute/samples   → run member code against the problem's sample tests
+    ├── /evaluate          → forbidden-construct hints + Gemini Big O / duplication review
     ├── /submissions       → upsert member solutions to Supabase
     └── /attendance/verify → QR token validation
 ```
@@ -122,7 +125,7 @@ Public (Unauthenticated)
 
 ## Agile Process
 
-7-person team, weekly sprints, Saturday standups at 7:30 PM via Google Meet.
+6-person team, weekly sprints, Saturday standups at 7:30 PM via Google Meet.
 Each PR is reviewed before merging to `develop`; `develop` merges to `main` at sprint close.
 
 ```
@@ -479,12 +482,12 @@ codexperts-web/
 ├── backend/
 │   ├── main.py              # FastAPI entry point
 │   ├── auth.py              # Supabase JWT + member+ role gate
-│   ├── services/            # Judge0 RapidAPI code-execution client
+│   ├── services/            # Judge0 client, Gemini review, rate limiting, Supabase REST
 │   ├── Procfile             # Heroku web process
 │   ├── .profile.d/          # Optional dyno env (LibreOffice via Heroku buildpack)
 │   ├── requirements.txt
 │   ├── .env.example
-│   └── routers/             # documents (DOCX→PDF), execute (Piston proxy)
+│   └── routers/             # documents (DOCX→PDF), execute, execute/samples, evaluate, submissions
 ├── scripts/
 │   └── sprint-report.js     # CLI tool — GitHub Issue contribution report per member
 ├── package.json
