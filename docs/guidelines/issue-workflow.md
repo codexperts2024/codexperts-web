@@ -69,7 +69,6 @@ Click **Assignees** on the right sidebar → assign whoever picks up the task at
 | Name | GitHub |
 |------|--------|
 | Paul | `minsikpaul92` | PM / UI/UX |
-| Sid | `siddiecity` | Backend (Monaco / Piston API) / UI/UX |
 | Kai | `naik26m3` | Frontend |
 | Andra | `kazzledazz` | Frontend / Backend (Supabase) |
 | Gary | `GarySkywalker-droid` | Backend (Supabase / DB & Auth) |

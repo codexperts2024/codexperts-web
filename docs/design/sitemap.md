@@ -110,9 +110,17 @@ Adding a new campus = one entry in the config file, no component changes needed.
 
 ### (member) Problems `/problems`
 - Problem list by week
-- Problem detail + Monaco Editor
-- Code execution via Piston API
-- Submit & view other members' solutions
+- Problem detail, markdown or uploaded document
+- Executives and admins can create, edit and delete; members are read-only
+
+### (member) Solutions `/solutions`, `/solutions/:id`
+- Solutions list, then a per-problem workspace
+- Monaco Editor in six languages (Python, Java, C, C++, JavaScript, TypeScript)
+- [▶ Run] executes through the FastAPI `/execute` proxy to Judge0 CE
+- [✦ Evaluate] returns a Gemini review of Big O and duplicated logic, once the sample tests pass
+- [⬆ Submit] upserts to the `submissions` table; one submission per member per problem
+- Community Solutions accordion for reading other members' code
+- Spec: docs/design/page-specs/solutions.md
 
 ### (member) Members `/members`
 - Member directory (profile cards)
