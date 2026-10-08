@@ -1,7 +1,7 @@
 # Security and reliability follow-up plan
 
 Date: 2026-10-08
-Status: Item 1 implemented, migration applied by the user, and anonymous blocking verified live. Item 2 implemented and locally verified; its migration is pending. Production frontend rollout is not verified. Items 3–6 remain unimplemented.
+Status: Item 1 implemented, migration applied by the user, and anonymous blocking verified live. Item 2 migration applied by the user and anonymous raw-field denial/viewer RPC verified live. Item 3 implemented and locally verified; its migration is pending. Production frontend rollout is not verified. Items 4–6 remain unimplemented.
 
 ## Decisions and handoff
 
@@ -111,3 +111,17 @@ Member directory/detail and About executive introductions use the viewer RPC. Ow
 Verification: 49 tests and production build passed. PostgreSQL coverage verifies masked viewer output, raw selection/filter denial, legacy defaults, anonymous/pending/member access, owner isolation, and service-role access. Card tests verify hidden company/job/social links are absent.
 
 Rollout pending: apply the new migration in coordination with the frontend. Old directory/About code queries restricted raw columns and cannot run unchanged after this migration. For a staged rollout, create the viewer function and grant its EXECUTE access first, deploy the new frontend, then apply the full migration to revoke raw access. Otherwise coordinate a maintenance window. No live writes or visibility changes were performed during validation. Verify actual owner editing and public/member views after rollout without printing private values.
+
+### Item 2 application confirmation — 2026-10-08
+
+The user confirmed applying `20261008210000_enforce_profile_visibility.sql`. Live anonymous reads of company, occupation, LinkedIn, GitHub, bio, and visibility settings all returned 401. The viewer RPC returned 200 and no contact columns. Authenticated owner/reviewer live flows and production frontend rollout remain unverified.
+
+### Item 3 implementation record — 2026-10-08
+
+Added `20261008220000_atomic_admin_member_edits.sql` and replaced the sequential profile/title write helper with the server-only `admin_edit_member` RPC. The API passes the verified administrator identity; browser roles cannot execute it. The function checks current administrator status, validates editable fields and promotion completeness, preserves omitted titles, and updates the profile plus term history atomically. Self-demotion to pending remains blocked.
+
+A unique partial index enforces one active title per user alongside the existing school/title seat index. The function takes SHARE ROW EXCLUSIVE table locks on profiles and executive_roles in a fixed order: this favors straightforward consistency for infrequent admin edits, but briefly blocks other writes to these tables. Monitor contention if write volume grows. Legacy duplicate active users cause migration failure rather than silent history rewriting; a live read-only check found zero such duplicates at review time.
+
+Verification: 58 tests passed; production build passed. Tests cover injected late-insert failure rolling back the profile and both existing terms, successful seat transfer, idempotent retry, school moves, demotion, owner/actor restrictions, invalid promotion, browser RPC denial, API identity spoofing, and uniqueness constraints. A real multi-connection load test was not performed.
+
+Rollout pending: apply the item 3 migration before deploying the API change. Existing code does not gain atomicity until the new API is deployed. Do not rerun this migration after success; its new unique index is intentionally not recreated silently. No live profile or title writes were made during validation.
