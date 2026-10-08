@@ -17,13 +17,13 @@ vi.mock('@/services/membersService', () => ({ fetchMembers: async () => [
 vi.mock('@/services/cloudinaryService', () => ({ uploadImage: mocks.upload }))
 afterEach(() => { cleanup(); vi.clearAllMocks() })
 
-test('directory hides blank names, puts leadership first, and includes admins in Executive filter', async () => {
+test('directory hides blank names, orders admins before executives and members, and includes admins in Executive filter', async () => {
   render(<MembersPage />)
   await screen.findByText('Amy')
   const names = () => screen.getAllByTestId('member').map(el => el.textContent)
-  expect(names()).toEqual(['Ben', 'Carl', 'Zoe', 'Amy'])
+  expect(names()).toEqual(['Zoe', 'Ben', 'Carl', 'Amy'])
   fireEvent.change(screen.getByLabelText('Filter by role'), { target: { value: 'executive' } })
-  expect(names()).toEqual(['Ben', 'Carl', 'Zoe'])
+  expect(names()).toEqual(['Zoe', 'Ben', 'Carl'])
   fireEvent.change(screen.getByLabelText('Filter by role'), { target: { value: '' } })
   fireEvent.change(screen.getByLabelText('Sort members'), { target: { value: 'name-asc' } })
   expect(names()).toEqual(['Amy', 'Ben', 'Carl', 'Zoe'])

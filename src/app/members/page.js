@@ -7,7 +7,7 @@ import { cohortLabel } from '@/utils/cohort'
 import { compareNumberLike, compareText } from '@/utils/memberSort'
 
 const SORT_OPTIONS = [
-  { value: 'leadership-asc', label: 'Executives first, then name' },
+  { value: 'leadership-asc', label: 'Admins, executives, then members' },
   { value: 'name-asc', label: 'Name(↑)' },
   { value: 'name-desc', label: 'Name(↓)' },
   { value: 'school-asc', label: 'School(↑)' },
@@ -48,7 +48,7 @@ function compareBySort(a, b, sortValue) {
   const [key, dir] = sortValue.split('-')
 
   if (key === 'leadership') {
-    const rank = member => formatRole(member.role) === 'Executive' ? 0 : 1
+    const rank = member => ({ admin: 0, executive: 1 }[normalizedRole(member.role)] ?? 2)
     return rank(a) - rank(b) || compareText(memberName(a), memberName(b))
   }
 
