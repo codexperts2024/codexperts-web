@@ -32,8 +32,7 @@ export async function getSession() {
 
 export async function fetchProfile(userId) {
   const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
+    .rpc('get_own_profile')
     .eq('id', userId)
     .single()
 
@@ -71,11 +70,11 @@ export async function updateProfile(userId, fields) {
     .from('profiles')
     .update(fields)
     .eq('id', userId)
-    .select()
+    .select('id')
     .single()
 
   if (error) throw error
-  return data
+  return fetchProfile(userId)
 }
 
 export async function adminApproval(userID, accessToken) {
