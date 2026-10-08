@@ -261,13 +261,11 @@ export default function JoinModal() {
             try { await signInWithGoogle(`${window.location.origin}/auth/callback`) }
             catch (err) { setErrors({ submit: formatRequestError(err) }) }
           }}>Continue with Google</Button>
-        ) : profile?.application_status === 'rejected' ? (
-          <div role="status">
-            <p>Your application was not approved.</p>
-            <p className="mt-2 whitespace-pre-wrap break-words">{profile.rejection_details_error ? 'Could not load the reason. Open your application status to retry.' : profile.rejection_reason || 'No reason was recorded for this earlier decision. Please contact the club.'}</p>
-            <button className="mt-3 text-accent underline" onClick={() => { closeModal(); router.push('/pending') }}>View application status</button>
-          </div>
         ) : (<fieldset disabled={submitting}>
+        {profile?.application_status === 'rejected' && <div role="status" className="mb-4 text-sm">
+          <p>Your previous application was not approved. Review your information and submit again.</p>
+          <p className="mt-2 whitespace-pre-wrap">{profile.rejection_reason || 'No reason was recorded.'}</p>
+        </div>}
         {profileError && <p role="alert" className="mb-4 text-sm text-error">Could not reload your saved profile. Your entries will be kept if submission fails.</p>}
         {/* First Name / Last Name */}
         <div className="flex gap-3 mb-4">

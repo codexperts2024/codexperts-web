@@ -1,5 +1,6 @@
 'use client'
 
+import SwitchAccountButton from '@/components/auth/SwitchAccountButton'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -267,6 +268,7 @@ export default function Navbar() {
             {user ? (
               <div className="flex items-center gap-1.5 xl:gap-2 shrink-0">
                 <Link href={profileHref}><UserChip user={user} profile={profile} /></Link>
+                <SwitchAccountButton />
                 <button type="button" onClick={signOut}
                   className="shrink-0 whitespace-nowrap px-2.5 xl:px-4 py-1.5 rounded-md text-xs xl:text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors">
                   Log out
@@ -361,6 +363,7 @@ export default function Navbar() {
                   Admin
                 </Link>
               )}
+              <SwitchAccountButton />
               <button type="button" onClick={() => { signOut(); setMobileOpen(false) }}
                 className="w-full mt-1 px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center">
                 Log out

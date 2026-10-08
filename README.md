@@ -559,3 +559,7 @@ npm run report -- 4     # Week 4 breakdown (closed vs. open)
 ---
 
 *Built with intention. Deployed with confidence.*
+
+### Reapplication rollout
+
+Apply `supabase/migrations/20261008180000_allow_reapplication.sql` after the optional-phone/rejection migration before deploying reapplication UI. Rejected applicants may edit and submit again; only a valid submission returns them to pending, and previous rejection records remain intact. Google sign-in requests account selection; Switch Google account signs out this local session before starting OAuth.

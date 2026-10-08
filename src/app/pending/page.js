@@ -1,5 +1,6 @@
 'use client'
 
+import SwitchAccountButton from '@/components/auth/SwitchAccountButton'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
@@ -47,7 +48,7 @@ export default function PendingPage() {
 
         <h1 className="font-montserrat font-bold text-2xl text-text-primary">{profileError ? 'Unable to load application' : draft ? 'Complete your application' : rejected ? 'Application not approved' : 'Application received'}</h1>
         <p className="mt-3 text-sm text-text-secondary leading-relaxed max-w-sm mx-auto">
-          {profileError ? 'Please retry. We have not changed your saved application.' : draft ? 'Your application has not been submitted. Complete the signup form to request membership.' : rejected ? 'Please contact the club if you have questions about this decision.' : 'Your application has been submitted and is awaiting review.'}
+          {profileError ? 'Please retry. We have not changed your saved application.' : draft ? 'Your application has not been submitted. Complete the signup form to request membership.' : rejected ? 'Review the reason below, update your information, and submit a new application.' : 'Your application has been submitted and is awaiting review.'}
         </p>
 
         <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-warning/10 border border-warning/20">
@@ -84,12 +85,13 @@ export default function PendingPage() {
 
         <div className="mt-8 flex flex-col gap-3">
           {profileError && <button onClick={() => refreshProfile().catch(() => {})}>Retry loading</button>}
-          {!rejected && <button
+          {<button
             onClick={openModal}
             className="w-full px-4 py-2.5 rounded-xl text-sm font-medium bg-accent text-white hover:bg-accent-hover active:scale-[0.98] transition-all duration-150"
           >
-            {draft ? 'Complete signup' : 'Edit My Application'}
+            {rejected ? 'Edit and reapply' : draft ? 'Complete signup' : 'Edit My Application'}
           </button>}
+          <SwitchAccountButton />
           <button
             onClick={signOut}
             className="w-full px-4 py-2.5 rounded-xl text-sm font-medium border border-border text-text-secondary hover:bg-bg-surface active:scale-[0.98] transition-all duration-150"

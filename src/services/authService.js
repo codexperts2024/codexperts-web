@@ -7,9 +7,16 @@ export async function signInWithGoogle(redirectTo) {
   // can force a reload if the user presses back (bfcache restoration would
   // leave Supabase's PKCE verifier in a stale state, blocking a second attempt).
   sessionStorage.setItem('oauth_pending', '1')
-  const options = redirectTo ? { redirectTo } : {}
+  const options = { queryParams: { prompt: 'select_account' }, ...(redirectTo ? { redirectTo } : {}) }
   const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options })
   if (error) throw error
+}
+
+export async function switchGoogleAccount() {
+  const { error } = await supabase.auth.signOut({ scope: 'local' })
+  if (error) throw error
+  sessionStorage.removeItem('join_modal_dismissed')
+  await signInWithGoogle(`${window.location.origin}/auth/callback`)
 }
 
 export async function signOut() {

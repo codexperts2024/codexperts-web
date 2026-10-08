@@ -5,6 +5,7 @@ import PendingPage from '@/app/pending/page'
 import MemberTable from '@/app/admin/_components/MemberTable'
 
 const mocks = vi.hoisted(() => ({ auth: {}, open: vi.fn(), replace: vi.fn() }))
+vi.mock('@/services/authService', () => ({ switchGoogleAccount: vi.fn() }))
 vi.mock('@/hooks/useAuth', () => ({ useAuth: () => mocks.auth }))
 vi.mock('@/contexts/JoinModalContext', () => ({ useJoinModal: () => ({ openModal: mocks.open }) }))
 vi.mock('next/navigation', () => ({ useRouter: () => ({ replace: mocks.replace }) }))
@@ -45,6 +46,8 @@ test('applicants see their rejection reason and date', () => {
   render(<PendingPage />)
   expect(screen.getByText('Please confirm your campus.')).toBeTruthy()
   expect(screen.getByText(/Rejected on/)).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: 'Edit and reapply' }))
+  expect(mocks.open).toHaveBeenCalled()
 })
 
 test('rejected list includes old decisions with unknown details', () => {

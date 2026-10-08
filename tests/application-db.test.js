@@ -47,6 +47,7 @@ beforeAll(async () => {
   await db.exec(readFileSync(new URL('../supabase/migrations/20260722160000_protect_profiles_admin_columns.sql', import.meta.url), 'utf8'))
   await db.exec(readFileSync(new URL('../supabase/migrations/20261008120000_application_submission.sql', import.meta.url), 'utf8'))
   await db.exec(readFileSync(new URL('../supabase/migrations/20261008150000_optional_phone_and_rejections.sql', import.meta.url), 'utf8'))
+  await db.exec(readFileSync(new URL('../supabase/migrations/20261008180000_allow_reapplication.sql', import.meta.url), 'utf8'))
   await db.query("select set_config('request.user_id', $1, false)", [uid])
 }, 30000)
 afterAll(async () => db?.close())
@@ -90,7 +91,7 @@ test('phone may be absent, null, or blank, but a supplied phone must be valid', 
   await expect(submit({ ...fields, phone: '123' })).rejects.toThrow('required')
 })
 
-test('missing own profile is repaired, approved/rejected profiles cannot resubmit', async () => {
+test('missing own profile is repaired and rejected applicants can resubmit while approved members cannot', async () => {
   await db.query('delete from profiles where id = $1', [uid])
   expect((await submit(fields)).rows[0].id).toBe(uid)
   await db.query("select set_config('request.user_id', $1, false)", [approved])
@@ -99,7 +100,9 @@ test('missing own profile is repaired, approved/rejected profiles cannot resubmi
   await db.query("update profiles set application_status = 'rejected' where id = $1", [uid])
   await db.query("select set_config('request.jwt_role', 'authenticated', false)")
   await db.query("select set_config('request.user_id', $1, false)", [uid])
-  await expect(submit(fields)).rejects.toThrow('cannot be submitted')
+  await expect(submit({ ...fields, major: '' })).rejects.toThrow('required')
+  expect((await db.query('select application_status from profiles where id = $1', [uid])).rows[0].application_status).toBe('rejected')
+  expect((await submit({ ...fields, first_name: 'Reapplicant' })).rows[0]).toMatchObject({ application_status: 'pending', first_name: 'Reapplicant', role: 'pending' })
   await db.query("select set_config('request.user_id', '', false)")
   await expect(submit(fields)).rejects.toThrow('Unauthorized')
 })
@@ -133,4 +136,9 @@ test('rejection saves status, reason, date and reviewer atomically and protects 
   await db.query("select set_config('request.user_id', $1, false)", [approved])
   expect((await db.query('select reason from application_rejections')).rows).toHaveLength(1)
   await db.exec('RESET ROLE')
+  await db.query("select set_config('request.user_id', $1, false)", [uid])
+  expect((await submit(fields)).rows[0].application_status).toBe('pending')
+  expect((await db.query('select reason from application_rejections')).rows).toEqual([
+    { reason: 'Please contact the club about eligibility.' },
+  ])
 })
