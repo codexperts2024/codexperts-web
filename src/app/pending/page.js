@@ -11,7 +11,7 @@ import { isApprovedRole } from '@/utils/constants'
 import { socialLinks } from '@/config/socialLinks'
 
 export default function PendingPage() {
-  const { user, profile, loading, profileError, refreshProfile, signOut } = useAuth()
+  const { user, profile, loading, profileError, refreshProfile, signOut, authAction } = useAuth()
   const { openModal } = useJoinModal()
   const clubEntry = socialLinks.clubSignup.find(({ school }) => school === profile?.school)
   const clubUrl = clubEntry?.url ?? null
@@ -108,6 +108,7 @@ export default function PendingPage() {
           </button>}
           <SwitchAccountButton />
           <button
+            disabled={Boolean(authAction)}
             onClick={signOut}
             className="w-full px-4 py-2.5 rounded-xl text-sm font-medium border border-border text-text-secondary hover:bg-bg-surface active:scale-[0.98] transition-all duration-150"
           >

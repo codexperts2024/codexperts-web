@@ -3,25 +3,36 @@ import { fetchWithTimeout } from '@/utils/fetchWithTimeout'
 import { withTimeout } from '@/utils/withTimeout'
 
 export async function signInWithGoogle(redirectTo) {
-  // Flag that an OAuth redirect is about to happen so the pageshow handler
-  // can force a reload if the user presses back (bfcache restoration would
-  // leave Supabase's PKCE verifier in a stale state, blocking a second attempt).
-  sessionStorage.setItem('oauth_pending', '1')
-  const options = { queryParams: { prompt: 'select_account' }, ...(redirectTo ? { redirectTo } : {}) }
-  const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options })
+  // Redirect only after a bounded response, so a timed-out OAuth request
+  // cannot unexpectedly navigate the user later.
+  const options = { skipBrowserRedirect: true, queryParams: { prompt: 'select_account' }, ...(redirectTo ? { redirectTo } : {}) }
+  const { data, error } = await withTimeout(supabase.auth.signInWithOAuth({ provider: 'google', options }))
   if (error) throw error
+  if (!data?.url) throw new Error('Could not start Google sign-in. Please try again.')
+  sessionStorage.setItem('oauth_pending', '1')
+  window.location.assign(data.url)
+}
+
+let pendingSignOut = null
+export async function signOut() {
+  // Share the underlying request even after a caller times out. A retry must
+  // not start another sign-out that could terminate a newly selected account.
+  if (!pendingSignOut) {
+    pendingSignOut = (async () => {
+      const { error } = await supabase.auth.signOut({ scope: 'local' })
+      if (error) throw error
+      if (await getSession()) throw new Error('Your session is still active. Please retry signing out.')
+      sessionStorage.removeItem('join_modal_dismissed')
+      sessionStorage.removeItem('oauth_pending')
+      localStorage.removeItem('auth_redirect')
+    })().finally(() => { pendingSignOut = null })
+  }
+  return withTimeout(pendingSignOut, 15000, 'Could not confirm sign-out in time. Check your connection and retry.')
 }
 
 export async function switchGoogleAccount() {
-  const { error } = await supabase.auth.signOut({ scope: 'local' })
-  if (error) throw error
-  sessionStorage.removeItem('join_modal_dismissed')
+  await signOut()
   await signInWithGoogle(`${window.location.origin}/auth/callback`)
-}
-
-export async function signOut() {
-  const { error } = await supabase.auth.signOut()
-  if (error) throw error
 }
 
 export async function getSession() {

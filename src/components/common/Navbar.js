@@ -143,7 +143,7 @@ function NavDropdown({ label, items, pathname }) {
 
 export default function Navbar() {
   const pathname = usePathname()
-  const { user, profile, loading, signOut } = useAuth()
+  const { user, profile, loading, signOut, authAction, authActionError } = useAuth()
   const { openModal } = useJoinModal()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [loggingIn, setLoggingIn] = useState(false)
@@ -269,7 +269,7 @@ export default function Navbar() {
               <div className="flex items-center gap-1.5 xl:gap-2 shrink-0">
                 <Link href={profileHref}><UserChip user={user} profile={profile} /></Link>
                 <SwitchAccountButton />
-                <button type="button" onClick={signOut}
+                <button type="button" disabled={Boolean(authAction)} onClick={signOut}
                   className="shrink-0 whitespace-nowrap px-2.5 xl:px-4 py-1.5 rounded-md text-xs xl:text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors">
                   Log out
                 </button>
@@ -364,7 +364,7 @@ export default function Navbar() {
                 </Link>
               )}
               <SwitchAccountButton />
-              <button type="button" onClick={() => { signOut(); setMobileOpen(false) }}
+              <button type="button" disabled={Boolean(authAction)} onClick={async () => { if (await signOut()) setMobileOpen(false) }}
                 className="w-full mt-1 px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center">
                 Log out
               </button>
@@ -372,6 +372,11 @@ export default function Navbar() {
           )}
         </div>
       )}
+      {authActionError && <div role="alert" className="px-4 py-2 bg-bg-surface text-error text-sm border-t border-border">
+        {authActionError}
+        <button type="button" disabled={Boolean(authAction)} onClick={signOut} className="ml-3 underline">Retry sign out</button>
+        <SwitchAccountButton />
+      </div>}
     </nav>
   )
 }
