@@ -60,3 +60,44 @@ test('server reviewer reads remain available', async () => {
   try { expect((await db.query('select email,phone from profiles')).rows).toHaveLength(2) }
   finally { await db.exec('RESET ROLE') }
 })
+
+test('visibility migration masks viewer responses and blocks raw bypasses while retaining owner/reviewer data', async () => {
+  await db.exec(`
+    CREATE FUNCTION public.get_my_role() RETURNS text LANGUAGE sql STABLE SECURITY DEFINER AS $$
+      SELECT role FROM profiles WHERE id=auth.uid()
+    $$;
+    UPDATE profiles SET company='Hidden company', occupation='Hidden job',
+      linkedin='Hidden LinkedIn', github='Hidden GitHub', bio='Hidden bio',
+      profile_visibility='{"company":false,"occupation":false,"linkedin":false,"github":false,"bio":false}';
+    INSERT INTO profiles(id,first_name,role,bio) VALUES
+      ('00000000-0000-0000-0000-000000000003','Pending','pending','Draft bio'),
+      ('00000000-0000-0000-0000-000000000004','Public exec','executive','Visible bio');
+  `)
+  await db.exec(readFileSync(new URL('../supabase/migrations/20261008210000_enforce_profile_visibility.sql', import.meta.url), 'utf8'))
+  for (const role of ['anon', 'authenticated']) {
+    await db.exec(`SET ROLE ${role}`)
+    await db.query("select set_config('request.user_id', $1, false)", [role === 'anon' ? '' : '00000000-0000-0000-0000-000000000001'])
+    try {
+      const { rows } = await db.query('select * from get_visible_profiles()')
+      expect(rows).toHaveLength(role === 'anon' ? 2 : 3)
+      expect(rows.some(row => row.role === 'pending')).toBe(false)
+      expect(rows.find(row => row.role === 'admin')).toMatchObject({ company: null, occupation: null, linkedin: null, github: null, bio: null })
+      expect(rows.find(row => row.role === 'executive').bio).toBe('Visible bio')
+      expect(JSON.stringify(rows)).not.toContain('Hidden')
+      expect(rows.every(row => !('email' in row) && !('phone' in row))).toBe(true)
+      for (const field of ['company', 'occupation', 'linkedin', 'github', 'bio', 'profile_visibility']) {
+        await expect(db.query(`select ${field} from profiles`)).rejects.toThrow('permission denied')
+        await expect(db.query(`select id from profiles where ${field} is not null`)).rejects.toThrow('permission denied')
+      }
+      if (role === 'authenticated') {
+        expect((await db.query('select bio from get_own_profile()')).rows[0].bio).toBe('Hidden bio')
+        await db.query("select set_config('request.user_id','00000000-0000-0000-0000-000000000003',false)")
+        expect((await db.query('select * from get_visible_profiles()')).rows).toHaveLength(2)
+        expect((await db.query('select bio from get_own_profile()')).rows[0].bio).toBe('Draft bio')
+      }
+    } finally { await db.exec('RESET ROLE') }
+  }
+  await db.exec('SET ROLE service_role')
+  try { expect((await db.query("select bio from profiles where role='admin'")).rows[0].bio).toBe('Hidden bio') }
+  finally { await db.exec('RESET ROLE') }
+})

@@ -1,7 +1,7 @@
 # Security and reliability follow-up plan
 
 Date: 2026-10-08
-Status: Item 1 implemented and locally verified; database application and deployment pending. Remaining items are not implemented.
+Status: Item 1 implemented, migration applied by the user, and anonymous blocking verified live. Item 2 implemented and locally verified; its migration is pending. Production frontend rollout is not verified. Items 3–6 remain unimplemented.
 
 ## Decisions and handoff
 
@@ -100,4 +100,14 @@ Verification: 46 tests passed and production build passed. PostgreSQL tests cove
 
 Rollout: coordinate SQL application with the new frontend. The old frontend uses SELECT * / phone and will fail after the restrictions; the new frontend needs the new RPC. For a zero-interruption staged rollout, create the owner RPC first, deploy the new frontend, then apply the full migration. Otherwise use a coordinated maintenance window. Keep service-role credentials server-only. After rollout verify anonymous denial, owner login, signup, About, directory, and admin review against the connected project without printing contact values.
 
-Not yet complete: apply the migration and verify the deployed behavior. Keep this document until all approved items and their rollouts are complete.
+Update: The user applied the item 1 migration. Live anonymous checks returned 401 for email/phone and owner RPC, and 200 for allowed public fields. Full authenticated owner/reviewer checks and production frontend rollout remain unverified. Keep this document until all approved items and rollouts are complete.
+
+### Item 2 implementation record — 2026-10-08
+
+Added `20261008210000_enforce_profile_visibility.sql`. Raw SELECT privileges on bio, company, occupation, LinkedIn, GitHub, and visibility settings are revoked for public/browser roles. `get_visible_profiles()` provides a fixed viewer projection that replaces explicitly hidden values with null; it never returns contacts. Anonymous/pending callers can see executive/admin projections; approved members can also see member projections. Pending applications are excluded. Missing visibility keys preserve existing public defaults.
+
+Member directory/detail and About executive introductions use the viewer RPC. Own profile editing uses the existing caller-bound owner RPC; authorized server reviewers retain access. Member cards also honor visibility flags when supplied owner data. Lightweight name/avatar joins used by announcements and submissions remain allowed.
+
+Verification: 49 tests and production build passed. PostgreSQL coverage verifies masked viewer output, raw selection/filter denial, legacy defaults, anonymous/pending/member access, owner isolation, and service-role access. Card tests verify hidden company/job/social links are absent.
+
+Rollout pending: apply the new migration in coordination with the frontend. Old directory/About code queries restricted raw columns and cannot run unchanged after this migration. For a staged rollout, create the viewer function and grant its EXECUTE access first, deploy the new frontend, then apply the full migration to revoke raw access. Otherwise coordinate a maintenance window. No live writes or visibility changes were performed during validation. Verify actual owner editing and public/member views after rollout without printing private values.

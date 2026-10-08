@@ -1,7 +1,5 @@
 import { supabase } from '@/lib/supabase'
 
-const MEMBER_FIELDS = 'id, first_name, last_name, nickname, avatar_url, school, company, occupation, status, role, linkedin, github, cohort, bio, profile_visibility'
-
 function mapMember(row) {
   return {
     id: row.id,
@@ -29,9 +27,7 @@ function withSignal(query, signal) {
 export async function fetchMembers({ signal } = {}) {
   const { data, error } = await withSignal(
     supabase
-      .from('profiles')
-      .select(MEMBER_FIELDS)
-      .neq('role', 'pending')
+      .rpc('get_visible_profiles')
       .order('first_name', { ascending: true }),
     signal
   )
@@ -41,10 +37,12 @@ export async function fetchMembers({ signal } = {}) {
 }
 
 export async function fetchMemberById(id, { signal } = {}) {
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+  if (sessionError) throw sessionError
+  const ownProfile = session?.user?.id === id
   const { data, error } = await withSignal(
     supabase
-      .from('profiles')
-      .select(MEMBER_FIELDS)
+      .rpc(ownProfile ? 'get_own_profile' : 'get_visible_profiles')
       .eq('id', id)
       .single(),
     signal

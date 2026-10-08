@@ -23,7 +23,10 @@ export default function MemberCard({ member }) {
   const displayName = nickname ? `${fullName} (${nickname})` : fullName
   const initial = (firstName?.[0] ?? '?').toUpperCase()
 
-  const hasSocials = linkedinUrl || githubUrl
+  const visibility = member.profileVisibility ?? {}
+  const showLinkedin = visibility.linkedin !== false && linkedinUrl
+  const showGithub = visibility.github !== false && githubUrl
+  const hasSocials = showLinkedin || showGithub
 
   return (
     <div className="flex flex-col items-center text-center px-4 py-5 w-full max-w-[200px]">
@@ -61,12 +64,12 @@ export default function MemberCard({ member }) {
       )}
 
       {/* Company */}
-      {company && (
+      {visibility.company !== false && company && (
         <p className="mt-0.5 font-inter text-xs text-text-secondary">{company}</p>
       )}
 
       {/* Occupation */}
-      {occupation && (
+      {visibility.occupation !== false && occupation && (
         <p className="mt-0.5 font-inter text-xs text-text-secondary">{occupation}</p>
       )}
 
@@ -91,7 +94,7 @@ export default function MemberCard({ member }) {
       {/* Social icons — only if any link exists */}
       {hasSocials && (
         <div className="mt-2 flex gap-2">
-          {linkedinUrl && (
+          {showLinkedin && (
             <a
               href={linkedinUrl}
               target="_blank"
@@ -110,7 +113,7 @@ export default function MemberCard({ member }) {
               </svg>
             </a>
           )}
-          {githubUrl && (
+          {showGithub && (
             <a
               href={githubUrl}
               target="_blank"
