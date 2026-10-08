@@ -3,25 +3,36 @@ import { fetchWithTimeout } from '@/utils/fetchWithTimeout'
 import { withTimeout } from '@/utils/withTimeout'
 
 export async function signInWithGoogle(redirectTo) {
-  // Flag that an OAuth redirect is about to happen so the pageshow handler
-  // can force a reload if the user presses back (bfcache restoration would
-  // leave Supabase's PKCE verifier in a stale state, blocking a second attempt).
-  sessionStorage.setItem('oauth_pending', '1')
-  const options = { queryParams: { prompt: 'select_account' }, ...(redirectTo ? { redirectTo } : {}) }
-  const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options })
+  // Redirect only after a bounded response, so a timed-out OAuth request
+  // cannot unexpectedly navigate the user later.
+  const options = { skipBrowserRedirect: true, queryParams: { prompt: 'select_account' }, ...(redirectTo ? { redirectTo } : {}) }
+  const { data, error } = await withTimeout(supabase.auth.signInWithOAuth({ provider: 'google', options }))
   if (error) throw error
+  if (!data?.url) throw new Error('Could not start Google sign-in. Please try again.')
+  sessionStorage.setItem('oauth_pending', '1')
+  window.location.assign(data.url)
+}
+
+let pendingSignOut = null
+export async function signOut() {
+  // Share the underlying request even after a caller times out. A retry must
+  // not start another sign-out that could terminate a newly selected account.
+  if (!pendingSignOut) {
+    pendingSignOut = (async () => {
+      const { error } = await supabase.auth.signOut({ scope: 'local' })
+      if (error) throw error
+      if (await getSession()) throw new Error('Your session is still active. Please retry signing out.')
+      sessionStorage.removeItem('join_modal_dismissed')
+      sessionStorage.removeItem('oauth_pending')
+      localStorage.removeItem('auth_redirect')
+    })().finally(() => { pendingSignOut = null })
+  }
+  return withTimeout(pendingSignOut, 15000, 'Could not confirm sign-out in time. Check your connection and retry.')
 }
 
 export async function switchGoogleAccount() {
-  const { error } = await supabase.auth.signOut({ scope: 'local' })
-  if (error) throw error
-  sessionStorage.removeItem('join_modal_dismissed')
+  await signOut()
   await signInWithGoogle(`${window.location.origin}/auth/callback`)
-}
-
-export async function signOut() {
-  const { error } = await supabase.auth.signOut()
-  if (error) throw error
 }
 
 export async function getSession() {
@@ -32,26 +43,32 @@ export async function getSession() {
 
 export async function fetchProfile(userId) {
   const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
+    .rpc('get_own_profile')
     .eq('id', userId)
     .single()
 
   if (error && error.code !== 'PGRST116') throw error
-  if (data?.application_status === 'rejected') {
-    const { data: decision, error: decisionError } = await supabase
-      .from('application_rejections')
-      .select('reason, rejected_at')
-      .eq('profile_id', userId)
-      .order('rejected_at', { ascending: false })
-      .order('id', { ascending: false })
-      .limit(1)
-      .maybeSingle()
+  if (data) {
+    const decisions = []
+    let decisionError = null
+    for (let offset = 0; ; offset += 1000) {
+      const { data: page, error: pageError } = await supabase
+        .from('application_rejections')
+        .select('id, reason, rejected_at')
+        .eq('profile_id', userId)
+        .order('rejected_at', { ascending: false })
+        .order('id', { ascending: false })
+        .range(offset, offset + 999)
+      if (pageError) { decisionError = pageError; break }
+      decisions.push(...(page ?? []))
+      if ((page ?? []).length < 1000) break
+    }
     // A failure to read the reason must not erase the known rejection status.
     return {
       ...data,
-      rejection_reason: decision?.reason ?? null,
-      rejected_at: decision?.rejected_at ?? null,
+      rejection_history: decisions ?? [],
+      rejection_reason: decisions?.[0]?.reason ?? null,
+      rejected_at: decisions?.[0]?.rejected_at ?? null,
       rejection_details_error: Boolean(decisionError),
     }
   }
@@ -71,11 +88,11 @@ export async function updateProfile(userId, fields) {
     .from('profiles')
     .update(fields)
     .eq('id', userId)
-    .select()
+    .select('id')
     .single()
 
   if (error) throw error
-  return data
+  return fetchProfile(userId)
 }
 
 export async function adminApproval(userID, accessToken) {
