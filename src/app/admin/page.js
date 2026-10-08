@@ -55,7 +55,7 @@ export default function AdminPage() {
     setSelectedMember(current => {
       if (!current) return null
       const fresh = members.find(m => m.id === current.id)
-      if (!fresh || isPendingApplicant(fresh)) return null
+      if (!fresh) return null
       return fresh
     })
   }, [members])

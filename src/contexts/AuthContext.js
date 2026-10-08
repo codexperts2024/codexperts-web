@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useEffect, useState } from 'react'
+import { createContext, useEffect, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { getSession, fetchProfile, signOut as authSignOut } from '@/services/authService'
 import { withTimeout } from '@/utils/withTimeout'
@@ -10,117 +10,104 @@ export const AuthContext = createContext(null)
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
+  const [profileError, setProfileError] = useState('')
   const [accessToken, setAccessToken] = useState(null)
   const [loading, setLoading] = useState(true)
+  const userIdRef = useRef(null)
+  const revision = useRef(0)
 
-  // getSession, fetchProfile, supabase are stable module-level references;
-  // intentionally mount-only.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    let initialized = false
-    let cancelled = false
+  function acceptProfile(next) {
+    if (next?.id !== userIdRef.current) return
+    revision.current += 1
+    setProfile(next)
+    setProfileError('')
+  }
 
-    async function init() {
-      // Clear any stale OAuth flag left from a previous abandoned flow
-      // (covers the full-remount case where pageshow doesn't reload).
-      sessionStorage.removeItem('oauth_pending')
-      try {
-        const session = await withTimeout(getSession())
-        if (cancelled) return
-        setUser(session?.user ?? null)
-        setAccessToken(session?.access_token ?? null)
-        if (session?.user) {
-          const p = await withTimeout(fetchProfile(session.user.id))
-          if (cancelled) return
-          setProfile(p)
-        }
-      } catch {
-        if (!cancelled) {
-          setUser(null)
-          setProfile(null)
-          setAccessToken(null)
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false)
-          initialized = true
-        }
+  async function refreshProfile() {
+    const id = userIdRef.current
+    if (!id) return null
+    const version = ++revision.current
+    try {
+      const next = await withTimeout(fetchProfile(id))
+      if (version === revision.current && id === userIdRef.current) {
+        setProfile(next)
+        setProfileError('')
       }
+      return next
+    } catch (err) {
+      if (version === revision.current) setProfileError(err.message || 'Could not load your profile. Please retry.')
+      throw err
+    }
+  }
+
+  useEffect(() => {
+    let cancelled = false
+    let sessionVersion = 0
+    let timer
+    sessionStorage.removeItem('oauth_pending')
+
+    function applySession(session) {
+      if (cancelled) return
+      const id = session?.user?.id ?? null
+      if (id !== userIdRef.current) {
+        revision.current += 1
+        setProfile(null)
+        setProfileError('')
+      }
+      userIdRef.current = id
+      setUser(session?.user ?? null)
+      setAccessToken(session?.access_token ?? null)
+      clearTimeout(timer)
+      if (!id) {
+        setLoading(false)
+        return
+      }
+      // Never await a Supabase request inside its auth event callback.
+      timer = setTimeout(() => {
+        refreshProfile().catch(() => {}).finally(() => {
+          if (!cancelled) setLoading(false)
+        })
+      }, 0)
     }
 
-    init()
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      sessionVersion += 1
+      applySession(session)
+    })
+    const initialVersion = sessionVersion
+    withTimeout(getSession()).then(session => {
+      if (sessionVersion === initialVersion) applySession(session)
+    }).catch(err => {
+      if (!cancelled && sessionVersion === initialVersion) {
+        setProfileError(err.message)
+        setLoading(false)
+      }
+    })
 
-    // When the browser restores this page from bfcache (back button after
-    // Google OAuth redirect), Supabase's in-memory PKCE verifier state is
-    // stale, which silently blocks any subsequent login attempt.
-    // If an OAuth flow was in progress, force a full reload so Supabase
-    // starts fresh. Otherwise just re-sync the session into React state.
-    function handlePageShow(e) {
-      if (!e.persisted) return
+    function handlePageShow(event) {
+      if (!event.persisted) return
       if (sessionStorage.getItem('oauth_pending')) {
-        sessionStorage.removeItem('oauth_pending')
         window.location.reload()
         return
       }
-      ;(async () => {
-        try {
-          const session = await withTimeout(getSession())
-          setUser(session?.user ?? null)
-          setAccessToken(session?.access_token ?? null)
-          if (!session?.user) setProfile(null)
-        } catch {
-          setUser(null)
-          setProfile(null)
-          setAccessToken(null)
-        }
-      })()
+      withTimeout(getSession()).then(applySession).catch(err => {
+        if (!cancelled) setProfileError(err.message)
+      })
     }
     window.addEventListener('pageshow', handlePageShow)
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        // Skip INITIAL_SESSION — init() already handles it and setting state
-        // here before init() completes causes a profile-null flash (navbar
-        // buttons disappear briefly).
-        if (!initialized) return
-        setUser(session?.user ?? null)
-        setAccessToken(session?.access_token ?? null)
-        if (session?.user) {
-          try {
-            const p = await withTimeout(fetchProfile(session.user.id))
-            setProfile(p)
-          } catch {
-            setProfile(null)
-          }
-        } else {
-          setProfile(null)
-        }
-      }
-    )
-
     return () => {
       cancelled = true
+      revision.current += 1
+      clearTimeout(timer)
       subscription.unsubscribe()
       window.removeEventListener('pageshow', handlePageShow)
     }
   }, [])
 
-  async function refreshProfile() {
-    if (user) {
-      const p = await fetchProfile(user.id)
-      setProfile(p)
-      return p
-    }
-    return null
-  }
-
   async function signOut() {
-    try {
-      await authSignOut()
-    } catch {
-      // Supabase sign-out may throw if the session is already expired;
-      // always clean up client state and redirect regardless.
-    }
+    try { await withTimeout(authSignOut()) } catch { /* Clear this view even if sign-out fails. */ }
+    userIdRef.current = null
+    revision.current += 1
     setUser(null)
     setProfile(null)
     setAccessToken(null)
@@ -129,7 +116,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, profile, accessToken, loading, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ user, profile, profileError, accessToken, loading, signOut, refreshProfile, acceptProfile }}>
       {children}
     </AuthContext.Provider>
   )

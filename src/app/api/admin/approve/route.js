@@ -1,4 +1,5 @@
 import { verifyAdminCaller } from '@/lib/adminApi'
+import { hasRequiredApplicationFields } from '@/utils/application'
 
 export async function POST(request) {
   const auth = await verifyAdminCaller(request)
@@ -13,7 +14,7 @@ export async function POST(request) {
 
   const { data: target, error: fetchError } = await serviceClient
     .from('profiles')
-    .select('role, application_status')
+    .select('*')
     .eq('id', userId)
     .single()
 
@@ -29,11 +30,17 @@ export async function POST(request) {
     return Response.json({ error: 'User is not pending approval' }, { status: 400 })
   }
 
+  if (!hasRequiredApplicationFields(target)) {
+    return Response.json({ error: 'Complete the required application fields, including major, before approval.' }, { status: 400 })
+  }
+
   const { data, error } = await serviceClient
     .from('profiles')
     .update({ role: 'member', application_status: 'approved' })
     .eq('id', userId)
-    .select('id, first_name, last_name, email, avatar_url, school, cohort, phone, status, role, application_status, created_at')
+    .eq('role', 'pending')
+    .eq('application_status', 'pending')
+    .select('id, first_name, last_name, email, avatar_url, school, major, discord_joined, cohort, phone, status, role, application_status, created_at')
     .single()
 
   if (error) {

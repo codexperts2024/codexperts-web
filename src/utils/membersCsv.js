@@ -6,6 +6,8 @@ const CSV_COLUMNS = [
   { key: 'email', header: 'Email' },
   { key: 'phone', header: 'Phone' },
   { key: 'school', header: 'School' },
+  { key: 'major', header: 'Major / Program' },
+  { key: 'discordJoined', header: 'Discord Joined (Self-reported)' },
   { key: 'cohort', header: 'Cohort' },
   { key: 'status', header: 'Status' },
   { key: 'role', header: 'Role' },

@@ -33,7 +33,9 @@ export async function POST(request) {
     .from('profiles')
     .update({ application_status: 'rejected' })
     .eq('id', userId)
-    .select('id, first_name, last_name, email, avatar_url, school, cohort, phone, status, role, application_status, created_at')
+    .eq('role', 'pending')
+    .eq('application_status', 'pending')
+    .select('id, first_name, last_name, email, avatar_url, school, major, discord_joined, cohort, phone, status, role, application_status, created_at')
     .single()
 
   if (error) {

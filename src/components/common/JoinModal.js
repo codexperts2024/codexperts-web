@@ -4,8 +4,11 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useJoinModal } from '@/contexts/JoinModalContext'
 import { useAuth } from '@/hooks/useAuth'
-import { createProfile } from '@/services/authService'
+import { createProfile, fetchProfile, signInWithGoogle } from '@/services/authService'
 import { formatRequestError } from '@/utils/requestErrors'
+import { withTimeout } from '@/utils/withTimeout'
+import { applicationMatches, isDraftApplication } from '@/utils/application'
+import { socialLinks } from '@/config/socialLinks'
 import Button from '@/components/ui/Button'
 import { cohortLabel } from '@/utils/cohort'
 import { SCHOOLS } from '@/utils/constants'
@@ -58,12 +61,14 @@ function formatPhone(raw) {
 
 export default function JoinModal() {
   const { isOpen, openModal, closeModal } = useJoinModal()
-  const { user, profile, loading, refreshProfile } = useAuth()
+  const { user, profile, loading, profileError, acceptProfile } = useAuth()
   const router = useRouter()
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [nickname, setNickname] = useState('')
   const [school, setSchool] = useState('')
+  const [major, setMajor] = useState('')
+  const [discordJoined, setDiscordJoined] = useState(false)
   const [cohort, setCohort] = useState('')
   const [phone, setPhone] = useState('')
   const [status, setStatus] = useState('')
@@ -75,8 +80,11 @@ export default function JoinModal() {
   const [submitting, setSubmitting] = useState(false)
   const cohorts = generateCohorts()
   const overlayRef = useRef(null)
+  const initializedFor = useRef(null)
+  const submitLock = useRef(false)
+  const discordUrl = socialLinks.discord.find(item => item.school === ({ 'Seneca College': 'Seneca', 'York University': 'York' }[school]))?.url
 
-  const needsCompletion = !loading && !!user && !!profile && !profile.first_name
+  const needsCompletion = !loading && !!user && !profileError && isDraftApplication(profile)
 
   useEffect(() => {
     if (needsCompletion && !sessionStorage.getItem('join_modal_dismissed')) {
@@ -94,7 +102,8 @@ export default function JoinModal() {
   }, [isOpen])
 
   useEffect(() => {
-    if (isOpen && user) {
+    if (isOpen && user && initializedFor.current !== user.id) {
+      initializedFor.current = user.id
       const meta = user.user_metadata
       const fullName = meta?.full_name ?? meta?.name ?? ''
       const parts = fullName.trim().split(' ')
@@ -102,9 +111,11 @@ export default function JoinModal() {
       setLastName(profile?.last_name ?? meta?.family_name ?? parts.slice(1).join(' ') ?? '')
       setNickname(profile?.nickname ?? '')
       setSchool(profile?.school ?? '')
+      setMajor(profile?.major ?? '')
+      setDiscordJoined(profile?.discord_joined ?? false)
       setCohort(profile?.cohort ?? '')
       setPhone(profile?.phone ?? '')
-      setStatus(profile?.status ?? '')
+      setStatus(profile?.status === 'graduated' ? 'graduate' : (profile?.status ?? ''))
       setCompany(profile?.company ?? '')
       setOccupation(profile?.occupation ?? '')
       const li = profile?.linkedin ?? ''
@@ -116,6 +127,9 @@ export default function JoinModal() {
 
   useEffect(() => {
     if (!isOpen) {
+      initializedFor.current = null
+      setMajor('')
+      setDiscordJoined(false)
       setFirstName('')
       setLastName('')
       setNickname('')
@@ -133,14 +147,18 @@ export default function JoinModal() {
   }, [isOpen])
 
   function handleDismiss() {
+    if (submitLock.current) return
+    if (user && !window.confirm('Cancel editing? Your unsaved changes will be discarded.')) return
     sessionStorage.setItem('join_modal_dismissed', '1')
     closeModal()
+    router.push('/')
   }
 
   function validate() {
     const next = {}
     if (!firstName.trim()) next.firstName = 'Please enter your first name'
     if (!lastName.trim()) next.lastName = 'Please enter your last name'
+    if (!major.trim()) next.major = 'Please enter your major or program'
     if (!school) next.school = 'Please select a school'
     if (!cohort) next.cohort = 'Please select a cohort'
     if (!/^\(\d{3}\) \d{3}-\d{4}$/.test(phone)) next.phone = 'Enter a valid phone number: (XXX) XXX-XXXX'
@@ -150,41 +168,41 @@ export default function JoinModal() {
   }
 
   async function handleSubmit() {
-    if (submitting || !validate() || !user) return
+    if (submitLock.current || !validate() || !user) return
+    submitLock.current = true
     setSubmitting(true)
     setErrors({})
-
-    try {
-      await createProfile({
-        id: user.id,
-        first_name: firstName.trim(),
-        last_name: lastName.trim(),
-        nickname: nickname.trim(),
-        email: user.email,
-        avatarUrl: user.user_metadata?.avatar_url ?? '',
-        school,
-        cohort,
-        phone,
-        status,
-        company,
-        occupation,
-        linkedin: linkedin ? `https://www.linkedin.com/in/${linkedin}` : null,
-        github: github ? `https://github.com/${github}` : null,
-      })
-
+    const fields = {
+      first_name: firstName.trim(), last_name: lastName.trim(),
+      nickname: nickname.trim() || null, school, cohort: String(cohort), phone, status,
+      major: major.trim(), discord_joined: discordJoined,
+      company: company.trim() || null, occupation: occupation.trim() || null,
+      linkedin: linkedin ? `https://www.linkedin.com/in/${linkedin}` : null,
+      github: github ? `https://github.com/${github}` : null,
+    }
+    function finish(saved) {
+      acceptProfile(saved)
       sessionStorage.removeItem('join_modal_dismissed')
-      refreshProfile().catch(() => {})
       closeModal()
       router.push('/pending')
+    }
+    try {
+      finish(await createProfile(fields))
     } catch (err) {
-      setErrors({ submit: formatRequestError(err) })
+      // A timeout can mean the write committed but its response was lost.
+      // Only accept a read-back that matches this exact submitted payload.
+      try {
+        const saved = await withTimeout(fetchProfile(user.id))
+        if (applicationMatches(saved, fields)) {
+          finish(saved)
+          return
+        }
+      } catch { /* Keep all entered values available for retry. */ }
+      setErrors({ submit: `${formatRequestError(err)} Your entries have been kept. Please submit again.` })
     } finally {
+      submitLock.current = false
       setSubmitting(false)
     }
-  }
-
-  function handleOverlayClick(e) {
-    if (e.target === overlayRef.current) handleDismiss()
   }
 
   if (!isOpen) return null
@@ -196,7 +214,6 @@ export default function JoinModal() {
   return (
     <div
       ref={overlayRef}
-      onClick={handleOverlayClick}
       className="fixed inset-0 z-50 flex items-center justify-center px-4"
       style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
     >
@@ -206,6 +223,7 @@ export default function JoinModal() {
         <div className="px-8 pt-8 pb-4 shrink-0">
           <button
             onClick={handleDismiss}
+            disabled={submitting}
             className="absolute top-4 right-4 text-text-hint hover:text-text-secondary transition-colors"
             aria-label="Close"
           >
@@ -238,6 +256,15 @@ export default function JoinModal() {
         {/* Scrollable form area */}
         <div className="overflow-y-auto px-8 pb-8 pt-4">
 
+        {!user ? (
+          <Button onClick={async () => {
+            try { await signInWithGoogle(`${window.location.origin}/auth/callback`) }
+            catch (err) { setErrors({ submit: formatRequestError(err) }) }
+          }}>Continue with Google</Button>
+        ) : profile?.application_status === 'rejected' ? (
+          <p>Your application was not approved. Please contact the club before applying again.</p>
+        ) : (<fieldset disabled={submitting}>
+        {profileError && <p role="alert" className="mb-4 text-sm text-error">Could not reload your saved profile. Your entries will be kept if submission fails.</p>}
         {/* First Name / Last Name */}
         <div className="flex gap-3 mb-4">
           <div className="flex-1">
@@ -281,13 +308,32 @@ export default function JoinModal() {
           <label className="block text-sm font-medium text-text-primary mb-1.5">School <span className="text-error">*</span></label>
           <select
             value={school}
-            onChange={e => setSchool(e.target.value)}
+            onChange={e => { setSchool(e.target.value); setDiscordJoined(false) }}
             className={`${inputBase} ${inputFocus} ${errors.school ? 'border-error' : inputNormal}`}
           >
             <option value="">Select your school</option>
             {SCHOOLS.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
           {errors.school && <p className="mt-1 text-xs text-error">{errors.school}</p>}
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-1.5" htmlFor="join-major">Major / Program *</label>
+          <input id="join-major" value={major} maxLength={120} onChange={e => setMajor(e.target.value)}
+            placeholder="e.g. Computer Programming" className={`${inputBase} ${inputFocus} ${inputNormal}`} />
+          {errors.major && <p className="mt-1 text-xs text-error">{errors.major}</p>}
+        </div>
+        <div className="mb-4 rounded-md border border-border p-3">
+          <p className="text-sm font-medium mb-2">Join your school's Discord</p>
+          {discordUrl ? <a href={discordUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-accent underline">
+            Join {school === 'Seneca College' ? 'Seneca' : 'York'} Discord
+          </a> : <button type="button" disabled className="text-sm text-text-hint">Select your school first</button>}
+          <label className="flex items-start gap-2 mt-3 text-sm">
+            <input type="checkbox" checked={discordJoined} disabled={!discordUrl}
+              onChange={e => setDiscordJoined(e.target.checked)} />
+            I have joined my school's Discord server.
+          </label>
+          <p className="mt-2 text-xs text-text-hint">Optional. You can submit your application before joining.</p>
         </div>
 
         {/* Cohort */}
@@ -327,7 +373,7 @@ export default function JoinModal() {
           >
             <option value="">Select your status</option>
             <option value="student">Student</option>
-            <option value="graduated">Graduated</option>
+            <option value="graduate">Graduated</option>
           </select>
           {errors.status && <p className="mt-1 text-xs text-error">{errors.status}</p>}
         </div>
@@ -401,7 +447,9 @@ export default function JoinModal() {
           ) : null}
           {submitting ? 'Submitting…' : 'Submit'}
         </Button>
-
+        <button type="button" onClick={handleDismiss} disabled={submitting}
+          className="w-full mt-3 text-sm text-text-secondary">Cancel</button>
+        </fieldset>)}
         {errors.submit && (
           <div className="mt-2 px-3 py-2 rounded-md bg-accent-bg border border-error/30 text-xs text-error text-center">
             {errors.submit}

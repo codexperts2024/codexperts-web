@@ -9,7 +9,7 @@ export async function GET(request) {
   const { data, error } = await serviceClient
     .from('profiles')
     .select(
-      'id, first_name, last_name, nickname, email, avatar_url, school, cohort, phone, status, role, application_status, occupation, company, linkedin, github, bio, created_at, updated_at'
+      'id, first_name, last_name, nickname, email, avatar_url, school, major, discord_joined, cohort, phone, status, role, application_status, occupation, company, linkedin, github, bio, created_at, updated_at'
     )
     .neq('application_status', 'rejected')
     .order('first_name', { ascending: true })
@@ -31,7 +31,9 @@ export async function GET(request) {
     (activeRoles ?? []).map((row) => [row.user_id, row.title])
   )
 
-  const members = (data ?? []).map((row) => ({
+  const members = (data ?? []).filter(row =>
+    auth.callerProfile.role === 'admin' || row.application_status !== 'draft'
+  ).map((row) => ({
     ...row,
     executive_title: titleByUserId[row.id] ?? null,
   }))

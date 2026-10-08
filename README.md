@@ -119,7 +119,23 @@ Public (Unauthenticated)
 | **Executive** | Post problems, manage sessions, events CRUD |
 | **Admin** | User approval, role management, executive position assignment for Our Team, member CSV export for Excel, full access |
 
-**Onboarding flow:** `Google Sign-In → pending → Admin approval → member`
+**Onboarding flow:** `Google Sign-In → draft → Submit application → pending → Admin approval → member`
+
+Apply `supabase/migrations/20261008120000_application_submission.sql` before deploying
+this application version. It adds major and self-reported Discord participation,
+returns incomplete pending profiles to draft, and preserves approved members.
+Complete legacy pending applications remain pending; an administrator or the
+applicant must fill in their major before approval. Never infer submission from a
+Google email or a first name alone.
+
+Signup writes go through the authenticated `submit_application` database function.
+It derives the user ID from the session, validates required fields, and saves the
+profile and pending status in one transaction. Cancel does not submit or delete the
+Google account. A failed request retains form inputs, and a timed-out submission is
+checked against the stored fields before showing success.
+
+Run `npm test` for isolated PostgreSQL migration/RPC tests and signup/auth UI tests.
+No production credentials or production data are used by these tests.
 
 ---
 

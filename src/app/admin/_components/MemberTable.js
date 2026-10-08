@@ -185,13 +185,13 @@ export default function MemberTable({
                           firstName={member.firstName}
                           role={member.role}
                         />
-                        {isAdmin && !pending ? (
+                        {isAdmin ? (
                           <button
                             type="button"
                             onClick={() => onSelect(member)}
                             className="text-text-primary truncate text-left hover:text-link hover:underline transition-colors"
                           >
-                            {memberName(member) || '—'}
+                            {memberName(member) || member.email || 'Edit application'}
                           </button>
                         ) : (
                           <span className="text-text-primary truncate">
@@ -200,13 +200,13 @@ export default function MemberTable({
                         )}
                       </div>
                     </td>
-                    <td className="py-2.5 px-3 text-text-secondary truncate max-w-[180px]">{member.email ?? '—'}</td>
+                    <td className="py-2.5 px-3 text-text-secondary truncate max-w-[180px]">{member.email ?? '—'}<div className="text-xs text-text-hint">{member.major || 'Major not provided'} · Discord: {member.discordJoined ? 'Joined (self-reported)' : 'Not confirmed'}</div></td>
                     <td className="py-2.5 px-3 text-text-secondary hidden md:table-cell">{member.school ?? '—'}</td>
                     <td className="py-2.5 px-3 text-text-secondary">
                       {member.cohort ? cohortLabel(member.cohort) : '—'}
                     </td>
                     <td className="py-2.5 px-3 text-text-primary">
-                      <span>{formatRole(member.role)}</span>
+                      <span>{member.applicationStatus === 'draft' ? 'Not submitted' : formatRole(member.role)}</span>
                       {member.executiveTitle && (
                         <span className="block text-xs text-text-hint mt-0.5">{member.executiveTitle}</span>
                       )}
