@@ -1,7 +1,21 @@
 # Security and reliability follow-up plan
 
 Date: 2026-10-08
-Status: Item 1 implemented, migration applied by the user, and anonymous blocking verified live. Item 2 migration applied by the user and anonymous raw-field denial/viewer RPC verified live. Item 3 implemented and locally verified; its migration is pending. Production frontend rollout is not verified. Items 4–6 remain unimplemented.
+Status: Item 1 implemented, migration applied by the user, and anonymous blocking verified live. Item 2 migration applied by the user and anonymous raw-field denial/viewer RPC verified live. Item 3 migration applied by the user. Item 4 implemented and locally verified; no new migration required. Production rollout remains unverified. Items 5–6 remain unimplemented.
+
+## Draft PR delivery status
+
+Tracking PR: [#214](https://github.com/codexperts2024/codexperts-web/pull/214), kept in draft. Uploaded does not mean merged or deployed.
+
+| Item | Implementation / PR status | Database status | Production status |
+| --- | --- | --- | --- |
+| 1. Contact protection | Uploaded to PR #214 (`42369c0`) | User applied; anonymous denial verified | Not verified |
+| 2. Hidden fields | Uploaded to PR #214 (`b575009`) | User applied; anonymous checks verified | Not verified |
+| 3. Atomic admin edits | Uploaded to PR #214 (`97692fb`) | User confirmed applied on 2026-10-08 | Not verified |
+| 4. Persistent rejection history | Uploaded to PR #214 (item 4 commit) | No additional SQL required | Not verified |
+| 5. Logout reliability | Not implemented / not uploaded | Pending implementation | Not deployed |
+| 6. Contact-form protection | Not implemented / not uploaded | Pending implementation | Not deployed |
+| 7. Calendar HTML | Deferred by user | No change | No change |
 
 ## Decisions and handoff
 
@@ -125,3 +139,15 @@ A unique partial index enforces one active title per user alongside the existing
 Verification: 58 tests passed; production build passed. Tests cover injected late-insert failure rolling back the profile and both existing terms, successful seat transfer, idempotent retry, school moves, demotion, owner/actor restrictions, invalid promotion, browser RPC denial, API identity spoofing, and uniqueness constraints. A real multi-connection load test was not performed.
 
 Rollout pending: apply the item 3 migration before deploying the API change. Existing code does not gain atomicity until the new API is deployed. Do not rerun this migration after success; its new unique index is intentionally not recreated silently. No live profile or title writes were made during validation.
+
+### Item 3 application confirmation — 2026-10-08
+
+The user confirmed executing `20261008220000_atomic_admin_member_edits.sql`. Live mutation testing has not been performed. Its implementation was uploaded to draft PR #214 in commit `97692fb`.
+
+### Item 4 implementation record — 2026-10-08
+
+The administrator API loads paginated rejection records regardless of current application status and returns all decisions with reviewer labels. The Rejection history tab includes resubmitted and approved applicants, shows their current state, and expands every recorded reason/date/reviewer. Missing legacy metadata remains explicitly unknown. History is retained during approval/edit/rejection response updates and then refreshed from the server. CSV exports include full history as JSON.
+
+Owner profile reads also retrieve prior decisions after reapplication. The pending page shows prior rejection decisions, and submitting again preserves the already loaded history. Existing applicant/reviewer RLS and administrator/executive API authorization remain in effect. This is rejection history, not a newly fabricated full approval audit trail.
+
+Verification: 65 tests passed; production build passed. Tests cover approved and pending applicants retaining multiple decisions, reviewer labels, missing reviewer fallback, legacy records, mutation response preservation, applicant history display, and unauthorized API denial. No live decisions were changed. No additional SQL is required for item 4. Code and this delivery status are uploaded to the same draft PR #214; production verification remains pending.

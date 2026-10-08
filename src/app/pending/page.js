@@ -74,6 +74,21 @@ export default function PendingPage() {
           </div>
         )}
 
+        {!profileError && Boolean(profile?.rejection_history?.length) && (
+          <details className="mt-6 text-left border border-border rounded-lg p-4">
+            <summary className="cursor-pointer">Previous rejection decisions ({profile.rejection_history.length})</summary>
+            <ol className="mt-3 space-y-3">
+              {profile.rejection_history.map(decision => <li key={decision.id}>
+                <p className="text-sm whitespace-pre-wrap">{decision.reason}</p>
+                <p className="text-xs text-text-hint">{new Date(decision.rejected_at).toLocaleString()}</p>
+              </li>)}
+            </ol>
+          </details>
+        )}
+        {!rejected && profile?.rejection_details_error && <p role="alert" className="mt-4 text-sm">
+          Could not load previous decisions. <button onClick={() => refreshProfile().catch(() => {})}>Retry decision history</button>
+        </p>}
+
         {!draft && !profileError && profile && (
           <dl className="mt-6 text-sm text-left border border-border rounded-lg p-4 space-y-2">
             <div><dt className="text-text-hint">Name</dt><dd>{[profile.first_name, profile.last_name].filter(Boolean).join(' ')}</dd></div>

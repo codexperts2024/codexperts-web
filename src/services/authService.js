@@ -37,20 +37,27 @@ export async function fetchProfile(userId) {
     .single()
 
   if (error && error.code !== 'PGRST116') throw error
-  if (data?.application_status === 'rejected') {
-    const { data: decision, error: decisionError } = await supabase
-      .from('application_rejections')
-      .select('reason, rejected_at')
-      .eq('profile_id', userId)
-      .order('rejected_at', { ascending: false })
-      .order('id', { ascending: false })
-      .limit(1)
-      .maybeSingle()
+  if (data) {
+    const decisions = []
+    let decisionError = null
+    for (let offset = 0; ; offset += 1000) {
+      const { data: page, error: pageError } = await supabase
+        .from('application_rejections')
+        .select('id, reason, rejected_at')
+        .eq('profile_id', userId)
+        .order('rejected_at', { ascending: false })
+        .order('id', { ascending: false })
+        .range(offset, offset + 999)
+      if (pageError) { decisionError = pageError; break }
+      decisions.push(...(page ?? []))
+      if ((page ?? []).length < 1000) break
+    }
     // A failure to read the reason must not erase the known rejection status.
     return {
       ...data,
-      rejection_reason: decision?.reason ?? null,
-      rejected_at: decision?.rejected_at ?? null,
+      rejection_history: decisions ?? [],
+      rejection_reason: decisions?.[0]?.reason ?? null,
+      rejected_at: decisions?.[0]?.rejected_at ?? null,
       rejection_details_error: Boolean(decisionError),
     }
   }
