@@ -46,7 +46,7 @@ const ROLE_COLOR = {
 }
 
 function UserChip({ user, profile }) {
-  const avatarUrl = user?.user_metadata?.avatar_url
+  const avatarUrl = profile?.avatar_url || user?.user_metadata?.avatar_url
   const initial = profile?.nickname
     ? profile.nickname[0].toUpperCase()
     : profile?.first_name
