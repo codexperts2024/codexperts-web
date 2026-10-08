@@ -9,3 +9,5 @@ SET search_path TO public;
 \i ./tables/submissions.sql
 \i ./tables/attendances.sql
 \i ./tables/executive_roles.sql
+
+\i ./tables/application_rejections.sql

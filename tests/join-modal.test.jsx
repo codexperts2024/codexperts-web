@@ -39,7 +39,7 @@ test('Discord requires school and resets confirmation when school changes', () =
   expect(screen.getByRole('link').href).toContain('QXuybeNpuN')
   fireEvent.click(screen.getByRole('checkbox'))
   fireEvent.change(screen.getAllByRole('combobox')[0], { target: { value: 'York University' } })
-  expect(screen.getByRole('link').href).toContain('EVGtNXrWV')
+  expect(screen.getByRole('link').href).toContain('vKWWz8Q7us')
   expect(screen.getByRole('checkbox').checked).toBe(false)
 })
 
@@ -80,4 +80,18 @@ test('backdrop does not cancel; explicit cancel goes home, never pending', () =>
   expect(mocks.modal.closeModal).toHaveBeenCalled()
   expect(mocks.push).toHaveBeenCalledWith('/')
   expect(mocks.create).not.toHaveBeenCalled()
+})
+
+test('signup permits an empty phone but rejects an incomplete entered phone', async () => {
+  mocks.create.mockImplementationOnce(async fields => ({ id: 'one', ...fields, application_status: 'pending' }))
+  render(<JoinModal />)
+  fillForm()
+  fireEvent.change(screen.getByPlaceholderText('(416) 000-0000'), { target: { value: '123' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Submit' }))
+  expect(mocks.create).not.toHaveBeenCalled()
+  expect(screen.getByText('Enter a valid phone number: (XXX) XXX-XXXX')).toBeTruthy()
+  fireEvent.change(screen.getByPlaceholderText('(416) 000-0000'), { target: { value: '' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Submit' }))
+  await waitFor(() => expect(mocks.push).toHaveBeenCalledWith('/pending'))
+  expect(mocks.create.mock.calls[0][0].phone).toBeNull()
 })

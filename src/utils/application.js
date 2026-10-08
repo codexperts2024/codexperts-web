@@ -3,12 +3,12 @@ export function isDraftApplication(profile) {
 }
 
 export function hasRequiredApplicationFields(profile) {
-  return ['first_name', 'last_name', 'school', 'cohort', 'phone', 'status', 'major']
+  return ['first_name', 'last_name', 'school', 'cohort', 'status', 'major']
     .every(key => typeof profile?.[key] === 'string' && profile[key].trim())
     && ['Seneca College', 'York University'].includes(profile.school)
     && ['student', 'graduate'].includes(profile.status)
     && /^[1-9][0-9]*$/.test(profile.cohort)
-    && /^\(\d{3}\) \d{3}-\d{4}$/.test(profile.phone)
+    && (!profile.phone || /^\(\d{3}\) \d{3}-\d{4}$/.test(profile.phone))
     && profile.major.trim().length <= 120
 }
 

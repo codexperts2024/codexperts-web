@@ -55,6 +55,24 @@ export default function PendingPage() {
           <span className="text-xs font-medium text-warning">{profileError ? 'Status unavailable' : draft ? 'Not submitted' : rejected ? 'Not approved' : 'Pending approval'}</span>
         </div>
 
+        {rejected && !profileError && (
+          <div className="mt-6 rounded-lg border border-error/30 p-4 text-left" role="status">
+            <h2 className="font-semibold text-sm">Reason for rejection</h2>
+            <p className="mt-2 text-sm whitespace-pre-wrap break-words">
+              {profile.rejection_details_error
+                ? 'Could not load the decision details. Please retry.'
+                : profile.rejection_reason || 'No reason was recorded for this earlier decision. Please contact the club.'}
+            </p>
+            <p className="mt-3 text-xs text-text-hint">
+              {profile.rejected_at
+                ? `Rejected on ${new Date(profile.rejected_at).toLocaleString()}`
+                : profile.rejection_details_error ? '' : 'Rejection date was not recorded.'}
+            </p>
+            {profile.rejection_details_error && <button className="mt-2 text-sm text-accent underline"
+              onClick={() => refreshProfile().catch(() => {})}>Retry decision details</button>}
+          </div>
+        )}
+
         {!draft && !profileError && profile && (
           <dl className="mt-6 text-sm text-left border border-border rounded-lg p-4 space-y-2">
             <div><dt className="text-text-hint">Name</dt><dd>{[profile.first_name, profile.last_name].filter(Boolean).join(' ')}</dd></div>

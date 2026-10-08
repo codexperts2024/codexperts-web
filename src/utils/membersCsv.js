@@ -13,6 +13,8 @@ const CSV_COLUMNS = [
   { key: 'role', header: 'Role' },
   { key: 'executiveTitle', header: 'Executive Title' },
   { key: 'applicationStatus', header: 'Application Status' },
+  { key: 'rejectionReason', header: 'Rejection Reason' },
+  { key: 'rejectedAt', header: 'Rejected At' },
   { key: 'occupation', header: 'Occupation' },
   { key: 'company', header: 'Company' },
   { key: 'linkedin', header: 'LinkedIn' },

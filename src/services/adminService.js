@@ -41,6 +41,8 @@ function mapMember(row) {
     status: row.status,
     role: row.role,
     applicationStatus: row.application_status,
+    rejectionReason: row.rejection_reason ?? null,
+    rejectedAt: row.rejected_at ?? null,
     occupation: row.occupation ?? null,
     company: row.company ?? null,
     linkedin: row.linkedin ?? null,
@@ -69,11 +71,12 @@ export async function approveMember(accessToken, userId) {
   return mapMember(profile)
 }
 
-export async function rejectMember(accessToken, userId) {
-  await adminFetch(accessToken, '/api/admin/reject', {
+export async function rejectMember(accessToken, userId, reason) {
+  const { profile } = await adminFetch(accessToken, '/api/admin/reject', {
     method: 'POST',
-    body: JSON.stringify({ userId }),
+    body: JSON.stringify({ userId, reason }),
   })
+  return mapMember(profile)
 }
 
 export async function updateAdminMember(accessToken, userId, fields) {

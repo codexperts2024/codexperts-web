@@ -137,6 +137,16 @@ checked against the stored fields before showing success.
 Run `npm test` for isolated PostgreSQL migration/RPC tests and signup/auth UI tests.
 No production credentials or production data are used by these tests.
 
+Apply `supabase/migrations/20261008150000_optional_phone_and_rejections.sql` after
+the initial onboarding migration for optional phone numbers and rejection history.
+Phone is validated only when supplied. New rejections require a reason (up to 1,000
+characters); the server saves the reason, reviewer, timestamp and rejected status
+atomically. Admin's Rejected applications list includes earlier rejected accounts,
+but their missing historical dates/reasons are shown as not recorded. Applicants
+can read their own rejection details; other members cannot. The York Discord invite
+is maintained in `src/config/socialLinks.js`.
+
+
 ---
 
 ## Agile Process

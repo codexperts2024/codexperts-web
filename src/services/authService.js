@@ -31,6 +31,23 @@ export async function fetchProfile(userId) {
     .single()
 
   if (error && error.code !== 'PGRST116') throw error
+  if (data?.application_status === 'rejected') {
+    const { data: decision, error: decisionError } = await supabase
+      .from('application_rejections')
+      .select('reason, rejected_at')
+      .eq('profile_id', userId)
+      .order('rejected_at', { ascending: false })
+      .order('id', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    // A failure to read the reason must not erase the known rejection status.
+    return {
+      ...data,
+      rejection_reason: decision?.reason ?? null,
+      rejected_at: decision?.rejected_at ?? null,
+      rejection_details_error: Boolean(decisionError),
+    }
+  }
   return data ?? null
 }
 

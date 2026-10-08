@@ -161,7 +161,7 @@ export default function JoinModal() {
     if (!major.trim()) next.major = 'Please enter your major or program'
     if (!school) next.school = 'Please select a school'
     if (!cohort) next.cohort = 'Please select a cohort'
-    if (!/^\(\d{3}\) \d{3}-\d{4}$/.test(phone)) next.phone = 'Enter a valid phone number: (XXX) XXX-XXXX'
+    if (phone && !/^\(\d{3}\) \d{3}-\d{4}$/.test(phone)) next.phone = 'Enter a valid phone number: (XXX) XXX-XXXX'
     if (!status) next.status = 'Please select your status'
     setErrors(next)
     return Object.keys(next).length === 0
@@ -174,7 +174,7 @@ export default function JoinModal() {
     setErrors({})
     const fields = {
       first_name: firstName.trim(), last_name: lastName.trim(),
-      nickname: nickname.trim() || null, school, cohort: String(cohort), phone, status,
+      nickname: nickname.trim() || null, school, cohort: String(cohort), phone: phone || null, status,
       major: major.trim(), discord_joined: discordJoined,
       company: company.trim() || null, occupation: occupation.trim() || null,
       linkedin: linkedin ? `https://www.linkedin.com/in/${linkedin}` : null,
@@ -262,7 +262,11 @@ export default function JoinModal() {
             catch (err) { setErrors({ submit: formatRequestError(err) }) }
           }}>Continue with Google</Button>
         ) : profile?.application_status === 'rejected' ? (
-          <p>Your application was not approved. Please contact the club before applying again.</p>
+          <div role="status">
+            <p>Your application was not approved.</p>
+            <p className="mt-2 whitespace-pre-wrap break-words">{profile.rejection_details_error ? 'Could not load the reason. Open your application status to retry.' : profile.rejection_reason || 'No reason was recorded for this earlier decision. Please contact the club.'}</p>
+            <button className="mt-3 text-accent underline" onClick={() => { closeModal(); router.push('/pending') }}>View application status</button>
+          </div>
         ) : (<fieldset disabled={submitting}>
         {profileError && <p role="alert" className="mb-4 text-sm text-error">Could not reload your saved profile. Your entries will be kept if submission fails.</p>}
         {/* First Name / Last Name */}
@@ -352,7 +356,7 @@ export default function JoinModal() {
 
         {/* Phone */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-text-primary mb-1.5">Phone Number <span className="text-error">*</span></label>
+          <label className="block text-sm font-medium text-text-primary mb-1.5">Phone Number <span className="text-text-hint font-normal">(optional)</span></label>
           <input
             type="tel"
             value={phone}

@@ -1,6 +1,6 @@
 import React from 'react'
 import { afterEach, test, expect, vi } from 'vitest'
-import { render, screen, fireEvent, cleanup } from '@testing-library/react'
+import { render, screen, fireEvent, cleanup, within, waitFor } from '@testing-library/react'
 import PendingPage from '@/app/pending/page'
 import MemberTable from '@/app/admin/_components/MemberTable'
 
@@ -35,4 +35,41 @@ test('drafts remain editable but never offer approval actions', () => {
   expect(screen.getByRole('button', { name: 'test@example.com' })).toBeTruthy()
   expect(screen.queryByRole('button', { name: 'Approve' })).toBeNull()
   expect(screen.getByText('Not submitted')).toBeTruthy()
+})
+
+test('applicants see their rejection reason and date', () => {
+  mocks.auth = { user: { id: 'one' }, profile: {
+    role: 'pending', application_status: 'rejected', rejection_reason: 'Please confirm your campus.',
+    rejected_at: '2026-10-08T15:00:00Z',
+  }, loading: false }
+  render(<PendingPage />)
+  expect(screen.getByText('Please confirm your campus.')).toBeTruthy()
+  expect(screen.getByText(/Rejected on/)).toBeTruthy()
+})
+
+test('rejected list includes old decisions with unknown details', () => {
+  render(<MemberTable members={[{
+    id: 'one', email: 'test@example.com', role: 'pending', applicationStatus: 'rejected',
+  }]} isAdmin rejectedOnly />)
+  expect(screen.getByText('Rejected')).toBeTruthy()
+  expect(screen.getByText('Not recorded')).toBeTruthy()
+  expect(screen.getByText('No reason recorded (earlier decision)')).toBeTruthy()
+  expect(screen.queryByRole('button', { name: 'Approve' })).toBeNull()
+})
+
+test('rejection requires a reason and keeps it available when saving fails', async () => {
+  const reject = vi.fn().mockResolvedValueOnce(false).mockResolvedValueOnce(true)
+  render(<MemberTable members={[{
+    id: 'one', email: 'test@example.com', role: 'pending', applicationStatus: 'pending',
+  }]} isAdmin onReject={reject} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Reject' }))
+  const dialog = screen.getByRole('dialog')
+  expect(within(dialog).getByRole('button', { name: 'Reject' }).disabled).toBe(true)
+  fireEvent.change(screen.getByLabelText('Reason for rejection *'), { target: { value: 'Please confirm your campus.' } })
+  fireEvent.click(within(dialog).getByRole('button', { name: 'Reject' }))
+  await screen.findByRole('alert')
+  expect(screen.getByLabelText('Reason for rejection *').value).toBe('Please confirm your campus.')
+  fireEvent.click(within(dialog).getByRole('button', { name: 'Reject' }))
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  expect(reject).toHaveBeenLastCalledWith('one', 'Please confirm your campus.')
 })
