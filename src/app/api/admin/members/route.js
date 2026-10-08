@@ -9,9 +9,8 @@ export async function GET(request) {
   const { data, error } = await serviceClient
     .from('profiles')
     .select(
-      'id, first_name, last_name, nickname, email, avatar_url, school, cohort, phone, status, role, application_status, occupation, company, linkedin, github, bio, created_at, updated_at'
+      'id, first_name, last_name, nickname, email, avatar_url, school, major, discord_joined, cohort, phone, status, role, application_status, occupation, company, linkedin, github, bio, created_at, updated_at'
     )
-    .neq('application_status', 'rejected')
     .order('first_name', { ascending: true })
 
   if (error) {
@@ -31,9 +30,28 @@ export async function GET(request) {
     (activeRoles ?? []).map((row) => [row.user_id, row.title])
   )
 
-  const members = (data ?? []).map((row) => ({
+  const rejectedIds = (data ?? []).filter(row => row.application_status === 'rejected').map(row => row.id)
+  const rejectionByUserId = {}
+  if (rejectedIds.length) {
+    const { data: rejections, error: rejectionError } = await serviceClient
+      .from('application_rejections')
+      .select('profile_id, reason, rejected_at')
+      .in('profile_id', rejectedIds)
+      .order('rejected_at', { ascending: false })
+      .order('id', { ascending: false })
+    if (rejectionError) return Response.json({ error: rejectionError.message }, { status: 500 })
+    for (const rejection of rejections ?? []) {
+      rejectionByUserId[rejection.profile_id] ??= rejection
+    }
+  }
+
+  const members = (data ?? []).filter(row =>
+    auth.callerProfile.role === 'admin' || row.application_status !== 'draft'
+  ).map((row) => ({
     ...row,
     executive_title: titleByUserId[row.id] ?? null,
+    rejection_reason: rejectionByUserId[row.id]?.reason ?? null,
+    rejected_at: rejectionByUserId[row.id]?.rejected_at ?? null,
   }))
 
   const sorted = [...members].sort((a, b) => {

@@ -57,6 +57,9 @@ function compareMembers(a, b, key, dir) {
     case 'status':
       result = compareText(formatStatus(a.status), formatStatus(b.status))
       break
+    case 'rejectedAt':
+      result = new Date(a.rejectedAt || 0) - new Date(b.rejectedAt || 0)
+      break
     case 'createdAt':
       result = new Date(a.createdAt || 0) - new Date(b.createdAt || 0)
       break
@@ -93,10 +96,14 @@ export default function MemberTable({
   onSelect,
   onApprove,
   onReject,
+  rejectedOnly = false,
 }) {
   const [rejectTarget, setRejectTarget] = useState(null)
-  const [sortKey, setSortKey] = useState('name')
-  const [sortDir, setSortDir] = useState('asc')
+  const [rejectionReason, setRejectionReason] = useState('')
+  const [rejectionError, setRejectionError] = useState('')
+  const [rejecting, setRejecting] = useState(false)
+  const [sortKey, setSortKey] = useState(rejectedOnly ? 'rejectedAt' : 'name')
+  const [sortDir, setSortDir] = useState(rejectedOnly ? 'desc' : 'asc')
   const pendingCount = members.filter(isPendingApplicant).length
 
   const sortedMembers = useMemo(() => {
@@ -120,7 +127,7 @@ export default function MemberTable({
       <div className="border border-border rounded-lg bg-bg-surface overflow-hidden flex flex-col max-h-[calc(100vh-12rem)] min-h-[320px]">
         <div className="px-4 py-3 border-b border-border bg-bg-layer1 flex items-center justify-between shrink-0">
           <p className="text-sm font-inter text-text-secondary">
-            {members.length} members
+            {members.length} {rejectedOnly ? 'rejected applications' : 'members / applications'}
             {pendingCount > 0 && (
               <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-warning/10 text-warning border border-warning/20">
                 {pendingCount} pending
@@ -130,7 +137,7 @@ export default function MemberTable({
           {isAdmin && (
             <div className="flex items-center gap-3">
               <p className="text-xs text-text-hint font-inter hidden sm:block">
-                Click a name to edit · click headers to sort
+                {rejectedOnly ? 'Click headers to sort' : 'Click a name to edit · click headers to sort'}
               </p>
               <Button
                 type="button"
@@ -156,14 +163,17 @@ export default function MemberTable({
                 <SortHeader label="Role" sortKey="role" activeKey={sortKey} activeDir={sortDir} onSort={handleSort} className="w-24" />
                 <SortHeader label="Status" sortKey="status" activeKey={sortKey} activeDir={sortDir} onSort={handleSort} className="hidden sm:table-cell w-24" />
                 <SortHeader label="Applied" sortKey="createdAt" activeKey={sortKey} activeDir={sortDir} onSort={handleSort} className="hidden xl:table-cell w-28" />
-                <th className="py-2.5 px-3 font-medium w-40 text-right">Actions</th>
+                {rejectedOnly ? <>
+                  <SortHeader label="Rejected on" sortKey="rejectedAt" activeKey={sortKey} activeDir={sortDir} onSort={handleSort} />
+                  <th className="py-2.5 px-3 font-medium">Reason</th>
+                </> : <th className="py-2.5 px-3 font-medium w-40 text-right">Actions</th>}
               </tr>
             </thead>
             <tbody>
               {sortedMembers.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-16 text-center text-text-hint">
-                    No members found.
+                  <td colSpan={rejectedOnly ? 9 : 8} className="py-16 text-center text-text-hint">
+                    {rejectedOnly ? 'No rejected applications.' : 'No members found.'}
                   </td>
                 </tr>
               ) : sortedMembers.map(member => {
@@ -185,13 +195,13 @@ export default function MemberTable({
                           firstName={member.firstName}
                           role={member.role}
                         />
-                        {isAdmin && !pending ? (
+                        {isAdmin && !rejectedOnly ? (
                           <button
                             type="button"
                             onClick={() => onSelect(member)}
                             className="text-text-primary truncate text-left hover:text-link hover:underline transition-colors"
                           >
-                            {memberName(member) || '—'}
+                            {memberName(member) || member.email || 'Edit application'}
                           </button>
                         ) : (
                           <span className="text-text-primary truncate">
@@ -200,20 +210,23 @@ export default function MemberTable({
                         )}
                       </div>
                     </td>
-                    <td className="py-2.5 px-3 text-text-secondary truncate max-w-[180px]">{member.email ?? '—'}</td>
+                    <td className="py-2.5 px-3 text-text-secondary truncate max-w-[180px]">{member.email ?? '—'}<div className="text-xs text-text-hint">{member.major || 'Major not provided'} · Discord: {member.discordJoined ? 'Joined (self-reported)' : 'Not confirmed'}</div></td>
                     <td className="py-2.5 px-3 text-text-secondary hidden md:table-cell">{member.school ?? '—'}</td>
                     <td className="py-2.5 px-3 text-text-secondary">
                       {member.cohort ? cohortLabel(member.cohort) : '—'}
                     </td>
                     <td className="py-2.5 px-3 text-text-primary">
-                      <span>{formatRole(member.role)}</span>
+                      <span>{member.applicationStatus === 'rejected' ? 'Rejected' : member.applicationStatus === 'draft' ? 'Not submitted' : formatRole(member.role)}</span>
                       {member.executiveTitle && (
                         <span className="block text-xs text-text-hint mt-0.5">{member.executiveTitle}</span>
                       )}
                     </td>
                     <td className="py-2.5 px-3 text-text-secondary hidden sm:table-cell">{formatStatus(member.status)}</td>
                     <td className="py-2.5 px-3 text-text-hint hidden xl:table-cell">{formatDate(member.createdAt)}</td>
-                    <td className="py-2.5 px-3">
+                    {rejectedOnly ? <>
+                      <td className="py-2.5 px-3 whitespace-nowrap">{member.rejectedAt ? formatDate(member.rejectedAt) : 'Not recorded'}</td>
+                      <td className="py-2.5 px-3 whitespace-pre-wrap break-words min-w-[220px] max-w-md">{member.rejectionReason || 'No reason recorded (earlier decision)'}</td>
+                    </> : <td className="py-2.5 px-3">
                       {pending ? (
                         <div className="flex items-center justify-end gap-2" onClick={e => e.stopPropagation()}>
                           <button
@@ -227,7 +240,7 @@ export default function MemberTable({
                           <button
                             type="button"
                             disabled={isLoading}
-                            onClick={() => setRejectTarget(member)}
+                            onClick={() => { setRejectTarget(member); setRejectionReason(''); setRejectionError('') }}
                             className="px-3 py-1.5 rounded-md text-xs font-medium border border-border-strong text-text-secondary hover:bg-bg-layer1 disabled:opacity-50 transition-colors"
                           >
                             Reject
@@ -236,7 +249,7 @@ export default function MemberTable({
                       ) : (
                         <div className="text-right text-xs text-text-hint">—</div>
                       )}
-                    </td>
+                    </td>}
                   </tr>
                 )
               })}
@@ -247,14 +260,21 @@ export default function MemberTable({
 
       {rejectTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="bg-bg-surface rounded-lg p-6 max-w-sm w-full shadow-lg border border-border">
-            <p className="font-inter text-base text-text-primary mb-2">Reject this application?</p>
+          <div role="dialog" aria-modal="true" aria-labelledby="reject-title" className="bg-bg-surface rounded-lg p-6 max-w-sm w-full shadow-lg border border-border">
+            <p id="reject-title" className="font-inter text-base text-text-primary mb-2">Reject this application?</p>
             <p className="text-sm text-text-secondary mb-6">
-              {[rejectTarget.firstName, rejectTarget.lastName].filter(Boolean).join(' ')} will be removed from the pending queue. Their account stays in the database.
+              {[rejectTarget.firstName, rejectTarget.lastName].filter(Boolean).join(' ')} will move to the rejected applications list. The applicant will be able to see your reason.
             </p>
+            <label htmlFor="rejection-reason" className="block text-sm mb-2">Reason for rejection *</label>
+            <textarea id="rejection-reason" value={rejectionReason} maxLength={1000} disabled={rejecting}
+              onChange={e => setRejectionReason(e.target.value)} rows={4}
+              className="w-full border border-border rounded-md p-3 text-sm bg-bg-input mb-2" />
+            <p className="text-xs text-text-hint mb-4">Visible to the applicant. Maximum 1,000 characters.</p>
+            {rejectionError && <p role="alert" className="text-sm text-error mb-3">{rejectionError}</p>}
             <div className="flex gap-3 justify-end">
               <button
                 type="button"
+                disabled={rejecting}
                 onClick={() => setRejectTarget(null)}
                 className="px-4 py-2 border border-border-strong rounded-md text-sm font-inter text-text-secondary hover:bg-bg-layer1 transition-colors"
               >
@@ -262,10 +282,18 @@ export default function MemberTable({
               </button>
               <button
                 type="button"
-                disabled={actionLoadingId === rejectTarget.id}
+                disabled={rejecting || actionLoadingId === rejectTarget.id || !rejectionReason.trim()}
                 onClick={async () => {
-                  await onReject(rejectTarget.id)
-                  setRejectTarget(null)
+                  if (rejecting || !rejectionReason.trim()) return
+                  setRejecting(true)
+                  setRejectionError('')
+                  try {
+                    const saved = await onReject(rejectTarget.id, rejectionReason.trim())
+                    if (saved) setRejectTarget(null)
+                    else setRejectionError('Could not save the decision. Your reason has been kept. Please retry or reload the list to check its status.')
+                  } catch (err) {
+                    setRejectionError(err.message || 'Could not save the decision. Please retry.')
+                  } finally { setRejecting(false) }
                 }}
                 className="px-4 py-2 bg-accent text-white rounded-md text-sm font-medium font-inter hover:bg-accent-hover disabled:opacity-50 transition-colors"
               >

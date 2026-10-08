@@ -1,43 +1,27 @@
-CREATE TYPE member_role AS ENUM ('pending', 'member', 'executive', 'admin');
+BEGIN;
 
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+ALTER TABLE public.profiles
+  ADD COLUMN major text,
+  ADD COLUMN discord_joined boolean NOT NULL DEFAULT false;
+ALTER TABLE public.profiles DROP CONSTRAINT profiles_application_status_check;
+ALTER TABLE public.profiles ADD CONSTRAINT profiles_application_status_check
+  CHECK (application_status IN ('draft', 'pending', 'approved', 'rejected'));
+ALTER TABLE public.profiles ALTER COLUMN application_status SET DEFAULT 'draft';
 
-CREATE TABLE profiles (
-  id              UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  first_name      TEXT,
-  last_name       TEXT,
-  nickname        TEXT,
-  email           TEXT UNIQUE NOT NULL,
-  role            member_role NOT NULL DEFAULT 'pending',
-  school          TEXT,
-  major           TEXT,
-  discord_joined  BOOLEAN NOT NULL DEFAULT false,
-  cohort          TEXT,
-  status          TEXT,
-  occupation      TEXT,
-  company         TEXT,
-  phone           TEXT,
-  linkedin        TEXT,
-  github          TEXT,
-  avatar_url      TEXT,
-  bio             TEXT,
-  profile_visibility JSONB NOT NULL DEFAULT '{"bio": true, "linkedin": true, "github": true}',
-  application_status TEXT NOT NULL DEFAULT 'draft'
-    CHECK (application_status IN ('draft', 'pending', 'approved', 'rejected')),
-  created_at      TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-  updated_at      TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-);
+-- Preserve approved members and complete legacy applications. Only incomplete
+-- pending records return to onboarding; new fields do not invalidate old members.
+ALTER TABLE public.profiles DISABLE TRIGGER protect_profiles_admin_columns;
+UPDATE public.profiles SET application_status = 'draft'
+WHERE role = 'pending' AND application_status = 'pending'
+  AND (nullif(btrim(first_name), '') IS NULL
+    OR nullif(btrim(last_name), '') IS NULL
+    OR nullif(btrim(school), '') IS NULL
+    OR nullif(btrim(cohort), '') IS NULL
+    OR nullif(btrim(phone), '') IS NULL
+    OR nullif(btrim(status), '') IS NULL);
 
-CREATE TRIGGER set_profiles_updated_at
-    BEFORE UPDATE ON public.profiles
-    FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
+UPDATE public.profiles SET status = 'graduate' WHERE status = 'graduated';
+ALTER TABLE public.profiles ENABLE TRIGGER protect_profiles_admin_columns;
 
 CREATE OR REPLACE FUNCTION public.protect_profiles_admin_columns()
 RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
@@ -56,7 +40,7 @@ BEGIN
       AND nullif(btrim(NEW.last_name), '') IS NOT NULL
       AND NEW.school IN ('Seneca College', 'York University')
       AND coalesce(NEW.cohort, '') ~ '^[1-9][0-9]*$'
-      AND (nullif(btrim(NEW.phone), '') IS NULL OR NEW.phone ~ '^\([0-9]{3}\) [0-9]{3}-[0-9]{4}$')
+      AND coalesce(NEW.phone, '') ~ '^\([0-9]{3}\) [0-9]{3}-[0-9]{4}$'
       AND NEW.status IN ('student', 'graduate')
       AND nullif(btrim(NEW.major), '') IS NOT NULL) IS NOT TRUE THEN
       RAISE EXCEPTION 'Complete all required application fields before submitting' USING ERRCODE = '42501';
@@ -92,7 +76,7 @@ BEGIN
     OR nullif(btrim(fields->>'last_name'), '') IS NULL
     OR coalesce(fields->>'school', '') NOT IN ('Seneca College', 'York University')
     OR coalesce(fields->>'cohort', '') !~ '^[1-9][0-9]*$'
-    OR (nullif(btrim(fields->>'phone'), '') IS NOT NULL AND fields->>'phone' !~ '^\([0-9]{3}\) [0-9]{3}-[0-9]{4}$')
+    OR coalesce(fields->>'phone', '') !~ '^\([0-9]{3}\) [0-9]{3}-[0-9]{4}$'
     OR coalesce(fields->>'status', '') NOT IN ('student', 'graduate')
     OR nullif(btrim(fields->>'major'), '') IS NULL
     OR length(fields->>'major') > 120
@@ -111,7 +95,7 @@ BEGIN
   UPDATE public.profiles SET
     first_name = btrim(fields->>'first_name'), last_name = btrim(fields->>'last_name'),
     nickname = nullif(btrim(fields->>'nickname'), ''), school = fields->>'school',
-    cohort = fields->>'cohort', phone = nullif(btrim(fields->>'phone'), ''), status = fields->>'status',
+    cohort = fields->>'cohort', phone = fields->>'phone', status = fields->>'status',
     major = btrim(fields->>'major'), discord_joined = (fields->>'discord_joined')::boolean,
     company = nullif(btrim(fields->>'company'), ''), occupation = nullif(btrim(fields->>'occupation'), ''),
     linkedin = nullif(fields->>'linkedin', ''), github = nullif(fields->>'github', ''),
@@ -122,7 +106,4 @@ END;
 $$;
 REVOKE ALL ON FUNCTION public.submit_application(jsonb) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.submit_application(jsonb) TO authenticated;
-
-CREATE TRIGGER protect_profiles_admin_columns
-  BEFORE UPDATE ON public.profiles FOR EACH ROW
-  EXECUTE FUNCTION public.protect_profiles_admin_columns();
+COMMIT;

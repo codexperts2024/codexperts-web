@@ -1,44 +1,6 @@
-CREATE TYPE member_role AS ENUM ('pending', 'member', 'executive', 'admin');
+BEGIN;
 
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TABLE profiles (
-  id              UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  first_name      TEXT,
-  last_name       TEXT,
-  nickname        TEXT,
-  email           TEXT UNIQUE NOT NULL,
-  role            member_role NOT NULL DEFAULT 'pending',
-  school          TEXT,
-  major           TEXT,
-  discord_joined  BOOLEAN NOT NULL DEFAULT false,
-  cohort          TEXT,
-  status          TEXT,
-  occupation      TEXT,
-  company         TEXT,
-  phone           TEXT,
-  linkedin        TEXT,
-  github          TEXT,
-  avatar_url      TEXT,
-  bio             TEXT,
-  profile_visibility JSONB NOT NULL DEFAULT '{"bio": true, "linkedin": true, "github": true}',
-  application_status TEXT NOT NULL DEFAULT 'draft'
-    CHECK (application_status IN ('draft', 'pending', 'approved', 'rejected')),
-  created_at      TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-  updated_at      TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TRIGGER set_profiles_updated_at
-    BEFORE UPDATE ON public.profiles
-    FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
-
+-- Permit validated resubmission while preserving every rejection record.
 CREATE OR REPLACE FUNCTION public.protect_profiles_admin_columns()
 RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
@@ -50,7 +12,7 @@ BEGIN
     RAISE EXCEPTION 'Cannot change role' USING ERRCODE = '42501';
   END IF;
   IF NEW.application_status IS DISTINCT FROM OLD.application_status THEN
-    IF (OLD.role = 'pending' AND OLD.application_status = 'draft'
+    IF (OLD.role = 'pending' AND OLD.application_status IN ('draft', 'rejected')
       AND NEW.application_status = 'pending'
       AND nullif(btrim(NEW.first_name), '') IS NOT NULL
       AND nullif(btrim(NEW.last_name), '') IS NOT NULL
@@ -65,7 +27,7 @@ BEGIN
   IF NEW.email IS DISTINCT FROM OLD.email OR NEW.avatar_url IS DISTINCT FROM OLD.avatar_url THEN
     RAISE EXCEPTION 'Cannot change Google identity fields' USING ERRCODE = '42501';
   END IF;
-  IF OLD.role <> 'pending' OR OLD.application_status = 'rejected' THEN
+  IF OLD.role <> 'pending' THEN
     IF NEW.first_name IS DISTINCT FROM OLD.first_name
       OR NEW.last_name IS DISTINCT FROM OLD.last_name
       OR NEW.cohort IS DISTINCT FROM OLD.cohort THEN
@@ -105,7 +67,7 @@ BEGIN
     FROM auth.users WHERE id = caller
     ON CONFLICT (id) DO NOTHING;
   SELECT * INTO applicant FROM public.profiles WHERE id = caller FOR UPDATE;
-  IF applicant.role <> 'pending' OR applicant.application_status NOT IN ('draft', 'pending') THEN
+  IF applicant.role <> 'pending' OR applicant.application_status NOT IN ('draft', 'pending', 'rejected') THEN
     RAISE EXCEPTION 'This application cannot be submitted' USING ERRCODE = '42501';
   END IF;
   UPDATE public.profiles SET
@@ -123,6 +85,4 @@ $$;
 REVOKE ALL ON FUNCTION public.submit_application(jsonb) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.submit_application(jsonb) TO authenticated;
 
-CREATE TRIGGER protect_profiles_admin_columns
-  BEFORE UPDATE ON public.profiles FOR EACH ROW
-  EXECUTE FUNCTION public.protect_profiles_admin_columns();
+COMMIT;

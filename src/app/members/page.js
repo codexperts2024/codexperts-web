@@ -7,6 +7,7 @@ import { cohortLabel } from '@/utils/cohort'
 import { compareNumberLike, compareText } from '@/utils/memberSort'
 
 const SORT_OPTIONS = [
+  { value: 'leadership-asc', label: 'Admins, executives, then members' },
   { value: 'name-asc', label: 'Name(↑)' },
   { value: 'name-desc', label: 'Name(↓)' },
   { value: 'school-asc', label: 'School(↑)' },
@@ -19,11 +20,16 @@ const SORT_OPTIONS = [
   { value: 'role-desc', label: 'Role(↓)' },
 ]
 
+function normalizedRole(role) {
+  return role?.trim().toLowerCase()
+}
+
 function memberName(member) {
   return [member.firstName, member.lastName].filter(Boolean).join(' ')
 }
 
 function formatRole(role) {
+  role = normalizedRole(role)
   if (role === 'executive' || role === 'admin') return 'Executive'
   return 'Member'
 }
@@ -40,6 +46,11 @@ function matchesStatus(memberStatus, filter) {
 
 function compareBySort(a, b, sortValue) {
   const [key, dir] = sortValue.split('-')
+
+  if (key === 'leadership') {
+    const rank = member => ({ admin: 0, executive: 1 }[normalizedRole(member.role)] ?? 2)
+    return rank(a) - rank(b) || compareText(memberName(a), memberName(b))
+  }
 
   if (key === 'company') {
     const aHas = hasCompany(a)
@@ -84,7 +95,7 @@ export default function MembersPage() {
   const [status, setStatus] = useState('')
   const [role, setRole] = useState('')
   const [company, setCompany] = useState('')
-  const [sort, setSort] = useState('name-asc')
+  const [sort, setSort] = useState('leadership-asc')
 
   useEffect(() => {
     const controller = new AbortController()
@@ -94,7 +105,7 @@ export default function MembersPage() {
     async function load() {
       try {
         const data = await fetchMembers({ signal: controller.signal })
-        if (!cancelled) setMembers(data)
+        if (!cancelled) setMembers(data.filter(m => memberName(m).trim()))
       } catch (err) {
         if (cancelled) return
         if (!cancelled) {
@@ -133,9 +144,9 @@ export default function MembersPage() {
       if (school && m.school !== school) return false
       if (!matchesStatus(m.status, status)) return false
       if (role) {
-        const isExec = m.role === 'executive' || m.role === 'admin'
+        const isExec = formatRole(m.role) === 'Executive'
         if (role === 'executive' && !isExec) return false
-        if (role === 'member' && m.role !== 'member') return false
+        if (role === 'member' && normalizedRole(m.role) !== 'member') return false
       }
       if (company === '__none__') {
         if (hasCompany(m)) return false
@@ -185,7 +196,7 @@ export default function MembersPage() {
               <option value="graduate">Graduate</option>
             </select>
 
-            <select className={selectClass} value={role} onChange={(e) => setRole(e.target.value)}>
+            <select className={selectClass} aria-label="Filter by role" value={role} onChange={(e) => setRole(e.target.value)}>
               <option value="">All Roles</option>
               <option value="member">Member</option>
               <option value="executive">Executive</option>

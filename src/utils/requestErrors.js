@@ -1,6 +1,10 @@
 export function formatRequestError(error) {
   const message = error?.message ?? 'Something went wrong. Please try again.'
 
+  if (error?.code === 'PGRST202' || message.includes('submit_application')) {
+    return 'Signup is temporarily unavailable. Please ask an administrator to apply the latest database migration.'
+  }
+
   if (message.includes('timed out') || message.includes('timeout') || error?.name === 'AbortError') {
     return 'Request timed out. Refresh the page and try again.'
   }

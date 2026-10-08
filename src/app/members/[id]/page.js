@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import React from 'react'
 import Link from 'next/link'
+import ProfilePhotoEditor from '@/components/members/ProfilePhotoEditor'
 import RoleGuard from '@/components/auth/RoleGuard'
 import { useAuth } from '@/hooks/useAuth'
 import { fetchMemberById, updateMyProfile } from '@/services/membersService'
@@ -211,7 +212,7 @@ function VisibilityRow({ label, vis, onChange }) {
 }
 
 // Edit view — controlled by parent draft state, own profile only
-function EditSidebar({ member, draft, onDraftChange, onPreview, onCancel, onSave, saving, saveError }) {
+function EditSidebar({ member, draft, onDraftChange, onPreview, onCancel, onSave, saving, saveError, onPhotoSaved }) {
   const fullName = `${member.firstName ?? ''} ${member.lastName ?? ''}`.trim()
   const setField = (key) => (e) => onDraftChange({ ...draft, [key]: e.target.value })
   const setVis = (key) => (val) => onDraftChange({ ...draft, vis: { ...draft.vis, [key]: val } })
@@ -234,6 +235,7 @@ function EditSidebar({ member, draft, onDraftChange, onPreview, onCancel, onSave
   return (
     <aside className="flex flex-col gap-5">
       <Avatar member={member} />
+      <ProfilePhotoEditor onSaved={onPhotoSaved} />
 
       <div className="flex flex-col gap-1">
         <p className="font-montserrat font-bold text-2xl text-text-primary leading-tight">{fullName}</p>
@@ -335,7 +337,7 @@ function EditSidebar({ member, draft, onDraftChange, onPreview, onCancel, onSave
 
 export default function ProfilePage({ params }) {
   const { id } = React.use(params)
-  const { user } = useAuth()
+  const { user, refreshProfile } = useAuth()
   const [member, setMember] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -484,6 +486,10 @@ export default function ProfilePage({ params }) {
                     {isOwn && mode === 'edit' && draft ? (
                       <EditSidebar
                         member={member}
+                        onPhotoSaved={url => {
+                          setMember(current => ({ ...current, avatarUrl: url }))
+                          refreshProfile().catch(() => {})
+                        }}
                         draft={draft}
                         onDraftChange={setDraft}
                         onPreview={() => setMode('preview')}

@@ -1,14 +1,16 @@
 'use client'
 
-import { createContext, useContext, useState } from 'react'
+import { createContext, useCallback, useContext, useState } from 'react'
 
 const JoinModalContext = createContext(null)
 
 export function JoinModalProvider({ children }) {
   const [isOpen, setIsOpen] = useState(false)
+  const openModal = useCallback(() => setIsOpen(true), [])
+  const closeModal = useCallback(() => setIsOpen(false), [])
 
   return (
-    <JoinModalContext.Provider value={{ isOpen, openModal: () => setIsOpen(true), closeModal: () => setIsOpen(false) }}>
+    <JoinModalContext.Provider value={{ isOpen, openModal, closeModal }}>
       {children}
     </JoinModalContext.Provider>
   )

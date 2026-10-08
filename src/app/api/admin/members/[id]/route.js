@@ -2,6 +2,7 @@ import { verifyAdminCaller } from '@/lib/adminApi'
 import { syncExecutiveTitle } from '@/lib/syncExecutiveTitle'
 import { SCHOOLS, ROLES, EXECUTIVE_TITLES } from '@/utils/constants'
 import { isValidPhone } from '@/utils/phone'
+import { hasRequiredApplicationFields } from '@/utils/application'
 
 const EDITABLE_ROLES = [ROLES.PENDING, ROLES.MEMBER, ROLES.EXECUTIVE, ROLES.ADMIN]
 const EDITABLE_STATUSES = ['student', 'graduate']
@@ -10,6 +11,8 @@ const ALLOWED_FIELDS = new Set([
   'first_name',
   'last_name',
   'school',
+  'major',
+  'discord_joined',
   'cohort',
   'role',
   'status',
@@ -82,18 +85,22 @@ export async function PATCH(request, { params }) {
     return Response.json({ error: 'Phone must match (XXX) XXX-XXXX' }, { status: 400 })
   }
 
+  if (updates.major !== undefined) {
+    if (typeof updates.major !== 'string' || updates.major.trim().length > 120) {
+      return Response.json({ error: 'Major must be text of at most 120 characters' }, { status: 400 })
+    }
+    updates.major = updates.major.trim()
+  }
+  if (updates.discord_joined !== undefined && typeof updates.discord_joined !== 'boolean') {
+    return Response.json({ error: 'Invalid Discord confirmation' }, { status: 400 })
+  }
+
   if (requestedTitle !== undefined && requestedTitle !== null && !EXECUTIVE_TITLES.includes(requestedTitle)) {
     return Response.json({ error: 'Invalid executive title' }, { status: 400 })
   }
 
   if (updates.first_name) updates.first_name = String(updates.first_name).trim()
   if (updates.last_name) updates.last_name = String(updates.last_name).trim()
-
-  if (updates.role === ROLES.PENDING) {
-    updates.application_status = 'pending'
-  } else if (updates.role) {
-    updates.application_status = 'approved'
-  }
 
   const { serviceClient, user } = auth
 
@@ -103,12 +110,22 @@ export async function PATCH(request, { params }) {
 
   const { data: existing, error: existingError } = await serviceClient
     .from('profiles')
-    .select('id, role, school')
+    .select('*')
     .eq('id', id)
     .single()
 
   if (existingError || !existing) {
     return Response.json({ error: 'Member not found' }, { status: 404 })
+  }
+
+  const next = { ...existing, ...updates }
+  if (updates.role && updates.role !== ROLES.PENDING) {
+    if (existing.role === ROLES.PENDING && !hasRequiredApplicationFields(next)) {
+      return Response.json({ error: 'Complete all required application fields before granting membership.' }, { status: 400 })
+    }
+    updates.application_status = 'approved'
+  } else if (updates.role === ROLES.PENDING && existing.role !== ROLES.PENDING) {
+    updates.application_status = hasRequiredApplicationFields(next) ? 'pending' : 'draft'
   }
 
   let profile = existing
@@ -118,7 +135,7 @@ export async function PATCH(request, { params }) {
       .from('profiles')
       .update(updates)
       .eq('id', id)
-      .select('id, first_name, last_name, email, avatar_url, school, cohort, phone, status, role, application_status, created_at')
+      .select('id, first_name, last_name, email, avatar_url, school, major, discord_joined, cohort, phone, status, role, application_status, created_at')
       .single()
 
     if (error) {
@@ -128,7 +145,7 @@ export async function PATCH(request, { params }) {
   } else {
     const { data, error } = await serviceClient
       .from('profiles')
-      .select('id, first_name, last_name, email, avatar_url, school, cohort, phone, status, role, application_status, created_at')
+      .select('id, first_name, last_name, email, avatar_url, school, major, discord_joined, cohort, phone, status, role, application_status, created_at')
       .eq('id', id)
       .single()
 

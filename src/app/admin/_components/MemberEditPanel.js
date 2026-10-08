@@ -43,7 +43,7 @@ export default function MemberEditPanel({ member, saving, error, onSave, onCance
   }, [member])
 
   function updateField(key, value) {
-    setForm(prev => ({ ...prev, [key]: value }))
+    setForm(prev => ({ ...prev, [key]: value, ...(key === 'school' ? { discord_joined: false } : {}) }))
   }
 
   function handleSubmit(e) {
@@ -97,6 +97,14 @@ export default function MemberEditPanel({ member, saving, error, onSave, onCance
             </select>
           </Field>
 
+          <Field label="Major / Program">
+            <input value={form.major} maxLength={120} onChange={e => updateField('major', e.target.value)} className={inputClass} />
+          </Field>
+          <label className="flex gap-2 text-sm">
+            <input type="checkbox" checked={form.discord_joined} disabled={!form.school}
+              onChange={e => updateField('discord_joined', e.target.checked)} />
+            Discord joined (self-reported)
+          </label>
           <Field label="Cohort">
             <select
               value={form.cohort}
@@ -133,7 +141,7 @@ export default function MemberEditPanel({ member, saving, error, onSave, onCance
             </select>
             {form.role === ROLES.PENDING && (
               <p className="mt-1.5 text-xs text-text-hint">
-                Returns this person to the approval queue. Their Our Team position is cleared.
+                Unapproved access. Applications must be complete before approval. Their Our Team position is cleared.
               </p>
             )}
           </Field>

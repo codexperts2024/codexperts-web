@@ -20,6 +20,7 @@ export default function AdminPage() {
   const isAdmin = profile?.role === ROLES.ADMIN
 
   const [members, setMembers] = useState([])
+  const [listView, setListView] = useState('active')
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
   const [selectedMember, setSelectedMember] = useState(null)
@@ -55,7 +56,7 @@ export default function AdminPage() {
     setSelectedMember(current => {
       if (!current) return null
       const fresh = members.find(m => m.id === current.id)
-      if (!fresh || isPendingApplicant(fresh)) return null
+      if (!fresh) return null
       return fresh
     })
   }, [members])
@@ -95,15 +96,17 @@ export default function AdminPage() {
     }
   }
 
-  async function handleReject(userId) {
+  async function handleReject(userId, reason) {
     if (!accessToken) return
     setActionLoadingId(userId)
     try {
-      await rejectMember(accessToken, userId)
-      setMembers(prev => prev.filter(m => m.id !== userId))
+      const updated = await rejectMember(accessToken, userId, reason)
+      setMembers(prev => prev.map(m => m.id === userId ? updated : m))
       if (selectedMember?.id === userId) setSelectedMember(null)
+      return true
     } catch (err) {
       setLoadError(formatRequestError(err))
+      return false
     } finally {
       setActionLoadingId(null)
     }
@@ -125,6 +128,8 @@ export default function AdminPage() {
   }
 
   const pendingCount = members.filter(isPendingApplicant).length
+  const rejectedCount = members.filter(m => m.applicationStatus === 'rejected').length
+  const visibleMembers = members.filter(m => (m.applicationStatus === 'rejected') === (listView === 'rejected'))
 
   return (
     <RoleGuard>
@@ -135,6 +140,17 @@ export default function AdminPage() {
             <p className="text-sm text-text-secondary mt-1 font-inter">
               {isAdmin ? 'Member approvals and profile management' : 'Member approvals'}
             </p>
+          </div>
+
+          <div className="flex gap-2 mb-5" aria-label="Application lists">
+            <button type="button" aria-pressed={listView === 'active'} onClick={() => { setListView('active'); closeEditor() }}
+              className={`px-4 py-2 rounded-md text-sm border ${listView === 'active' ? 'bg-accent text-white' : 'border-border'}`}>
+              Members & applications ({members.length - rejectedCount})
+            </button>
+            <button type="button" aria-pressed={listView === 'rejected'} onClick={() => { setListView('rejected'); closeEditor() }}
+              className={`px-4 py-2 rounded-md text-sm border ${listView === 'rejected' ? 'bg-accent text-white' : 'border-border'}`}>
+              Rejected applications ({rejectedCount})
+            </button>
           </div>
 
           {loadError && (
@@ -149,7 +165,9 @@ export default function AdminPage() {
             </div>
           ) : (
             <MemberTable
-              members={members}
+              key={listView}
+              rejectedOnly={listView === 'rejected'}
+              members={visibleMembers}
               selectedId={selectedMember?.id}
               isAdmin={isAdmin}
               actionLoadingId={actionLoadingId}
@@ -159,7 +177,7 @@ export default function AdminPage() {
             />
           )}
 
-          {!loading && pendingCount === 0 && !isAdmin && (
+          {!loading && listView === 'active' && pendingCount === 0 && !isAdmin && (
             <p className="mt-4 text-sm text-text-hint font-inter text-center">
               No pending approvals right now.
             </p>
