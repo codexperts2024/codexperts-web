@@ -30,28 +30,36 @@ export async function GET(request) {
     (activeRoles ?? []).map((row) => [row.user_id, row.title])
   )
 
-  const rejectedIds = (data ?? []).filter(row => row.application_status === 'rejected').map(row => row.id)
+  const profileNames = new Map((data ?? []).map(row => [row.id,
+    [row.first_name, row.last_name].filter(Boolean).join(' ') || row.email || 'Reviewer']))
   const rejectionByUserId = {}
-  if (rejectedIds.length) {
+  // Page the complete history independently of current application status.
+  for (let offset = 0; ; offset += 1000) {
     const { data: rejections, error: rejectionError } = await serviceClient
       .from('application_rejections')
-      .select('profile_id, reason, rejected_at')
-      .in('profile_id', rejectedIds)
+      .select('id, profile_id, reason, rejected_at, rejected_by')
       .order('rejected_at', { ascending: false })
       .order('id', { ascending: false })
+      .range(offset, offset + 999)
     if (rejectionError) return Response.json({ error: rejectionError.message }, { status: 500 })
     for (const rejection of rejections ?? []) {
-      rejectionByUserId[rejection.profile_id] ??= rejection
+      const history = rejectionByUserId[rejection.profile_id] ??= []
+      history.push({
+        ...rejection,
+        reviewer_name: profileNames.get(rejection.rejected_by) ?? 'Reviewer unavailable',
+      })
     }
+    if ((rejections ?? []).length < 1000) break
   }
 
   const members = (data ?? []).filter(row =>
     auth.callerProfile.role === 'admin' || row.application_status !== 'draft'
   ).map((row) => ({
     ...row,
+    rejection_history: rejectionByUserId[row.id] ?? [],
     executive_title: titleByUserId[row.id] ?? null,
-    rejection_reason: rejectionByUserId[row.id]?.reason ?? null,
-    rejected_at: rejectionByUserId[row.id]?.rejected_at ?? null,
+    rejection_reason: rejectionByUserId[row.id]?.[0]?.reason ?? null,
+    rejected_at: rejectionByUserId[row.id]?.[0]?.rejected_at ?? null,
   }))
 
   const sorted = [...members].sort((a, b) => {

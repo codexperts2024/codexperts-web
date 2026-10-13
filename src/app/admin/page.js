@@ -7,6 +7,8 @@ import { ROLES } from '@/utils/constants'
 import { formatRequestError } from '@/utils/requestErrors'
 import {
   approveMember,
+  hasRejectionHistory,
+  mergeReviewedMember,
   fetchAdminMembers,
   isPendingApplicant,
   rejectMember,
@@ -87,8 +89,9 @@ export default function AdminPage() {
     setActionLoadingId(userId)
     try {
       const updated = await approveMember(accessToken, userId)
-      setMembers(prev => prev.map(m => (m.id === userId ? updated : m)))
+      setMembers(prev => prev.map(m => (m.id === userId ? mergeReviewedMember(m, updated) : m)))
       if (selectedMember?.id === userId) setSelectedMember(null)
+      await loadMembers()
     } catch (err) {
       setLoadError(formatRequestError(err))
     } finally {
@@ -101,8 +104,9 @@ export default function AdminPage() {
     setActionLoadingId(userId)
     try {
       const updated = await rejectMember(accessToken, userId, reason)
-      setMembers(prev => prev.map(m => m.id === userId ? updated : m))
+      setMembers(prev => prev.map(m => m.id === userId ? mergeReviewedMember(m, updated) : m))
       if (selectedMember?.id === userId) setSelectedMember(null)
+      await loadMembers()
       return true
     } catch (err) {
       setLoadError(formatRequestError(err))
@@ -118,8 +122,9 @@ export default function AdminPage() {
     setSaveError('')
     try {
       const updated = await updateAdminMember(accessToken, selectedMember.id, form)
-      setMembers(prev => prev.map(m => (m.id === updated.id ? updated : m)))
+      setMembers(prev => prev.map(m => (m.id === updated.id ? mergeReviewedMember(m, updated) : m)))
       closeEditor()
+      await loadMembers()
     } catch (err) {
       setSaveError(formatRequestError(err))
     } finally {
@@ -128,8 +133,8 @@ export default function AdminPage() {
   }
 
   const pendingCount = members.filter(isPendingApplicant).length
-  const rejectedCount = members.filter(m => m.applicationStatus === 'rejected').length
-  const visibleMembers = members.filter(m => (m.applicationStatus === 'rejected') === (listView === 'rejected'))
+  const rejectedCount = members.filter(hasRejectionHistory).length
+  const visibleMembers = members.filter(m => listView === 'rejected' ? hasRejectionHistory(m) : m.applicationStatus !== 'rejected')
 
   return (
     <RoleGuard>
@@ -145,11 +150,11 @@ export default function AdminPage() {
           <div className="flex gap-2 mb-5" aria-label="Application lists">
             <button type="button" aria-pressed={listView === 'active'} onClick={() => { setListView('active'); closeEditor() }}
               className={`px-4 py-2 rounded-md text-sm border ${listView === 'active' ? 'bg-accent text-white' : 'border-border'}`}>
-              Members & applications ({members.length - rejectedCount})
+              Members & applications ({members.filter(m => m.applicationStatus !== 'rejected').length})
             </button>
             <button type="button" aria-pressed={listView === 'rejected'} onClick={() => { setListView('rejected'); closeEditor() }}
               className={`px-4 py-2 rounded-md text-sm border ${listView === 'rejected' ? 'bg-accent text-white' : 'border-border'}`}>
-              Rejected applications ({rejectedCount})
+              Rejection history ({rejectedCount})
             </button>
           </div>
 

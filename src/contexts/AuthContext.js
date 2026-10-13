@@ -2,7 +2,7 @@
 
 import { createContext, useEffect, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { getSession, fetchProfile, signOut as authSignOut } from '@/services/authService'
+import { getSession, fetchProfile, switchGoogleAccount as authSwitchAccount, signOut as authSignOut } from '@/services/authService'
 import { withTimeout } from '@/utils/withTimeout'
 
 export const AuthContext = createContext(null)
@@ -13,6 +13,9 @@ export function AuthProvider({ children }) {
   const [profileError, setProfileError] = useState('')
   const [accessToken, setAccessToken] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [authAction, setAuthAction] = useState(null)
+  const [authActionError, setAuthActionError] = useState('')
+  const actionLock = useRef(false)
   const userIdRef = useRef(null)
   const revision = useRef(0)
 
@@ -104,19 +107,37 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
-  async function signOut() {
-    try { await withTimeout(authSignOut()) } catch { /* Clear this view even if sign-out fails. */ }
-    userIdRef.current = null
-    revision.current += 1
-    setUser(null)
-    setProfile(null)
-    setAccessToken(null)
-    sessionStorage.removeItem('join_modal_dismissed')
-    window.location.href = '/'
+  async function runAuthAction(action) {
+    if (actionLock.current) return false
+    actionLock.current = true
+    setAuthAction(action)
+    setAuthActionError('')
+    try {
+      if (action === 'switch') await authSwitchAccount()
+      else {
+        await authSignOut()
+        userIdRef.current = null
+        revision.current += 1
+        setUser(null)
+        setProfile(null)
+        setProfileError('')
+        setAccessToken(null)
+        window.location.assign('/')
+      }
+      return true
+    } catch (error) {
+      setAuthActionError(error?.message || 'Could not complete the account action. Please retry.')
+      return false
+    } finally {
+      actionLock.current = false
+      setAuthAction(null)
+    }
   }
+  const signOut = () => runAuthAction('signOut')
+  const switchAccount = () => runAuthAction('switch')
 
   return (
-    <AuthContext.Provider value={{ user, profile, profileError, accessToken, loading, signOut, refreshProfile, acceptProfile }}>
+    <AuthContext.Provider value={{ user, profile, profileError, accessToken, loading, signOut, switchAccount, authAction, authActionError, refreshProfile, acceptProfile }}>
       {children}
     </AuthContext.Provider>
   )

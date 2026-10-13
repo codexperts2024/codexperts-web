@@ -1,8 +1,6 @@
 import { verifyAdminCaller } from '@/lib/adminApi'
-import { syncExecutiveTitle } from '@/lib/syncExecutiveTitle'
 import { SCHOOLS, ROLES, EXECUTIVE_TITLES } from '@/utils/constants'
 import { isValidPhone } from '@/utils/phone'
-import { hasRequiredApplicationFields } from '@/utils/application'
 
 const EDITABLE_ROLES = [ROLES.PENDING, ROLES.MEMBER, ROLES.EXECUTIVE, ROLES.ADMIN]
 const EDITABLE_STATUSES = ['student', 'graduate']
@@ -108,98 +106,17 @@ export async function PATCH(request, { params }) {
     return Response.json({ error: 'You cannot set your own account to pending' }, { status: 400 })
   }
 
-  const { data: existing, error: existingError } = await serviceClient
-    .from('profiles')
-    .select('*')
-    .eq('id', id)
-    .single()
-
-  if (existingError || !existing) {
-    return Response.json({ error: 'Member not found' }, { status: 404 })
-  }
-
-  const next = { ...existing, ...updates }
-  if (updates.role && updates.role !== ROLES.PENDING) {
-    if (existing.role === ROLES.PENDING && !hasRequiredApplicationFields(next)) {
-      return Response.json({ error: 'Complete all required application fields before granting membership.' }, { status: 400 })
-    }
-    updates.application_status = 'approved'
-  } else if (updates.role === ROLES.PENDING && existing.role !== ROLES.PENDING) {
-    updates.application_status = hasRequiredApplicationFields(next) ? 'pending' : 'draft'
-  }
-
-  let profile = existing
-
-  if (Object.keys(updates).length > 0) {
-    const { data, error } = await serviceClient
-      .from('profiles')
-      .update(updates)
-      .eq('id', id)
-      .select('id, first_name, last_name, email, avatar_url, school, major, discord_joined, cohort, phone, status, role, application_status, created_at')
-      .single()
-
-    if (error) {
-      return Response.json({ error: error.message }, { status: 500 })
-    }
-    profile = data
-  } else {
-    const { data, error } = await serviceClient
-      .from('profiles')
-      .select('id, first_name, last_name, email, avatar_url, school, major, discord_joined, cohort, phone, status, role, application_status, created_at')
-      .eq('id', id)
-      .single()
-
-    if (error) {
-      return Response.json({ error: error.message }, { status: 500 })
-    }
-    profile = data
-  }
-
-  let executiveTitle = null
-
-  if (hasTitleField || updates.role !== undefined || updates.school !== undefined) {
-    const nextRole = profile.role
-    const nextSchool = profile.school
-    let nextTitle = requestedTitle
-
-    if (!hasTitleField) {
-      const { data: activeRole, error: activeRoleError } = await serviceClient
-        .from('executive_roles')
-        .select('title')
-        .eq('user_id', id)
-        .is('end_date', null)
-        .maybeSingle()
-
-      if (activeRoleError) {
-        return Response.json({ error: activeRoleError.message }, { status: 500 })
-      }
-      nextTitle = activeRole?.title ?? null
-    }
-
-    try {
-      executiveTitle = await syncExecutiveTitle(serviceClient, {
-        userId: id,
-        role: nextRole,
-        school: nextSchool,
-        title: nextTitle,
-      })
-    } catch (err) {
-      return Response.json({ error: err.message }, { status: 400 })
-    }
-  } else {
-    const { data: activeRole } = await serviceClient
-      .from('executive_roles')
-      .select('title')
-      .eq('user_id', id)
-      .is('end_date', null)
-      .maybeSingle()
-    executiveTitle = activeRole?.title ?? null
-  }
-
-  return Response.json({
-    profile: {
-      ...profile,
-      executive_title: executiveTitle,
-    },
+  const { data, error } = await serviceClient.rpc('admin_edit_member', {
+    actor_id: user.id,
+    target_id: id,
+    fields: updates,
+    set_title: hasTitleField,
+    requested_title: requestedTitle ?? null,
   })
+  if (error) {
+    const status = error.code === 'P0002' ? 404 : error.code === '42501' ? 403
+      : ['22023', '22P02', '23505'].includes(error.code) ? 400 : 500
+    return Response.json({ error: error.message }, { status })
+  }
+  return Response.json({ profile: data })
 }

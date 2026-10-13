@@ -181,7 +181,7 @@ export default function JoinModal() {
       github: github ? `https://github.com/${github}` : null,
     }
     function finish(saved) {
-      acceptProfile(saved)
+      acceptProfile({ ...saved, rejection_history: profile?.rejection_history ?? [] })
       sessionStorage.removeItem('join_modal_dismissed')
       closeModal()
       router.push('/pending')

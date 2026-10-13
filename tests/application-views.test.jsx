@@ -50,6 +50,17 @@ test('applicants see their rejection reason and date', () => {
   expect(mocks.open).toHaveBeenCalled()
 })
 
+test('reapplicants can still read earlier rejection decisions while pending', () => {
+  mocks.auth = { user: { id: 'one' }, profile: {
+    role: 'pending', application_status: 'pending',
+    rejection_history: [{ id: 1, reason: 'Previous eligibility issue', rejected_at: '2026-10-08T15:00:00Z' }],
+  }, loading: false }
+  render(<PendingPage />)
+  expect(screen.getByText('Previous rejection decisions (1)')).toBeTruthy()
+  expect(screen.getByText('Previous eligibility issue')).toBeTruthy()
+  expect(screen.getByText('Pending approval')).toBeTruthy()
+})
+
 test('rejected list includes old decisions with unknown details', () => {
   render(<MemberTable members={[{
     id: 'one', email: 'test@example.com', role: 'pending', applicationStatus: 'rejected',

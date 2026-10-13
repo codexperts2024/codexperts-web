@@ -111,10 +111,10 @@ export default function MemberTable({
       // Keep pending applicants pinned to the top regardless of column sort
       const aPending = isPendingApplicant(a)
       const bPending = isPendingApplicant(b)
-      if (aPending !== bPending) return aPending ? -1 : 1
+      if (!rejectedOnly && aPending !== bPending) return aPending ? -1 : 1
       return compareMembers(a, b, sortKey, sortDir)
     })
-  }, [members, sortKey, sortDir])
+  }, [members, sortKey, sortDir, rejectedOnly])
 
   function handleSort(key) {
     const next = toggleSort(sortKey, sortDir, key)
@@ -127,7 +127,7 @@ export default function MemberTable({
       <div className="border border-border rounded-lg bg-bg-surface overflow-hidden flex flex-col max-h-[calc(100vh-12rem)] min-h-[320px]">
         <div className="px-4 py-3 border-b border-border bg-bg-layer1 flex items-center justify-between shrink-0">
           <p className="text-sm font-inter text-text-secondary">
-            {members.length} {rejectedOnly ? 'rejected applications' : 'members / applications'}
+            {members.length} {rejectedOnly ? 'applications with rejection history' : 'members / applications'}
             {pendingCount > 0 && (
               <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-warning/10 text-warning border border-warning/20">
                 {pendingCount} pending
@@ -165,7 +165,7 @@ export default function MemberTable({
                 <SortHeader label="Applied" sortKey="createdAt" activeKey={sortKey} activeDir={sortDir} onSort={handleSort} className="hidden xl:table-cell w-28" />
                 {rejectedOnly ? <>
                   <SortHeader label="Rejected on" sortKey="rejectedAt" activeKey={sortKey} activeDir={sortDir} onSort={handleSort} />
-                  <th className="py-2.5 px-3 font-medium">Reason</th>
+                  <th className="py-2.5 px-3 font-medium">Rejection history / current status</th>
                 </> : <th className="py-2.5 px-3 font-medium w-40 text-right">Actions</th>}
               </tr>
             </thead>
@@ -225,7 +225,16 @@ export default function MemberTable({
                     <td className="py-2.5 px-3 text-text-hint hidden xl:table-cell">{formatDate(member.createdAt)}</td>
                     {rejectedOnly ? <>
                       <td className="py-2.5 px-3 whitespace-nowrap">{member.rejectedAt ? formatDate(member.rejectedAt) : 'Not recorded'}</td>
-                      <td className="py-2.5 px-3 whitespace-pre-wrap break-words min-w-[220px] max-w-md">{member.rejectionReason || 'No reason recorded (earlier decision)'}</td>
+                      <td className="py-2.5 px-3 whitespace-pre-wrap break-words min-w-[220px] max-w-md"><p className="mb-2 font-medium">Current application: {member.applicationStatus === 'pending' ? 'Pending review' : member.applicationStatus === 'approved' ? 'Approved' : member.applicationStatus === 'draft' ? 'Not submitted' : 'Rejected'}</p>
+                        {member.rejectionHistory?.length ? <details>
+                          <summary className="cursor-pointer">{member.rejectionHistory.length} rejection decision(s)</summary>
+                          <ol className="mt-2 space-y-3">
+                            {member.rejectionHistory.map((decision, index) => <li key={decision.id ?? index}>
+                              <p>{decision.reason}</p>
+                              <p className="text-xs text-text-hint">{decision.rejected_at ? new Date(decision.rejected_at).toLocaleString() : 'Not recorded'} · {decision.reviewer_name || 'Reviewer unavailable'}</p>
+                            </li>)}
+                          </ol>
+                        </details> : member.rejectionReason || 'No reason recorded (earlier decision)'}</td>
                     </> : <td className="py-2.5 px-3">
                       {pending ? (
                         <div className="flex items-center justify-end gap-2" onClick={e => e.stopPropagation()}>

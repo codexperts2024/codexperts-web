@@ -41,6 +41,7 @@ function mapMember(row) {
     status: row.status,
     role: row.role,
     applicationStatus: row.application_status,
+    rejectionHistory: row.rejection_history ?? [],
     rejectionReason: row.rejection_reason ?? null,
     rejectedAt: row.rejected_at ?? null,
     occupation: row.occupation ?? null,
@@ -100,5 +101,22 @@ export function memberToForm(member) {
     status,
     phone: member.phone ?? '',
     executive_title: member.executiveTitle ?? '',
+  }
+}
+
+export function hasRejectionHistory(member) {
+  return member.applicationStatus === 'rejected' || Boolean(member.rejectionHistory?.length)
+}
+
+export function mergeReviewedMember(previous, updated) {
+  const history = previous.rejectionHistory ?? []
+  const newDecision = updated.applicationStatus === 'rejected' && updated.rejectedAt
+    && !history.some(entry => entry.rejected_at === updated.rejectedAt)
+    ? [{ reason: updated.rejectionReason, rejected_at: updated.rejectedAt, reviewer_name: 'Refreshing reviewer…' }]
+    : []
+  return { ...previous, ...updated,
+    rejectionHistory: updated.rejectionHistory?.length ? updated.rejectionHistory : [...newDecision, ...history],
+    rejectionReason: updated.rejectionReason ?? previous.rejectionReason,
+    rejectedAt: updated.rejectedAt ?? previous.rejectedAt,
   }
 }

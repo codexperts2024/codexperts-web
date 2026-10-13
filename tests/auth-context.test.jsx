@@ -3,11 +3,11 @@ import { beforeEach, afterEach, test, expect, vi } from 'vitest'
 import { render, screen, waitFor, act, cleanup } from '@testing-library/react'
 import { AuthProvider, AuthContext } from '@/contexts/AuthContext'
 
-const mocks = vi.hoisted(() => ({ callback: null, fetch: vi.fn(), session: vi.fn() }))
+const mocks = vi.hoisted(() => ({ callback: null, fetch: vi.fn(), session: vi.fn(), signOut: vi.fn(), switchAccount: vi.fn() }))
 vi.mock('@/lib/supabase', () => ({ supabase: { auth: {
   onAuthStateChange: cb => { mocks.callback = cb; return { data: { subscription: { unsubscribe() {} } } } },
 } } }))
-vi.mock('@/services/authService', () => ({ getSession: mocks.session, fetchProfile: mocks.fetch, signOut: vi.fn() }))
+vi.mock('@/services/authService', () => ({ getSession: mocks.session, fetchProfile: mocks.fetch, signOut: mocks.signOut, switchGoogleAccount: mocks.switchAccount }))
 let auth
 function Probe() {
   auth = useContext(AuthContext)
@@ -41,4 +41,29 @@ test('a slow old profile fetch cannot overwrite the just-saved application', asy
   act(() => auth.acceptProfile({ id: 'one', first_name: 'Submitted' }))
   await act(async () => resolveFetch({ id: 'one', first_name: 'Stale' }))
   expect(screen.getByText('one:Submitted:')).toBeTruthy()
+})
+
+
+test('failed logout preserves visible identity and exposes retry state', async () => {
+  render(<AuthProvider><Probe /></AuthProvider>)
+  await screen.findByText('one:Saved:')
+  mocks.signOut.mockRejectedValueOnce(new Error('Offline'))
+  await act(async () => { expect(await auth.signOut()).toBe(false) })
+  expect(auth.user.id).toBe('one')
+  expect(auth.profile.first_name).toBe('Saved')
+  expect(auth.authActionError).toBe('Offline')
+  expect(auth.authAction).toBeNull()
+})
+
+test('logout and account switching share a lock across components', async () => {
+  render(<AuthProvider><Probe /></AuthProvider>)
+  await screen.findByText('one:Saved:')
+  let finish
+  mocks.signOut.mockImplementationOnce(() => new Promise((resolve, reject) => { finish = reject }))
+  let action
+  act(() => { action = auth.signOut() })
+  await act(async () => { expect(await auth.switchAccount()).toBe(false) })
+  expect(mocks.switchAccount).not.toHaveBeenCalled()
+  await act(async () => { finish(new Error('Retry')); await action })
+  expect(auth.authAction).toBeNull()
 })
