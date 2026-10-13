@@ -5,7 +5,7 @@ import Cropper from 'react-easy-crop'
 import { useAuth } from '@/hooks/useAuth'
 import { canAccessAdminRoutes } from '@/utils/constants'
 import { uploadImage } from '@/services/cloudinaryService'
-import { supabase } from '@/lib/supabase'
+import { updateSiteSetting } from '@/services/siteSettingsService'
 import { IconEdit } from '@/components/ui/Icons'
 import { HERO_ASPECT } from '@/lib/heroImage'
 
@@ -56,13 +56,8 @@ export default function HeroImageEditor({ onUpdate }) {
       const file = new File([blob], 'hero.jpg', { type: 'image/jpeg' })
       const { url } = await uploadImage(file, 'hero')
 
-      const { error: dbError } = await supabase
-        .from('site_settings')
-        .update({ value: url, updated_at: new Date().toISOString() })
-        .eq('key', 'hero_image_url')
-
-      if (dbError) throw dbError
-      onUpdate(url)
+      const savedUrl = await updateSiteSetting('hero_image_url', url)
+      onUpdate(savedUrl)
       setImageSrc(null)
     } catch (err) {
       setError(err.message)

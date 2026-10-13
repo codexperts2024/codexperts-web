@@ -1,7 +1,5 @@
 import { supabase } from '@/lib/supabase'
 
-const MEMBER_FIELDS = 'id, first_name, last_name, nickname, avatar_url, school, company, occupation, phone, status, role, linkedin, github, cohort, bio, profile_visibility'
-
 function mapMember(row) {
   return {
     id: row.id,
@@ -12,7 +10,6 @@ function mapMember(row) {
     school: row.school,
     company: row.company,
     occupation: row.occupation,
-    phone: row.phone,
     status: row.status,
     role: row.role,
     linkedinUrl: row.linkedin,
@@ -30,9 +27,7 @@ function withSignal(query, signal) {
 export async function fetchMembers({ signal } = {}) {
   const { data, error } = await withSignal(
     supabase
-      .from('profiles')
-      .select(MEMBER_FIELDS)
-      .neq('role', 'pending')
+      .rpc('get_visible_profiles')
       .order('first_name', { ascending: true }),
     signal
   )
@@ -42,10 +37,12 @@ export async function fetchMembers({ signal } = {}) {
 }
 
 export async function fetchMemberById(id, { signal } = {}) {
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+  if (sessionError) throw sessionError
+  const ownProfile = session?.user?.id === id
   const { data, error } = await withSignal(
     supabase
-      .from('profiles')
-      .select(MEMBER_FIELDS)
+      .rpc(ownProfile ? 'get_own_profile' : 'get_visible_profiles')
       .eq('id', id)
       .single(),
     signal
@@ -54,13 +51,13 @@ export async function fetchMemberById(id, { signal } = {}) {
   return mapMember(data)
 }
 
-export async function updateMyProfile({ nickname, bio, linkedin, github, status, profile_visibility, company, occupation, phone, school }) {
+export async function updateMyProfile({ nickname, bio, linkedin, github, status, profile_visibility, company, occupation, school }) {
   // Only user-editable fields. role / name / email / cohort / avatar are
   // protected by protect_profiles_admin_columns (DB trigger).
   const { data: { user } } = await supabase.auth.getUser()
   const { error } = await supabase
     .from('profiles')
-    .update({ nickname, bio, linkedin, github, status, profile_visibility, company, occupation, phone, school })
+    .update({ nickname, bio, linkedin, github, status, profile_visibility, company, occupation, school })
     .eq('id', user.id)
   if (error) throw error
 }

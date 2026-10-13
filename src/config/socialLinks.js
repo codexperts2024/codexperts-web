@@ -23,7 +23,7 @@ export const socialLinks = {
   // Member only — hover dropdown per school
   discord: [
     { school: 'Seneca', url: 'https://discord.gg/QXuybeNpuN' },
-    { school: 'York', url: 'https://discord.gg/EVGtNXrWV' },
+    { school: 'York', url: 'https://discord.gg/vKWWz8Q7us' },
     // { school: 'TMU', url: 'https://discord.gg/tmu-placeholder' },
   ],
 }

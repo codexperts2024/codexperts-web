@@ -6,11 +6,16 @@ const CSV_COLUMNS = [
   { key: 'email', header: 'Email' },
   { key: 'phone', header: 'Phone' },
   { key: 'school', header: 'School' },
+  { key: 'major', header: 'Major / Program' },
+  { key: 'discordJoined', header: 'Discord Joined (Self-reported)' },
   { key: 'cohort', header: 'Cohort' },
   { key: 'status', header: 'Status' },
   { key: 'role', header: 'Role' },
   { key: 'executiveTitle', header: 'Executive Title' },
   { key: 'applicationStatus', header: 'Application Status' },
+  { key: 'rejectionReason', header: 'Rejection Reason' },
+  { key: 'rejectedAt', header: 'Rejected At' },
+  { key: 'rejectionHistory', header: 'Rejection History (JSON)' },
   { key: 'occupation', header: 'Occupation' },
   { key: 'company', header: 'Company' },
   { key: 'linkedin', header: 'LinkedIn' },
@@ -33,7 +38,7 @@ function escapeCsvCell(value) {
 export function buildMembersCsv(members) {
   const header = CSV_COLUMNS.map(col => col.header).join(',')
   const rows = members.map(member =>
-    CSV_COLUMNS.map(col => escapeCsvCell(member[col.key])).join(',')
+    CSV_COLUMNS.map(col => escapeCsvCell(col.key === 'rejectionHistory' ? JSON.stringify(member.rejectionHistory ?? []) : member[col.key])).join(',')
   )
   // UTF-8 BOM so Excel opens Korean / special characters correctly
   return `\uFEFF${[header, ...rows].join('\n')}`

@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import React from 'react'
 import Link from 'next/link'
+import ProfilePhotoEditor from '@/components/members/ProfilePhotoEditor'
 import RoleGuard from '@/components/auth/RoleGuard'
 import { useAuth } from '@/hooks/useAuth'
 import { fetchMemberById, updateMyProfile } from '@/services/membersService'
@@ -90,13 +91,6 @@ function IconGradCap({ className = 'size-4' }) {
     </svg>
   )
 }
-function IconPhone({ className = 'size-4' }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 11a19.79 19.79 0 01-3.07-8.67A2 2 0 012 .18h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z" />
-    </svg>
-  )
-}
 function IconCalendar({ className = 'size-4' }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -115,7 +109,6 @@ function ReadSidebar({ member, isOwn, isExec, onEdit }) {
     v.company !== false && member.company && { icon: <IconBuilding className="size-4" />, text: member.company },
     member.school && { icon: <IconGradCap className="size-4" />, text: member.school },
     member.cohort && { icon: <IconCalendar className="size-4" />, text: cohortLabel(member.cohort) },
-    v.phone !== false && member.phone && { icon: <IconPhone className="size-4" />, text: member.phone },
   ].filter(Boolean)
 
   return (
@@ -178,7 +171,6 @@ function ReadSidebar({ member, isOwn, isExec, onEdit }) {
             {v.bio === false && member.bio && <span>🔒 Bio hidden</span>}
             {v.occupation === false && member.occupation && <span>🔒 Occupation hidden</span>}
             {v.company === false && member.company && <span>🔒 Company hidden</span>}
-            {v.phone === false && member.phone && <span>🔒 Phone hidden</span>}
             {v.linkedin === false && member.linkedinUrl && <span>🔒 LinkedIn hidden</span>}
             {v.github === false && member.githubUrl && <span>🔒 GitHub hidden</span>}
           </div>
@@ -211,7 +203,7 @@ function VisibilityRow({ label, vis, onChange }) {
 }
 
 // Edit view — controlled by parent draft state, own profile only
-function EditSidebar({ member, draft, onDraftChange, onPreview, onCancel, onSave, saving, saveError }) {
+function EditSidebar({ member, draft, onDraftChange, onPreview, onCancel, onSave, saving, saveError, onPhotoSaved }) {
   const fullName = `${member.firstName ?? ''} ${member.lastName ?? ''}`.trim()
   const setField = (key) => (e) => onDraftChange({ ...draft, [key]: e.target.value })
   const setVis = (key) => (val) => onDraftChange({ ...draft, vis: { ...draft.vis, [key]: val } })
@@ -225,7 +217,6 @@ function EditSidebar({ member, draft, onDraftChange, onPreview, onCancel, onSave
     profile_visibility: draft.vis,
     company: draft.company || null,
     occupation: draft.occupation || null,
-    phone: draft.phone || null,
     school: draft.school || null,
   })
 
@@ -234,6 +225,7 @@ function EditSidebar({ member, draft, onDraftChange, onPreview, onCancel, onSave
   return (
     <aside className="flex flex-col gap-5">
       <Avatar member={member} />
+      <ProfilePhotoEditor onSaved={onPhotoSaved} />
 
       <div className="flex flex-col gap-1">
         <p className="font-montserrat font-bold text-2xl text-text-primary leading-tight">{fullName}</p>
@@ -269,14 +261,6 @@ function EditSidebar({ member, draft, onDraftChange, onPreview, onCancel, onSave
           <option value="">Select school...</option>
           {SCHOOLS.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
-      </div>
-
-      {/* Phone */}
-      <div className="flex flex-col gap-1">
-        <VisibilityRow label="Phone" vis={draft.vis.phone} onChange={setVis('phone')} />
-        <input type="tel" value={draft.phone} onChange={setField('phone')}
-          placeholder="+1 (416) 000-0000"
-          className={inputCls} />
       </div>
 
       {/* Company */}
@@ -335,7 +319,7 @@ function EditSidebar({ member, draft, onDraftChange, onPreview, onCancel, onSave
 
 export default function ProfilePage({ params }) {
   const { id } = React.use(params)
-  const { user } = useAuth()
+  const { user, refreshProfile } = useAuth()
   const [member, setMember] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -389,7 +373,6 @@ export default function ProfilePage({ params }) {
         status: member.status ?? 'student',
         company: member.company ?? '',
         occupation: member.occupation ?? '',
-        phone: member.phone ?? '',
         school: member.school ?? '',
         vis: {
           bio: pv.bio !== false,
@@ -397,7 +380,6 @@ export default function ProfilePage({ params }) {
           github: member.githubUrl ? pv.github !== false : false,
           company: member.company ? pv.company !== false : false,
           occupation: member.occupation ? pv.occupation !== false : false,
-          phone: member.phone ? pv.phone === true : false,
         },
       })
     }
@@ -423,7 +405,6 @@ export default function ProfilePage({ params }) {
         status: draft.status,
         company: draft.company || null,
         occupation: draft.occupation || null,
-        phone: draft.phone || null,
         school: draft.school || null,
         profileVisibility: draft.vis,
       }
@@ -484,6 +465,10 @@ export default function ProfilePage({ params }) {
                     {isOwn && mode === 'edit' && draft ? (
                       <EditSidebar
                         member={member}
+                        onPhotoSaved={url => {
+                          setMember(current => ({ ...current, avatarUrl: url }))
+                          refreshProfile().catch(() => {})
+                        }}
                         draft={draft}
                         onDraftChange={setDraft}
                         onPreview={() => setMode('preview')}

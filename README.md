@@ -119,7 +119,33 @@ Public (Unauthenticated)
 | **Executive** | Post problems, manage sessions, events CRUD |
 | **Admin** | User approval, role management, executive position assignment for Our Team, member CSV export for Excel, full access |
 
-**Onboarding flow:** `Google Sign-In → pending → Admin approval → member`
+**Onboarding flow:** `Google Sign-In → draft → Submit application → pending → Admin approval → member`
+
+Apply `supabase/migrations/20261008120000_application_submission.sql` before deploying
+this application version. It adds major and self-reported Discord participation,
+returns incomplete pending profiles to draft, and preserves approved members.
+Complete legacy pending applications remain pending; an administrator or the
+applicant must fill in their major before approval. Never infer submission from a
+Google email or a first name alone.
+
+Signup writes go through the authenticated `submit_application` database function.
+It derives the user ID from the session, validates required fields, and saves the
+profile and pending status in one transaction. Cancel does not submit or delete the
+Google account. A failed request retains form inputs, and a timed-out submission is
+checked against the stored fields before showing success.
+
+Run `npm test` for isolated PostgreSQL migration/RPC tests and signup/auth UI tests.
+No production credentials or production data are used by these tests.
+
+Apply `supabase/migrations/20261008150000_optional_phone_and_rejections.sql` after
+the initial onboarding migration for optional phone numbers and rejection history.
+Phone is validated only when supplied. New rejections require a reason (up to 1,000
+characters); the server saves the reason, reviewer, timestamp and rejected status
+atomically. Admin's Rejected applications list includes earlier rejected accounts,
+but their missing historical dates/reasons are shown as not recorded. Applicants
+can read their own rejection details; other members cannot. The York Discord invite
+is maintained in `src/config/socialLinks.js`.
+
 
 ---
 
@@ -533,3 +559,7 @@ npm run report -- 4     # Week 4 breakdown (closed vs. open)
 ---
 
 *Built with intention. Deployed with confidence.*
+
+### Reapplication rollout
+
+Apply `supabase/migrations/20261008180000_allow_reapplication.sql` after the optional-phone/rejection migration before deploying reapplication UI. Rejected applicants may edit and submit again; only a valid submission returns them to pending, and previous rejection records remain intact. Google sign-in requests account selection; Switch Google account signs out this local session before starting OAuth.

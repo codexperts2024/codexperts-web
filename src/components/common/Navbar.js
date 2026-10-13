@@ -1,5 +1,7 @@
 'use client'
 
+import SwitchAccountButton from '@/components/auth/SwitchAccountButton'
+import AccountMenu from '@/components/common/AccountMenu'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -46,7 +48,7 @@ const ROLE_COLOR = {
 }
 
 function UserChip({ user, profile }) {
-  const avatarUrl = user?.user_metadata?.avatar_url
+  const avatarUrl = profile?.avatar_url || user?.user_metadata?.avatar_url
   const initial = profile?.nickname
     ? profile.nickname[0].toUpperCase()
     : profile?.first_name
@@ -142,7 +144,7 @@ function NavDropdown({ label, items, pathname }) {
 
 export default function Navbar() {
   const pathname = usePathname()
-  const { user, profile, loading, signOut } = useAuth()
+  const { user, profile, loading, signOut, authAction, authActionError } = useAuth()
   const { openModal } = useJoinModal()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [loggingIn, setLoggingIn] = useState(false)
@@ -266,8 +268,8 @@ export default function Navbar() {
             <div className="w-px h-5 bg-border mx-1" />
             {user ? (
               <div className="flex items-center gap-1.5 xl:gap-2 shrink-0">
-                <Link href={profileHref}><UserChip user={user} profile={profile} /></Link>
-                <button type="button" onClick={signOut}
+                <AccountMenu profileHref={profileHref}><UserChip user={user} profile={profile} /></AccountMenu>
+                <button type="button" disabled={Boolean(authAction)} onClick={signOut}
                   className="shrink-0 whitespace-nowrap px-2.5 xl:px-4 py-1.5 rounded-md text-xs xl:text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors">
                   Log out
                 </button>
@@ -286,7 +288,7 @@ export default function Navbar() {
 
           <div className="lg:hidden flex items-center gap-2">
             {!loading && (user ? (
-              <Link href={profileHref}><UserChip user={user} profile={profile} /></Link>
+              <AccountMenu profileHref={profileHref}><UserChip user={user} profile={profile} /></AccountMenu>
             ) : (
               <button type="button" onClick={handleLogIn} disabled={loggingIn}
                 className="px-3 py-1.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors disabled:opacity-60">
@@ -361,7 +363,7 @@ export default function Navbar() {
                   Admin
                 </Link>
               )}
-              <button type="button" onClick={() => { signOut(); setMobileOpen(false) }}
+              <button type="button" disabled={Boolean(authAction)} onClick={async () => { if (await signOut()) setMobileOpen(false) }}
                 className="w-full mt-1 px-4 py-2.5 rounded-md text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors text-center">
                 Log out
               </button>
@@ -369,6 +371,11 @@ export default function Navbar() {
           )}
         </div>
       )}
+      {authActionError && <div role="alert" className="px-4 py-2 bg-bg-surface text-error text-sm border-t border-border">
+        {authActionError}
+        <button type="button" disabled={Boolean(authAction)} onClick={signOut} className="ml-3 underline">Retry sign out</button>
+        <SwitchAccountButton />
+      </div>}
     </nav>
   )
 }

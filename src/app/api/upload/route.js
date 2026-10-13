@@ -60,6 +60,14 @@ export async function POST(request) {
     return Response.json({ error: 'No file provided' }, { status: 400 })
   }
 
+  if (folder === 'profiles' && (
+    typeof file.arrayBuffer !== 'function' ||
+    !['image/jpeg', 'image/png', 'image/webp'].includes(file.type) ||
+    file.size > 5 * 1024 * 1024 || file.size === 0
+  )) {
+    return Response.json({ error: 'Choose a JPG, PNG or WebP image up to 5 MB.' }, { status: 400 })
+  }
+
   try {
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
@@ -77,6 +85,21 @@ export async function POST(request) {
         }
       ).end(buffer)
     })
+
+    if (folder === 'profiles') {
+      // Never accept a target user ID from the caller. The protected avatar
+      // column is updated only for the verified owner using the uploaded URL.
+      const { data: saved, error: saveError } = await serviceClient
+        .from('profiles')
+        .update({ avatar_url: result.secure_url })
+        .eq('id', user.id)
+        .select('avatar_url')
+        .single()
+      if (saveError || !saved) {
+        return Response.json({ error: 'Could not save your profile photo. Please try again.' }, { status: 500 })
+      }
+      return Response.json({ url: saved.avatar_url, publicId: result.public_id })
+    }
 
     return Response.json({ url: result.secure_url, publicId: result.public_id })
   } catch (error) {

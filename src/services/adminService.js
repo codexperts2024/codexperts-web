@@ -34,11 +34,16 @@ function mapMember(row) {
     email: row.email,
     avatarUrl: row.avatar_url,
     school: row.school,
+    major: row.major ?? '',
+    discordJoined: row.discord_joined ?? false,
     cohort: row.cohort,
     phone: row.phone,
     status: row.status,
     role: row.role,
     applicationStatus: row.application_status,
+    rejectionHistory: row.rejection_history ?? [],
+    rejectionReason: row.rejection_reason ?? null,
+    rejectedAt: row.rejected_at ?? null,
     occupation: row.occupation ?? null,
     company: row.company ?? null,
     linkedin: row.linkedin ?? null,
@@ -67,11 +72,12 @@ export async function approveMember(accessToken, userId) {
   return mapMember(profile)
 }
 
-export async function rejectMember(accessToken, userId) {
-  await adminFetch(accessToken, '/api/admin/reject', {
+export async function rejectMember(accessToken, userId, reason) {
+  const { profile } = await adminFetch(accessToken, '/api/admin/reject', {
     method: 'POST',
-    body: JSON.stringify({ userId }),
+    body: JSON.stringify({ userId, reason }),
   })
+  return mapMember(profile)
 }
 
 export async function updateAdminMember(accessToken, userId, fields) {
@@ -88,10 +94,29 @@ export function memberToForm(member) {
     first_name: member.firstName ?? '',
     last_name: member.lastName ?? '',
     school: member.school ?? '',
+    major: member.major ?? '',
+    discord_joined: member.discordJoined ?? false,
     cohort: member.cohort ?? '',
     role: member.role ?? 'member',
     status,
     phone: member.phone ?? '',
     executive_title: member.executiveTitle ?? '',
+  }
+}
+
+export function hasRejectionHistory(member) {
+  return member.applicationStatus === 'rejected' || Boolean(member.rejectionHistory?.length)
+}
+
+export function mergeReviewedMember(previous, updated) {
+  const history = previous.rejectionHistory ?? []
+  const newDecision = updated.applicationStatus === 'rejected' && updated.rejectedAt
+    && !history.some(entry => entry.rejected_at === updated.rejectedAt)
+    ? [{ reason: updated.rejectionReason, rejected_at: updated.rejectedAt, reviewer_name: 'Refreshing reviewer…' }]
+    : []
+  return { ...previous, ...updated,
+    rejectionHistory: updated.rejectionHistory?.length ? updated.rejectionHistory : [...newDecision, ...history],
+    rejectionReason: updated.rejectionReason ?? previous.rejectionReason,
+    rejectedAt: updated.rejectedAt ?? previous.rejectedAt,
   }
 }

@@ -4,40 +4,25 @@ export async function POST(request) {
   const auth = await verifyAdminCaller(request)
   if (auth.error) return auth.error
 
-  const { userId } = await request.json()
+  const { userId, reason } = await request.json()
   if (!userId) {
     return Response.json({ error: 'userId is required' }, { status: 400 })
+  }
+  if (typeof reason !== 'string' || !reason.trim() || reason.trim().length > 1000) {
+    return Response.json({ error: 'A rejection reason of 1 to 1000 characters is required.' }, { status: 400 })
   }
 
   const { serviceClient } = auth
 
-  const { data: target, error: fetchError } = await serviceClient
-    .from('profiles')
-    .select('role, application_status')
-    .eq('id', userId)
-    .single()
-
-  if (fetchError || !target) {
-    return Response.json({ error: 'User not found' }, { status: 404 })
-  }
-
-  if (target.application_status === 'rejected') {
-    return Response.json({ error: 'Application is already rejected' }, { status: 400 })
-  }
-
-  if (target.role !== 'pending' || target.application_status !== 'pending') {
-    return Response.json({ error: 'User is not pending approval' }, { status: 400 })
-  }
-
-  const { data, error } = await serviceClient
-    .from('profiles')
-    .update({ application_status: 'rejected' })
-    .eq('id', userId)
-    .select('id, first_name, last_name, email, avatar_url, school, cohort, phone, status, role, application_status, created_at')
-    .single()
+  const { data, error } = await serviceClient.rpc('reject_application', {
+    applicant_id: userId,
+    reviewer_id: auth.user.id,
+    rejection_reason: reason.trim(),
+  })
 
   if (error) {
-    return Response.json({ error: error.message }, { status: 500 })
+    const status = error.code === 'P0002' ? 404 : error.code === '42501' ? 403 : error.code === '22023' ? 409 : 500
+    return Response.json({ error: error.message }, { status })
   }
 
   return Response.json({ ok: true, profile: data })

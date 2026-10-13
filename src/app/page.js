@@ -1,58 +1,19 @@
-'use client'
-
-import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import Script from 'next/script'
 import Button from '@/components/ui/Button'
 import JoinUsButton from '@/components/ui/JoinUsButton'
-import HeroImageEditor from '@/components/home/HeroImageEditor'
-import { getOptimizedUrl } from '@/services/cloudinaryService'
-import { getSiteSetting } from '@/services/siteSettingsService'
-import { createLoadGuard } from '@/utils/loadGuard'
+import HomeHero from '@/components/home/HomeHero'
+import { getHeroImageUrl } from '@/lib/server/heroImage'
 
-const FALLBACK_HERO = '/hero.jpg'
+export const dynamic = 'force-dynamic'
 
-export default function HomePage() {
-  const [heroUrl, setHeroUrl] = useState(null)
-
-  useEffect(() => {
-    const guard = createLoadGuard()
-
-    async function load() {
-      try {
-        const url = await getSiteSetting('hero_image_url', { signal: guard.signal })
-        if (!guard.isCancelled() && url) setHeroUrl(url)
-      } catch {
-        // Keep fallback hero on timeout/error
-      }
-    }
-
-    load()
-    return () => guard.cleanup()
-  }, [])
-
-  const src = getOptimizedUrl(heroUrl) ?? FALLBACK_HERO
+export default async function HomePage() {
+  const heroUrl = await getHeroImageUrl()
 
   return (
     <main className="min-h-screen bg-bg-base">
 
-      {/* Hero — fixed aspect ratio with page gutters so crop stays consistent */}
-      <section className="w-full bg-bg-base pt-4 md:pt-6">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="relative w-full aspect-[16/7] overflow-hidden bg-bg-layer1">
-            <Image
-              src={src}
-              alt="group photo of codeXperts"
-              fill
-              sizes="(max-width: 1152px) 100vw, 1152px"
-              className="object-cover object-center"
-              priority
-            />
-            <HeroImageEditor onUpdate={setHeroUrl} />
-          </div>
-        </div>
-      </section>
+      <HomeHero key={heroUrl} initialUrl={heroUrl} />
 
       {/* Social Feed — full width bg-bg-base, inner container matches footer */}
       <section className="w-full bg-bg-base py-8 md:py-12">
