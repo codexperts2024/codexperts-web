@@ -67,8 +67,12 @@ export function AuthProvider({ children }) {
       }
       // Never await a Supabase request inside its auth event callback.
       timer = setTimeout(() => {
-        refreshProfile().catch(() => {}).finally(() => {
-          if (!cancelled) setLoading(false)
+        const request = refreshProfile()
+        // refreshProfile bumps the revision synchronously, so this is its version.
+        // A superseded fetch must not end loading while a newer one is in flight.
+        const version = revision.current
+        request.catch(() => {}).finally(() => {
+          if (!cancelled && version === revision.current) setLoading(false)
         })
       }, 0)
     }

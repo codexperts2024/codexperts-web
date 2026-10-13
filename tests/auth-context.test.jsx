@@ -43,6 +43,22 @@ test('a slow old profile fetch cannot overwrite the just-saved application', asy
   expect(screen.getByText('one:Submitted:')).toBeTruthy()
 })
 
+test('loading stays true until the latest overlapping profile fetch settles', async () => {
+  const resolvers = []
+  mocks.fetch.mockReset().mockImplementation(() => new Promise(resolve => { resolvers.push(resolve) }))
+  render(<AuthProvider><Probe /></AuthProvider>)
+  await waitFor(() => expect(resolvers).toHaveLength(1))
+  act(() => { mocks.callback('SIGNED_IN', session) })
+  await waitFor(() => expect(resolvers).toHaveLength(2))
+
+  await act(async () => resolvers[0]({ id: 'one', first_name: 'Stale' }))
+  expect(auth.loading).toBe(true)
+  expect(auth.profile).toBeNull()
+
+  await act(async () => resolvers[1]({ id: 'one', first_name: 'Saved' }))
+  await screen.findByText('one:Saved:')
+  expect(auth.loading).toBe(false)
+})
 
 test('failed logout preserves visible identity and exposes retry state', async () => {
   render(<AuthProvider><Probe /></AuthProvider>)
